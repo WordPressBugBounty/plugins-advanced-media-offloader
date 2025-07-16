@@ -192,7 +192,7 @@ if (!function_exists('advmo_sanitize_path')) {
 		$path = trim($path, '/');
 
 		// Optionally, you can use wp_normalize_path() if you want to ensure consistent directory separators
-		// $path = wp_normalize_path($path);
+		$path = wp_normalize_path($path);
 
 		return $path;
 	}
@@ -231,46 +231,39 @@ if (!function_exists('advmo_get_cloud_provider_key')) {
 if (!function_exists('advmo_get_unoffloaded_media_items_count')) {
 	function advmo_get_unoffloaded_media_items_count(): int
 	{
-		$args = [
-			'fields' => 'ids',
-			'numberposts' => -1,
-			'post_type' => 'attachment',
-			'post_status' => 'any',
-			'meta_query' => [
-				'relation' => 'OR',
-				[
-					'key' => 'advmo_offloaded',
-					'compare' => 'NOT EXISTS'
-				],
-				[
-					'key' => 'advmo_offloaded',
-					'compare' => '=',
-					'value' => ''
-				]
-			]
-		];
-		$attachments = get_posts($args);
-		return count($attachments);
+		global $wpdb;
+
+		$query = $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->posts} p 
+			LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = 'advmo_offloaded'
+			WHERE p.post_type = 'attachment' 
+			AND (pm.meta_value IS NULL OR pm.meta_value = '')",
+			[]
+		);
+
+		return (int) $wpdb->get_var($query);
 	}
 }
 
 if (!function_exists('advmo_get_offloaded_media_items_count')) {
-	function advmo_get_offloaded_media_items_count()
+	function advmo_get_offloaded_media_items_count(): int
 	{
-		$args = [
-			'fields' => 'ids',
-			'numberposts' => -1,
-			'post_type' => 'attachment',
-			'post_status' => 'any',
-			'meta_query' => [
-				[
-					'key' => 'advmo_offloaded',
-					'compare' => '!=',
-					'value' => ''
-				]
-			]
-		];
-		$attachments = get_posts($args);
-		return count($attachments);
+		global $wpdb;
+
+		$query = $wpdb->prepare(
+			"SELECT COUNT(DISTINCT p.ID) 
+			FROM {$wpdb->posts} p 
+			INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
+			WHERE p.post_type = %s 
+			AND p.post_status != %s 
+			AND pm.meta_key = %s 
+			AND pm.meta_value != %s",
+			'attachment',
+			'trash',
+			'advmo_offloaded',
+			''
+		);
+
+		return (int) $wpdb->get_var($query);
 	}
 }

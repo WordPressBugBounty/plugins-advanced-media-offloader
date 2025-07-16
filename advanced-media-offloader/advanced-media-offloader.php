@@ -3,7 +3,7 @@
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
  * Description:       Offload WordPress media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Min.io or Wasabi.
- * Version:           3.3.4
+ * Version:           3.3.5
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter
@@ -82,6 +82,9 @@ if (!class_exists('ADVMO')) {
 
 			// Register activation hook.
 			register_activation_hook(__FILE__, array($this, 'plugin_activated'));
+
+			// Register deactivation hook.
+			register_deactivation_hook(__FILE__, array($this, 'plugin_deactivated'));
 
 			// Set up container
 			$this->setup_container();
@@ -227,6 +230,27 @@ if (!class_exists('ADVMO')) {
 			if (null === get_option('advmo_first_activated_version', null)) {
 				update_option('advmo_first_activated_version', ADVMO_VERSION, true);
 			}
+		}
+
+		/**
+		 * Plugin Deactivation Hook
+		 *
+		 * @since 3.3.4
+		 */
+		public function plugin_deactivated()
+		{
+			// Clear any scheduled tasks
+			wp_clear_scheduled_hook('advmo_bulk_offload_cron');
+			wp_clear_scheduled_hook('advmo_check_stalled_processes');
+			// Clear bulk offload related options
+			delete_option('advmo_bulk_offload_cancelled');
+			delete_option('advmo_bulk_offload_last_update');
+			delete_option('advmo_bulk_offload_data');
+			delete_option('advmo_last_connection_check');
+			// Clear any custom cron schedules
+			remove_filter('cron_schedules', array($this->container->get('bulk_offload_handler'), 'add_cron_interval'));
+
+			// Note: We don't delete the cloud provider settings to preserve configuration
 		}
 
 		public function define($name, $value = true)

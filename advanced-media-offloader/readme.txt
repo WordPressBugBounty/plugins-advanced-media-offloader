@@ -4,7 +4,7 @@ Tags: s3, media library, cloudflare, offload
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 3.3.4
+Stable tag: 3.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -147,6 +147,9 @@ For optimal performance:
 4. Consider using a CDN for global distributions
 
 == Changelog ==
+= 3.3.5 =
+* Fixed: Minor improvements and bug fixes
+
 = 3.3.4 =
 * Fixed: Minor improvements and bug fixes
 * Updated: WordPress compatibility improvements

@@ -53,6 +53,11 @@ class ImageSrcsetMetaObserver implements ObserverInterface
      */
     public function run($image_meta, $size_array, $image_src, $attachment_id)
     {
+
+        if (!$this->is_offloaded($attachment_id)) {
+            return $image_meta;
+        }
+
         $object_version = $this->get_object_version($attachment_id);
 
         // Check if ['sizes] is set and is an array. Bug reported by a user
