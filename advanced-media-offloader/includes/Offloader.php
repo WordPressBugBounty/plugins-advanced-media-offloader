@@ -8,6 +8,7 @@ use Advanced_Media_Offloader\Interfaces\ObserverInterface;
 use Advanced_Media_Offloader\Observers\AttachmentUrlObserver;
 use Advanced_Media_Offloader\Observers\AttachmentDeleteObserver;
 use Advanced_Media_Offloader\Observers\OffloadStatusObserver;
+use Advanced_Media_Offloader\Observers\AttachmentOffloadButtonObserver;
 use Advanced_Media_Offloader\Observers\ImageSrcsetObserver;
 use Advanced_Media_Offloader\Observers\ImageSrcsetMetaObserver;
 use Advanced_Media_Offloader\Observers\AttachmentUploadObserver;
@@ -41,6 +42,7 @@ class Offloader
 		$this->attach(new ImageSrcsetMetaObserver($this->cloudProvider));
 		$this->attach(new AttachmentUrlObserver($this->cloudProvider));
 		$this->attach(new OffloadStatusObserver($this->cloudProvider));
+		$this->attach(new AttachmentOffloadButtonObserver($this->cloudProvider));
 		$this->attach(new AttachmentDeleteObserver($this->cloudProvider));
 		$this->attach(new PostContentImageTagObserver($this->cloudProvider));
 		$this->attach(new AttachmentUpdateObserver($this->cloudProvider));

@@ -4,7 +4,7 @@ Tags: s3, media library, cloudflare, offload
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 3.3.5
+Stable tag: 4.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,7 @@ Struggling with server space limitations? Want to improve your site's performanc
 
 * **Automatic Offloading** - New media uploads are automatically sent to your cloud storage
 * **Bulk Migration** - Easily move existing media to the cloud (50 files per batch)
+* **WP CLI Support** - Powerful command-line interface for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
 * **Smart URL Rewriting** - All media URLs are automatically rewritten to serve from cloud storage
 * **File Versioning** - Add unique timestamps to media paths to prevent caching issues
 * **Flexible Retention** - Choose to keep local copies or remove them after successful offloading
@@ -80,6 +81,8 @@ For security, cloud provider credentials are stored in your `wp-config.php` file
 	define('ADVMO_MINIO_BUCKET', 'your-bucket-name');
     define('ADVMO_MINIO_DOMAIN', 'your-domain-url');
     define('ADVMO_MINIO_ENDPOINT', 'your-endpoint-url');
+	define('ADVMO_MINIO_PATH_STYLE_ENDPOINT', false); // Optional. Set to true if your MinIO server requires path-style URLs (most self-hosted MinIO setups). Default is false.
+	define('ADVMO_MINIO_REGION', 'your-bucket-region'); // Optional. Set your MinIO bucket region if needed. Default is 'us-east-1'.
 `
 
 **[Amazon S3](https://aws.amazon.com/s3/) Configuration**
@@ -147,6 +150,13 @@ For optimal performance:
 4. Consider using a CDN for global distributions
 
 == Changelog ==
+= 4.0.0 =
+* Added: WP CLI command `wp advmo offload` for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
+* Added: Individual "Offload Now" button in attachment edit screen for on-demand offloading
+* Added: Retry functionality for failed offloads with dedicated "Retry Offload" button
+* Fixed: Admin notices from other plugins now properly disabled on Media Overview page
+* Improved: Enhanced admin interface consistency across all plugin pages
+
 = 3.3.5 =
 * Fixed: Minor improvements and bug fixes
 
@@ -280,23 +290,8 @@ For optimal performance:
 - Initial release.
 
 == Upgrade Notice ==
-= 1.5.1 =
-This update improves the Bulk offload process
-
-= 1.5.0 =
-This update introduces support for Amazon S3, a new cloud storage provider. Please update to access these new features and bug fixes.
-
-= 1.4.0 =
-This update introduces a bulk offload feature, fixes the subdir path for non-image files, and includes UI improvements. Please update to access these new features and bug fixes.
-
-= 1.3.0 =
-This update introduces UI improvements and bug fixes. Please update to access these new features and bug fixes.
-
-= 1.2.0 =
-This update introduces MinIO support, local file deletion options, UI improvements, and offload status in Media Library. Please update to access these new features and bug fixes.
-
-= 1.1.0 =
-This update improves the code base and adds support for DigitalOcean Spaces. Update recommended for all users.
+= 4.0.0 =
+This update fixes admin notices display issues on the Media Overview page for a cleaner admin experience.
 
 = 1.0.0 =
 Initial release. Please provide feedback and report any issues through the support forum.

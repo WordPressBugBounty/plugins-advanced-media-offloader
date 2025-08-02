@@ -270,8 +270,18 @@ class MediaOverview
 
     public function bulk_offload_media_field()
     {
+        // WP CLI Notice
+        echo '<div style="background: #f0f6fc; border: 1px solid #c3d4e7; border-radius: 4px; padding: 12px; margin-bottom: 20px;">';
+        echo '<p style="margin: 0 0 8px 0;"><strong style="color: #0073aa;">💡 ' . __('Use WP CLI for Large Operations', 'advanced-media-offloader') . '</strong></p>';
+        echo '<p style="margin: 0 0 8px 0; font-size: 13px;">' . __('For sites with hundreds or thousands of media files, our WP CLI command offers superior performance and control:', 'advanced-media-offloader') . '</p>';
+        echo '<p style="margin: 0 0 8px 0;"><code style="background: #fff; padding: 2px 6px; border-radius: 3px; font-family: monospace;">wp advmo offload</code></p>';
+        echo '<p style="margin: 0; font-size: 13px;">';
+        echo ' <a href="https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli" target="_blank" style="color: #0073aa; text-decoration: none;">' . __('Learn more →', 'advanced-media-offloader') . '</a>';
+        echo '</p>';
+        echo '</div>';
+
         echo '<p class="description"><strong>' . __('Note:', 'advanced-media-offloader') . '</strong> ';
-        echo __('The offloading process handles up to 50 media files per batch. If you have more than 50 files, you’ll need to run the bulk offload multiple times. This process runs in the background—you can close this page after starting.', 'advanced-media-offloader') . '</p><br />';
+        echo __('This web-based bulk offload supports up to 50 media attachments. For larger operations with hundreds or thousands of files, we recommend using WP CLI commands which provide better performance and reliability for large-scale operations.', 'advanced-media-offloader') . '</p><br />';
 
         $bulk_offload_data = advmo_get_bulk_offload_data();
         $count = advmo_get_unoffloaded_media_items_count();

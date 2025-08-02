@@ -39,9 +39,7 @@ class AdminHeader implements ObserverInterface
      */
     protected function disable_admin_notices()
     {
-        $screen = get_current_screen();
-
-        if ($screen->id === 'toplevel_page_advmo') {
+        if (advmo_is_settings_page()) {
             remove_all_actions('user_admin_notices');
             remove_all_actions('admin_notices');
         }
