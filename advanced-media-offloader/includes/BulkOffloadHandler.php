@@ -187,6 +187,11 @@ class BulkOffloadHandler
                 break;
             }
 
+            // Allow 3rd-parties to skip certain attachments entirely
+            if (false === apply_filters('advmo_should_offload_attachment', true, $attachment_id)) {
+                continue;
+            }
+
             $file_path = get_attached_file($attachment_id);
             if (file_exists($file_path)) {
                 $file_size = filesize($file_path) / (1024 * 1024); // Size in MB
@@ -241,6 +246,11 @@ class BulkOffloadHandler
             foreach ($error_attachments as $attachment_id) {
                 if (count($filtered_attachments) >= $batch_size) {
                     break;
+                }
+
+                // Allow 3rd-parties to skip certain attachments entirely
+                if (false === apply_filters('advmo_should_offload_attachment', true, $attachment_id)) {
+                    continue;
                 }
 
                 $file_path = get_attached_file($attachment_id);

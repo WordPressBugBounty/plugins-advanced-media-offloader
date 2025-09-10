@@ -3,7 +3,7 @@
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
  * Description:       Offload WordPress media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Min.io or Wasabi.
- * Version:           4.0.0
+ * Version:           4.0.1
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter

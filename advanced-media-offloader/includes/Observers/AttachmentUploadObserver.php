@@ -22,6 +22,20 @@ class AttachmentUploadObserver implements ObserverInterface
 
     public function run($metadata, $attachment_id)
     {
+        /**
+         * Filter to determine whether an attachment should be offloaded.
+         *
+         * Return false to skip offloading this attachment. Useful for
+         * conditional rules (file type, size, user role, taxonomy, etc.).
+         *
+         * @param bool $should_offload Default true.
+         * @param int  $attachment_id  Attachment ID.
+         */
+        $should_offload = apply_filters('advmo_should_offload_attachment', true, $attachment_id);
+        if (!$should_offload) {
+            return $metadata;
+        }
+
         if (!$this->cloudAttachmentUploader->uploadAttachment($attachment_id)) {
             wp_delete_attachment($attachment_id, true);
         }

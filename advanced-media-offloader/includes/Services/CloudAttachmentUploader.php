@@ -18,6 +18,20 @@ class CloudAttachmentUploader
 
     public function uploadAttachment(int $attachment_id): bool
     {
+        /**
+         * Filter to determine whether an attachment should be offloaded.
+         *
+         * Return false to skip offloading this attachment. Useful for
+         * conditional rules (file type, size, user role, taxonomy, etc.).
+         *
+         * @param bool $should_offload Default true.
+         * @param int  $attachment_id  Attachment ID.
+         */
+        $should_offload = apply_filters('advmo_should_offload_attachment', true, $attachment_id);
+        if (!$should_offload) {
+            return false;
+        }
+
         if ($this->is_offloaded($attachment_id)) {
             return true;
         }
@@ -32,6 +46,20 @@ class CloudAttachmentUploader
 
     public function uploadUpdatedAttachment(int $attachment_id, array $metadata): bool
     {
+        /**
+         * Filter to determine whether an updated attachment should be re-offloaded.
+         *
+         * Return false to skip uploading the updated file and sizes.
+         *
+         * @param bool  $should_offload Default true.
+         * @param int   $attachment_id  Attachment ID.
+         * @param array $metadata       Attachment metadata.
+         */
+        $should_offload = apply_filters('advmo_should_offload_attachment', true, $attachment_id, $metadata);
+        if (!$should_offload) {
+            return true;
+        }
+
         if ($metadata) {
             $file = get_attached_file($attachment_id);
             $subdir = $this->get_attachment_subdir($attachment_id);

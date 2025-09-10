@@ -4,7 +4,7 @@ Tags: s3, media library, cloudflare, offload
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 4.0.0
+Stable tag: 4.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -150,6 +150,9 @@ For optimal performance:
 4. Consider using a CDN for global distributions
 
 == Changelog ==
+= 4.0.1 =
+* feat: add advmo_should_offload_attachment filter to conditionally skip offloading
+
 = 4.0.0 =
 * Added: WP CLI command `wp advmo offload` for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
 * Added: Individual "Offload Now" button in attachment edit screen for on-demand offloading
