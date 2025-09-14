@@ -29,6 +29,7 @@ return array(
     'Advanced_Media_Offloader\\Observers\\AttachmentUpdateObserver' => $baseDir . '/includes/Observers/AttachmentUpdateObserver.php',
     'Advanced_Media_Offloader\\Observers\\AttachmentUploadObserver' => $baseDir . '/includes/Observers/AttachmentUploadObserver.php',
     'Advanced_Media_Offloader\\Observers\\AttachmentUrlObserver' => $baseDir . '/includes/Observers/AttachmentUrlObserver.php',
+    'Advanced_Media_Offloader\\Observers\\GetAttachedFileObserver' => $baseDir . '/includes/Observers/GetAttachedFileObserver.php',
     'Advanced_Media_Offloader\\Observers\\ImageSrcsetMetaObserver' => $baseDir . '/includes/Observers/ImageSrcsetMetaObserver.php',
     'Advanced_Media_Offloader\\Observers\\ImageSrcsetObserver' => $baseDir . '/includes/Observers/ImageSrcsetObserver.php',
     'Advanced_Media_Offloader\\Observers\\OffloadStatusObserver' => $baseDir . '/includes/Observers/OffloadStatusObserver.php',

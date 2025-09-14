@@ -13,6 +13,7 @@ use Advanced_Media_Offloader\Observers\ImageSrcsetObserver;
 use Advanced_Media_Offloader\Observers\ImageSrcsetMetaObserver;
 use Advanced_Media_Offloader\Observers\AttachmentUploadObserver;
 use Advanced_Media_Offloader\Observers\PostContentImageTagObserver;
+use Advanced_Media_Offloader\Observers\GetAttachedFileObserver;
 use Advanced_Media_Offloader\Observers\AttachmentUpdateObserver;
 
 class Offloader
@@ -41,6 +42,7 @@ class Offloader
 		$this->attach(new ImageSrcsetObserver($this->cloudProvider));
 		$this->attach(new ImageSrcsetMetaObserver($this->cloudProvider));
 		$this->attach(new AttachmentUrlObserver($this->cloudProvider));
+		$this->attach(new GetAttachedFileObserver());
 		$this->attach(new OffloadStatusObserver($this->cloudProvider));
 		$this->attach(new AttachmentOffloadButtonObserver($this->cloudProvider));
 		$this->attach(new AttachmentDeleteObserver($this->cloudProvider));

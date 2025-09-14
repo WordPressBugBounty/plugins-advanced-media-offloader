@@ -37,6 +37,16 @@ if (!function_exists('advmo_vd')) {
 	}
 }
 
+/**
+ * Helper: Get public URL for an attachment
+ */
+if (!function_exists('advmo_get_public_url')) {
+	function advmo_get_public_url($attachment_id)
+	{
+		$url = wp_get_attachment_url($attachment_id);
+		return $url;
+	}
+}
 
 if (!function_exists('advmo_is_settings_page')) {
 	function advmo_is_settings_page($page_name = ''): bool

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit022fe704cb726ea1f611ebe21a5e33ae
+class ComposerStaticInit4544cabf32eda0515a27c922022d5a40
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -97,6 +97,7 @@ class ComposerStaticInit022fe704cb726ea1f611ebe21a5e33ae
         'Advanced_Media_Offloader\\Observers\\AttachmentUpdateObserver' => __DIR__ . '/../..' . '/includes/Observers/AttachmentUpdateObserver.php',
         'Advanced_Media_Offloader\\Observers\\AttachmentUploadObserver' => __DIR__ . '/../..' . '/includes/Observers/AttachmentUploadObserver.php',
         'Advanced_Media_Offloader\\Observers\\AttachmentUrlObserver' => __DIR__ . '/../..' . '/includes/Observers/AttachmentUrlObserver.php',
+        'Advanced_Media_Offloader\\Observers\\GetAttachedFileObserver' => __DIR__ . '/../..' . '/includes/Observers/GetAttachedFileObserver.php',
         'Advanced_Media_Offloader\\Observers\\ImageSrcsetMetaObserver' => __DIR__ . '/../..' . '/includes/Observers/ImageSrcsetMetaObserver.php',
         'Advanced_Media_Offloader\\Observers\\ImageSrcsetObserver' => __DIR__ . '/../..' . '/includes/Observers/ImageSrcsetObserver.php',
         'Advanced_Media_Offloader\\Observers\\OffloadStatusObserver' => __DIR__ . '/../..' . '/includes/Observers/OffloadStatusObserver.php',
@@ -555,9 +556,9 @@ class ComposerStaticInit022fe704cb726ea1f611ebe21a5e33ae
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit022fe704cb726ea1f611ebe21a5e33ae::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit022fe704cb726ea1f611ebe21a5e33ae::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit022fe704cb726ea1f611ebe21a5e33ae::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit4544cabf32eda0515a27c922022d5a40::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit4544cabf32eda0515a27c922022d5a40::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit4544cabf32eda0515a27c922022d5a40::$classMap;
 
         }, null, ClassLoader::class);
     }
