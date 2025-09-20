@@ -51,7 +51,15 @@ class GetAttachedFileObserver implements ObserverInterface
         }
 
         // Get cloud URL via plugin's existing rewrite logic
+
+
+        // Temporarily remove the 'get_attached_file' filter before calling advmo_get_public_url to prevent recursive calls.
+        // Re-add the filter afterward to maintain normal behavior.
+        // This resolves fatal errors on sites with offloaded SVGs or similar mime types where local files are missing.
+        remove_filter('get_attached_file', [$this, 'filter'], 10);
         $remote_url = advmo_get_public_url($attachment_id);
+        add_filter('get_attached_file', [$this, 'filter'], 10, 2);
+
         if (empty($remote_url)) {
             return $file;
         }

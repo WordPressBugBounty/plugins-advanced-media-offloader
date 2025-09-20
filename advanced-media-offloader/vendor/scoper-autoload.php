@@ -29,7 +29,7 @@ if (!function_exists('humbug_phpscoper_expose_class')) {
         }
     }
 }
-humbug_phpscoper_expose_class('ComposerAutoloaderInit4544cabf32eda0515a27c922022d5a40', 'WPFitter\ComposerAutoloaderInit4544cabf32eda0515a27c922022d5a40');
+humbug_phpscoper_expose_class('ComposerAutoloaderInitf615a92c50d90a95a009ec188ff0f31a', 'WPFitter\ComposerAutoloaderInitf615a92c50d90a95a009ec188ff0f31a');
 humbug_phpscoper_expose_class('Aws\S3\Exception\S3Exception', 'WPFitter\Aws\S3\Exception\S3Exception');
 
 // Function aliases. For more information see:
