@@ -34,8 +34,8 @@ Struggling with server space limitations? Want to improve your site's performanc
 == Features ==
 
 * **Automatic Offloading** - New media uploads are automatically sent to your cloud storage
-* **Bulk Migration** - Easily move existing media to the cloud (50 files per batch)
-* **WP CLI Support** - Powerful command-line interface for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
+* **Smart Policies** - Create advanced rules to control exactly which files are offloaded and when, giving you granular control over your storage. ([Learn more](https://wpfitter.com/blog/implementing-smart-retention-policies-with-advanced-media-offloader/))
+* **Bulk Migration & WP CLI** - Easily move existing media to the cloud with powerful command-line support for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
 * **Smart URL Rewriting** - All media URLs are automatically rewritten to serve from cloud storage
 * **File Versioning** - Add unique timestamps to media paths to prevent caching issues
 * **Flexible Retention** - Choose to keep local copies or remove them after successful offloading
