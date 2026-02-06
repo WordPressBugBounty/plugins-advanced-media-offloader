@@ -61,6 +61,25 @@
 		elements.progressBarContainer.style.display = "block";
 		elements.progressTitle.style.display = "block";
 
+		// Reset UI immediately so we don't briefly show stale counts from a previous run.
+		state.processed = 0;
+		// Use server-rendered estimate (unoffloaded count) if available so we show "0 of N" immediately.
+		const totalEstimate = parseInt(
+			elements.progressContainer?.dataset?.totalEstimate ?? "0",
+			10,
+		);
+		state.total =
+			!Number.isNaN(totalEstimate) && totalEstimate > 0 ? totalEstimate : 0;
+		state.progress = 0;
+		if (elements.processedCount) elements.processedCount.textContent = "0";
+		if (elements.totalCount) elements.totalCount.textContent = String(state.total);
+		if (elements.progressText) elements.progressText.textContent = "Preparing...";
+		if (elements.progressBar) elements.progressBar.style.width = "0%";
+		if (elements.cancelButton) {
+			elements.cancelButton.style.display = "inline-block";
+			elements.cancelButton.disabled = false;
+		}
+
 		const formData = new FormData();
 		formData.append("action", "advmo_start_bulk_offload");
 		formData.append(
@@ -79,6 +98,13 @@
 
 			if (data.success) {
 				state.isProcessing = true;
+				// If backend returns a total, show "0 of X" immediately (prevents "0 of 0").
+				const totalFromStart = parseInt(data?.data?.total ?? "0", 10);
+				if (!Number.isNaN(totalFromStart) && totalFromStart > 0) {
+					state.total = totalFromStart;
+					if (elements.totalCount) elements.totalCount.textContent = String(totalFromStart);
+					if (elements.processedCount) elements.processedCount.textContent = "0";
+				}
 				checkProgress();
 			} else {
 				showMessage(
@@ -130,7 +156,7 @@
 		state.total = parseInt(progressData.total);
 		state.progress =
 			state.processed !== 0 && state.total !== 0
-				? (state.processed / state.total) * 100
+				? Math.min((state.processed / state.total) * 100, 100)
 				: 0;
 		state.errors = parseInt(progressData.errors);
 

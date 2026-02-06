@@ -59,9 +59,17 @@ class ImageSrcsetObserver implements ObserverInterface
             return $sources;
         }
 
+        $domain = $this->cloudProvider->getDomain();
+        if (empty($domain)) {
+            // No custom domain provided, leave the original sources intact.
+            return $sources;
+        }
+
         $subDir = $this->get_attachment_subdir($attachment_id);
-        return array_map(function ($source) use ($subDir) {
-            $source['url'] = rtrim($this->cloudProvider->getDomain(), '/') . '/' . ltrim($subDir, '/') . basename($source['url']);
+        $domain = rtrim($domain, '/');
+
+        return array_map(function ($source) use ($subDir, $domain) {
+            $source['url'] = $domain . '/' . ltrim($subDir, '/') . basename($source['url']);
             return $source;
         }, $sources);
     }

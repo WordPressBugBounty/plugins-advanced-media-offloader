@@ -10,6 +10,8 @@ class AttachmentDeleteObserver  implements ObserverInterface
 {
     use OffloaderTrait;
 
+    private const TRANSIENT_DELETE_ERROR_PREFIX = 'advmo_delete_error_';
+
     /**
      * @var S3_Provider
      */
@@ -33,6 +35,7 @@ class AttachmentDeleteObserver  implements ObserverInterface
     public function register(): void
     {
         add_action('delete_attachment', [$this, 'run'], 10, 2);
+        add_action('admin_notices', [$this, 'renderDeleteErrorNotice']);
     }
 
     /**
@@ -59,6 +62,7 @@ class AttachmentDeleteObserver  implements ObserverInterface
     {
         try {
             $result = $this->cloudProvider->deleteAttachment($post_id);
+
             if (!$result) {
                 throw new \Exception("Cloud file deletion failed");
             }
@@ -77,16 +81,66 @@ class AttachmentDeleteObserver  implements ObserverInterface
     private function handleDeletionError(int $post_id, string $error_message): void
     {
         $log_message = "Cloud file deletion failed for attachment ID: {$post_id}. " .
-            "The file remains in the cloud storage and locally due to an error. " .
+            "The file may remain in cloud storage due to an error. " .
             "Please try again or contact support if the issue persists.";
 
         error_log($log_message);
+        
+        // Persist a short-lived notice for the current user instead of hard-stopping the request.
+        $user_id = get_current_user_id();
+        if ($user_id > 0) {
+            set_transient(
+                self::TRANSIENT_DELETE_ERROR_PREFIX . $user_id,
+                [
+                    'attachment_id' => $post_id,
+                    'message'       => $error_message,
+                ],
+                2 * MINUTE_IN_SECONDS
+            );
+        }
+    }
 
-        // Add a notice to the dashboard
-        add_action('admin_notices', function () use ($error_message) {
-            echo '<div class="error"><p>' . esc_html($error_message) . '</p></div>';
-        });
+    /**
+     * Render any pending delete error notice for the current user.
+     */
+    public function renderDeleteErrorNotice(): void
+    {
+        if (!is_admin() || !current_user_can('upload_files')) {
+            return;
+        }
 
-        wp_die('Error deleting file from cloud provider: ' . esc_html($error_message));
+        $user_id = get_current_user_id();
+        if ($user_id <= 0) {
+            return;
+        }
+
+        $key = self::TRANSIENT_DELETE_ERROR_PREFIX . $user_id;
+        $payload = get_transient($key);
+        if (empty($payload) || !is_array($payload)) {
+            return;
+        }
+
+        delete_transient($key);
+
+        $attachment_id = isset($payload['attachment_id']) ? (int) $payload['attachment_id'] : 0;
+        $message = isset($payload['message']) ? (string) $payload['message'] : '';
+
+        if ($message === '') {
+            $message = __('Cloud deletion failed for a media item. The file may remain in cloud storage.', 'advanced-media-offloader');
+        }
+
+        $suffix = $attachment_id > 0
+            ? sprintf(
+                /* translators: %d: attachment ID */
+                __(' (Attachment ID: %d)', 'advanced-media-offloader'),
+                $attachment_id
+            )
+            : '';
+
+        printf(
+            '<div class="notice notice-error is-dismissible"><p>%s%s</p></div>',
+            esc_html($message),
+            esc_html($suffix)
+        );
     }
 }

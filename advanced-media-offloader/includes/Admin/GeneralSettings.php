@@ -57,6 +57,9 @@ class GeneralSettings
 		add_action('admin_init', [$this, 'initialize']);
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 		add_action('wp_ajax_advmo_test_connection', [$this, 'check_connection_ajax']);
+		add_action('wp_ajax_advmo_save_general_settings', [$this, 'save_general_settings_ajax']);
+		add_action('wp_ajax_advmo_save_credentials', [$this, 'save_credentials_ajax']);
+		add_action('wp_ajax_advmo_get_provider_credentials', [$this, 'get_provider_credentials_html_ajax']);
 	}
 
 	public function initialize()
@@ -65,9 +68,14 @@ class GeneralSettings
 			'sanitize_callback' => [$this, 'sanitize']
 		]);
 
+		register_setting('advmo', 'advmo_credentials', [
+			'sanitize_callback' => [$this, 'sanitize_credentials']
+		]);
+
 		$this->add_settings_section();
 		$this->add_provider_field();
 		$this->add_credentials_field();
+		$this->add_auto_offload_field();
 		$this->add_retention_policy_field();
 		$this->add_path_prefix_field();
 		$this->add_object_versioning_field();
@@ -157,6 +165,20 @@ class GeneralSettings
 		);
 	}
 
+	private function add_auto_offload_field()
+	{
+		add_settings_field(
+			'auto_offload_uploads',
+			__('Auto-Offload Media', 'advanced-media-offloader'),
+			[$this, 'auto_offload_field'],
+			'advmo',
+			'general_settings',
+			[
+				'class' => 'advmo-field advmo-auto-offload',
+			]
+		);
+	}
+
 	private function add_object_versioning_field()
 	{
 		add_settings_field(
@@ -221,6 +243,17 @@ class GeneralSettings
 		echo '</div>';
 	}
 
+	public function auto_offload_field()
+	{
+		$options = get_option('advmo_settings');
+		$auto_offload_uploads = isset($options['auto_offload_uploads']) ? intval($options['auto_offload_uploads']) : 1;
+		echo '<div class="advmo-checkbox-option">';
+		echo '<input type="checkbox" id="auto_offload_uploads" name="advmo_settings[auto_offload_uploads]" value="1" ' . checked(1, $auto_offload_uploads, false) . '/>';
+		echo '<label for="auto_offload_uploads">' . esc_html__('Upload files to cloud storage', 'advanced-media-offloader') . '</label>';
+		echo '<p class="description">' . esc_html__('Automatically send new uploads to cloud storage. Note: Existing offloaded files will always load from the cloud, even if this is disabled.', 'advanced-media-offloader') . '</p>';
+		echo '</div>';
+	}
+
 	public function retention_policy_field()
 	{
 		$options = get_option('advmo_settings');
@@ -230,7 +263,7 @@ class GeneralSettings
 
 		echo '<div class="advmo-radio-option">';
 		echo '<input type="radio" id="retention_policy" name="advmo_settings[retention_policy]" value="0" ' . checked(0, $retention_policy, false) . '/>';
-		echo '<label for="retention_policy_none">' . esc_html__('Retain Local Files', 'advanced-media-offloader') . '</label>';
+		echo '<label for="retention_policy">' . esc_html__('Retain Local Files', 'advanced-media-offloader') . '</label>';
 		echo '<p class="description">' . esc_html__('Keep all files on your local server after offloading to the cloud. This option provides redundancy but uses more local storage.', 'advanced-media-offloader') . '</p>';
 		echo '</div>';
 
@@ -262,46 +295,120 @@ class GeneralSettings
 			'object_versioning' => 0,
 			'path_prefix' => '',
 			'mirror_delete' => 0,
-			'path_prefix_active' => 0
+			'path_prefix_active' => 0,
+			'auto_offload_uploads' => 1
 		];
 
-		try {
-			// Validate and sanitize cloud provider
-			$sanitized['cloud_provider'] = $this->sanitizeCloudProvider($options);
+	try {
+		// Validate and sanitize cloud provider
+		$sanitized['cloud_provider'] = $this->sanitizeCloudProvider($options);
 
-			// Sanitize retention policy
-			$sanitized['retention_policy'] = $this->sanitizeRetentionPolicy($options);
+		// Sanitize retention policy
+		$sanitized['retention_policy'] = $this->sanitizeRetentionPolicy($options);
 
-			// Sanitize object versioning
-			$sanitized['object_versioning'] = $this->sanitizeObjectVersioning($options);
+		// Sanitize object versioning
+		$sanitized['object_versioning'] = $this->sanitizeObjectVersioning($options);
 
-			// Sanitize path prefix
-			$sanitized['path_prefix'] = $this->sanitizePathPrefix($options);
+		// Sanitize path prefix
+		$sanitized['path_prefix'] = $this->sanitizePathPrefix($options);
 
-			// Sanitize mirror delete
-			$sanitized['mirror_delete'] = isset($options['mirror_delete']) && (int) $options['mirror_delete'] === 1 ? 1 : 0;
+		// Sanitize mirror delete
+		$sanitized['mirror_delete'] = isset($options['mirror_delete']) && (int) $options['mirror_delete'] === 1 ? 1 : 0;
 
-			// Sanitize path prefix active
-			$sanitized['path_prefix_active'] = isset($options['path_prefix_active']) && (int) $options['path_prefix_active'] === 1 ? 1 : 0;
+		// Sanitize path prefix active
+		$sanitized['path_prefix_active'] = isset($options['path_prefix_active']) && (int) $options['path_prefix_active'] === 1 ? 1 : 0;
 
-			add_settings_error(
-				'advmo_messages',
-				'advmo_message',
-				__('Settings Saved', 'advanced-media-offloader'),
-				'updated'
-			);
+		// Sanitize auto offload uploads
+		$sanitized['auto_offload_uploads'] = isset($options['auto_offload_uploads']) && (int) $options['auto_offload_uploads'] === 1 ? 1 : 0;
 
-			return $sanitized;
-		} catch (\Exception $e) {
-			add_settings_error(
-				'advmo_messages',
-				'advmo_message',
-				$e->getMessage(),
-				'error'
-			);
+		add_settings_error(
+			'advmo_messages',
+			'advmo_message',
+			__('Settings Saved', 'advanced-media-offloader'),
+			'updated'
+		);
 
-			return $options;
+		return $sanitized;
+	} catch (\Exception $e) {
+		add_settings_error(
+			'advmo_messages',
+			'advmo_message',
+			$e->getMessage(),
+			'error'
+		);
+
+		return $options;
+	}
+	}
+
+	/**
+	 * Sanitize and save cloud provider credentials
+	 *
+	 * @param array $credentials
+	 * @return array
+	 */
+	public function sanitize_credentials($credentials)
+	{
+		if (!current_user_can('manage_options')) {
+			return get_option('advmo_credentials', []);
 		}
+
+		if (empty($credentials) || !is_array($credentials)) {
+			return get_option('advmo_credentials', []);
+		}
+
+		// Get existing credentials to preserve other providers
+		$sanitized = get_option('advmo_credentials', []);
+
+		// Define checkbox fields that need special handling (unchecked checkboxes don't appear in POST)
+		$checkbox_fields = ['path_style_endpoint', 'append_bucket_to_domain'];
+
+		foreach ($credentials as $provider_key => $provider_credentials) {
+			if (!is_array($provider_credentials)) {
+				continue;
+			}
+
+			$sanitized[$provider_key] = [];
+
+			foreach ($provider_credentials as $field_name => $field_value) {
+				// Skip if constant is defined (constants take priority)
+				$constant_name = 'ADVMO_' . strtoupper($provider_key) . '_' . strtoupper($field_name);
+				if (defined($constant_name)) {
+					continue;
+				}
+
+				// Sanitize based on field type
+				if (in_array($field_name, ['endpoint', 'domain'])) {
+					// URLs - normalize and validate
+					$sanitized[$provider_key][$field_name] = advmo_normalize_url($field_value);
+				} elseif (in_array($field_name, ['key', 'secret'])) {
+					// API keys/secrets - sanitize as text, preserve special characters
+					$sanitized[$provider_key][$field_name] = sanitize_text_field($field_value);
+				} elseif (in_array($field_name, $checkbox_fields)) {
+					// Boolean values (checkboxes) - '1' = checked, '0' or anything else = unchecked
+					$sanitized[$provider_key][$field_name] = ($field_value === '1' || $field_value === 1) ? 1 : 0;
+				} else {
+					// Other fields (bucket, region, etc.) - sanitize as text
+					$sanitized[$provider_key][$field_name] = sanitize_text_field($field_value);
+				}
+			}
+
+			// Handle unchecked checkboxes - they don't appear in POST, so set them to 0 explicitly
+			foreach ($checkbox_fields as $checkbox_field) {
+				// Skip if constant is defined (constants take priority)
+				$constant_name = 'ADVMO_' . strtoupper($provider_key) . '_' . strtoupper($checkbox_field);
+				if (defined($constant_name)) {
+					continue;
+				}
+
+				// If checkbox field is not in POST data, it means it's unchecked, so set it to 0
+				if (!isset($provider_credentials[$checkbox_field])) {
+					$sanitized[$provider_key][$checkbox_field] = 0;
+				}
+			}
+		}
+
+		return $sanitized;
 	}
 
 	/**
@@ -456,6 +563,9 @@ class GeneralSettings
 			wp_localize_script('advmo_settings', 'advmo_ajax_object', [
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'nonce' => wp_create_nonce('advmo_test_connection'),
+				'save_general_nonce' => wp_create_nonce('advmo_save_general_settings'),
+				'save_credentials_nonce' => wp_create_nonce('advmo_save_credentials'),
+				'get_provider_credentials_nonce' => wp_create_nonce('advmo_get_provider_credentials'),
 				'i18n' => [
 					'test_connection' => __('Test Connection', 'advanced-media-offloader'),
 					'recheck' => __('Re-Check', 'advanced-media-offloader'),
@@ -532,6 +642,189 @@ class GeneralSettings
 				esc_html($e->getMessage())
 			);
 			wp_send_json_error($response_data, 500);
+		}
+	}
+
+	/**
+	 * AJAX handler for saving general settings.
+	 */
+	public function save_general_settings_ajax()
+	{
+		// Verify nonce
+		if (!$this->verify_security_nonce('security_nonce', 'advmo_save_general_settings')) {
+			wp_send_json_error([
+				'message' => __('Invalid security token!', 'advanced-media-offloader')
+			]);
+		}
+
+		// Check user capabilities
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error([
+				'message' => __('You do not have permission to perform this action.', 'advanced-media-offloader')
+			]);
+		}
+
+		// Get the posted settings
+		$settings = isset($_POST['advmo_settings']) ? wp_unslash($_POST['advmo_settings']) : [];
+
+		try {
+			// Sanitize using a direct validation approach for AJAX
+			$sanitized_settings = $this->sanitize_for_ajax($settings);
+
+			// Update the option
+			update_option('advmo_settings', $sanitized_settings);
+
+			// Success
+			wp_send_json_success([
+				'message' => __('Settings saved successfully!', 'advanced-media-offloader')
+			]);
+		} catch (\Exception $e) {
+			// Catch any validation errors and return them directly
+			wp_send_json_error([
+				'message' => $e->getMessage()
+			]);
+		}
+	}
+
+	/**
+	 * Sanitize settings for AJAX calls (without using WordPress settings errors system)
+	 *
+	 * @param array $options
+	 * @return array
+	 * @throws \Exception
+	 */
+	private function sanitize_for_ajax($options)
+	{
+		if (!current_user_can('manage_options')) {
+			throw new \Exception(__('You do not have permission to perform this action.', 'advanced-media-offloader'));
+		}
+
+		// Initialize sanitized options with defaults
+		$sanitized = [
+			'cloud_provider' => '',
+			'retention_policy' => 0,
+			'object_versioning' => 0,
+			'path_prefix' => '',
+			'mirror_delete' => 0,
+			'path_prefix_active' => 0,
+			'auto_offload_uploads' => 1
+		];
+
+		// Validate and sanitize cloud provider
+		$sanitized['cloud_provider'] = $this->sanitizeCloudProvider($options);
+
+		// Sanitize retention policy
+		$sanitized['retention_policy'] = $this->sanitizeRetentionPolicy($options);
+
+		// Sanitize object versioning
+		$sanitized['object_versioning'] = $this->sanitizeObjectVersioning($options);
+
+		// Sanitize path prefix
+		$sanitized['path_prefix'] = $this->sanitizePathPrefix($options);
+
+		// Sanitize mirror delete
+		$sanitized['mirror_delete'] = isset($options['mirror_delete']) && (int) $options['mirror_delete'] === 1 ? 1 : 0;
+
+		// Sanitize path prefix active
+		$sanitized['path_prefix_active'] = isset($options['path_prefix_active']) && (int) $options['path_prefix_active'] === 1 ? 1 : 0;
+
+		// Sanitize auto offload uploads
+		$sanitized['auto_offload_uploads'] = isset($options['auto_offload_uploads']) && (int) $options['auto_offload_uploads'] === 1 ? 1 : 0;
+
+		return $sanitized;
+	}
+
+	/**
+	 * AJAX handler for saving credentials.
+	 */
+	public function save_credentials_ajax()
+	{
+		// Verify nonce
+		if (!$this->verify_security_nonce('security_nonce', 'advmo_save_credentials')) {
+			wp_send_json_error([
+				'message' => __('Invalid security token!', 'advanced-media-offloader')
+			]);
+		}
+
+		// Check user capabilities
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error([
+				'message' => __('You do not have permission to perform this action.', 'advanced-media-offloader')
+			]);
+		}
+
+		// Get the posted credentials
+		$credentials = isset($_POST['advmo_credentials']) ? wp_unslash($_POST['advmo_credentials']) : [];
+
+		// Sanitize using existing method
+		$sanitized_credentials = $this->sanitize_credentials($credentials);
+
+		// Update the option
+		$updated = update_option('advmo_credentials', $sanitized_credentials);
+
+		// Success
+		wp_send_json_success([
+			'message' => __('Credentials saved successfully!', 'advanced-media-offloader')
+		]);
+	}
+
+	/**
+	 * AJAX handler for getting provider credentials HTML.
+	 */
+	public function get_provider_credentials_html_ajax()
+	{
+		// Verify nonce
+		if (!$this->verify_security_nonce('security_nonce', 'advmo_get_provider_credentials')) {
+			wp_send_json_error([
+				'message' => __('Invalid security token!', 'advanced-media-offloader')
+			]);
+		}
+
+		// Check user capabilities
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error([
+				'message' => __('You do not have permission to perform this action.', 'advanced-media-offloader')
+			]);
+		}
+
+		// Get the provider from POST
+		$provider_key = isset($_POST['provider']) ? sanitize_text_field($_POST['provider']) : '';
+
+		if (empty($provider_key)) {
+			wp_send_json_error([
+				'message' => __('No provider specified.', 'advanced-media-offloader')
+			]);
+		}
+
+		// Validate provider exists
+		if (!array_key_exists($provider_key, $this->cloud_providers)) {
+			wp_send_json_error([
+				'message' => __('Invalid cloud provider.', 'advanced-media-offloader')
+			]);
+		}
+
+		try {
+			// Create an instance of the selected cloud provider
+			$cloud_provider_instance = CloudProviderFactory::create($provider_key);
+
+			// Capture the credentials field HTML
+			ob_start();
+			$cloud_provider_instance->credentialsField();
+			$credentials_html = ob_get_clean();
+
+			// Success - return the HTML
+			wp_send_json_success([
+				'html' => $credentials_html,
+				'provider' => $provider_key
+			]);
+		} catch (\Exception $e) {
+			wp_send_json_error([
+				'message' => sprintf(
+					/* translators: %s: error message */
+					__('Failed to load credentials fields: %s', 'advanced-media-offloader'),
+					esc_html($e->getMessage())
+				)
+			]);
 		}
 	}
 

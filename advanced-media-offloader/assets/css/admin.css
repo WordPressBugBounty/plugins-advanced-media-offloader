@@ -1,13 +1,45 @@
+/* ==========================================================================
+   Advanced Media Offloader - Admin Styles
+   ========================================================================== */
+
+/* Design Tokens - Consistent spacing and colors */
+:root {
+	--advmo-spacing-xs: 4px;
+	--advmo-spacing-sm: 8px;
+	--advmo-spacing-md: 16px;
+	--advmo-spacing-lg: 24px;
+	--advmo-spacing-xl: 32px;
+	
+	--advmo-color-text-primary: #1d2327;
+	--advmo-color-text-secondary: #50575e;
+	--advmo-color-text-muted: #787c82;
+	--advmo-color-border: #dcdcde;
+	--advmo-color-border-light: #e7e8ea;
+	--advmo-color-bg-subtle: #f6f7f7;
+	--advmo-color-accent: #2271b1;
+	--advmo-color-accent-hover: #135e96;
+	--advmo-color-success: #00a32a;
+	--advmo-color-warning: #dba617;
+	--advmo-color-error: #d63638;
+	
+	--advmo-radius-sm: 4px;
+	--advmo-radius-md: 6px;
+	--advmo-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+	--advmo-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
+	--advmo-transition-fast: 150ms ease;
+	--advmo-transition-normal: 200ms ease;
+}
+
 /* General styles */
 #advmo .wrap {
 	max-width: 1280px;
 	margin: 0 auto;
-	padding: 0 30px;
+	padding: 0 var(--advmo-spacing-lg);
 }
 
 /* Form styles */
 #advmo form {
-	margin-top: 20px;
+	margin-top: var(--advmo-spacing-lg);
 }
 
 @media screen and (max-width: 782px) {
@@ -19,13 +51,16 @@
 
 #advmo .form-table th {
 	font-weight: 600;
-	padding: 20px 10px 20px 0;
+	padding: var(--advmo-spacing-lg) var(--advmo-spacing-md) var(--advmo-spacing-lg) 0;
 	width: 200px;
 	vertical-align: top;
+	color: var(--advmo-color-text-primary);
+	font-size: 13px;
+	line-height: 1.5;
 }
 
 #advmo .form-table td {
-	padding: 20px 10px;
+	padding: var(--advmo-spacing-lg) var(--advmo-spacing-md);
 	vertical-align: top;
 }
 
@@ -35,21 +70,42 @@
 #advmo input[type="password"] {
 	width: 100%;
 	max-width: 400px;
-	padding: 8px;
-	border: 1px solid #ddd;
-	border-radius: 4px;
+	padding: 10px 12px;
+	border: 1px solid var(--advmo-color-border);
+	border-radius: var(--advmo-radius-sm);
+	font-size: 14px;
+	line-height: 1.4;
+	color: var(--advmo-color-text-primary);
+	background-color: #fff;
+	transition: border-color var(--advmo-transition-fast), box-shadow var(--advmo-transition-fast);
+}
+
+#advmo select:hover,
+#advmo input[type="text"]:hover,
+#advmo input[type="password"]:hover {
+	border-color: var(--advmo-color-accent);
+}
+
+#advmo select:focus,
+#advmo input[type="text"]:focus,
+#advmo input[type="password"]:focus {
+	border-color: var(--advmo-color-accent);
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.15);
+	outline: none;
 }
 
 /* Checkbox style */
 #advmo input[type="checkbox"] {
-	margin-right: 10px;
+	margin-right: var(--advmo-spacing-sm);
 }
 
-/* Description style */
+/* Description style - Improved readability */
 #advmo .description {
-	font-style: italic;
-	color: #666;
-	margin-top: 5px;
+	font-style: normal;
+	color: var(--advmo-color-text-muted);
+	margin-top: var(--advmo-spacing-sm);
+	font-size: 13px;
+	line-height: 1.6;
 }
 
 /* Responsive design */
@@ -79,21 +135,24 @@
 
 /* Notification styles */
 #advmo .advmo-notification {
-	padding: 10px 15px;
-	border-radius: 3px;
-	margin-top: 20px;
+	padding: var(--advmo-spacing-md);
+	border-radius: var(--advmo-radius-sm);
+	margin-top: var(--advmo-spacing-lg);
+	font-size: 13px;
+	line-height: 1.5;
+	border: 1px solid;
 }
 
 #advmo .advmo-notification.success {
-	background-color: #dff0d8;
-	border: 1px solid #d6e9c6;
-	color: #3c763d;
+	background-color: #ecfdf3;
+	border-color: #a3e6cd;
+	color: #065f46;
 }
 
 #advmo .advmo-notification.error {
-	background-color: #f2dede;
-	border: 1px solid #ebccd1;
-	color: #a94442;
+	background-color: #fef2f2;
+	border-color: #fecaca;
+	color: #991b1b;
 }
 
 /* Custom styles for the "Test connection" button */
@@ -103,29 +162,31 @@
 }
 /* Feedback Messages */
 .advmo-last-check {
-	padding: 10px;
-	margin-bottom: 10px !important;
-	border-radius: 4px;
-	transition: opacity 0.5s ease-out;
-	width: 60%;
+	padding: var(--advmo-spacing-md);
+	margin-bottom: var(--advmo-spacing-md) !important;
+	border-radius: var(--advmo-radius-sm);
+	transition: opacity 0.3s ease-out;
+	max-width: 400px;
+	font-size: 13px;
+	border: 1px solid;
 }
 
 @media screen and (max-width: 782px) {
 	.advmo-last-check {
-		width: 100%;
+		max-width: 100%;
 	}
 }
 
 .advmo-last-check.connected {
-	background: #edfaef;
-	color: #287d3c;
-	border-left: 4px solid #28a745;
+	background: #ecfdf3;
+	color: #065f46;
+	border-color: #a3e6cd;
 }
 
 .advmo-last-check.disconnected {
-	background: #fff5f5;
-	color: #da1414;
-	border-left: 4px solid #dc3545;
+	background: #fef2f2;
+	color: #991b1b;
+	border-color: #fecaca;
 }
 
 .fade-out {
@@ -174,41 +235,54 @@
 	font-weight: bold;
 }
 
-/* Form table styles */
+/* ==========================================================================
+   Section Cards - Clean, modern card design
+   ========================================================================== */
 #advmo .advmo-section {
-	background-color: #f9f9f9;
-	border: 1px solid #e0e0e0;
-	box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Light shadow */
-	margin-top: 2rem;
+	background-color: #fff;
+	border: 1px solid var(--advmo-color-border);
+	border-radius: var(--advmo-radius-md);
+	box-shadow: var(--advmo-shadow-sm);
+	margin-top: var(--advmo-spacing-xl);
+	overflow: hidden;
 }
 
 #advmo .advmo-section-header {
-	padding: 1rem;
-	border-bottom: 1px solid #e5e5e5;
-	font-size: 1rem;
-	color: #666666;
-	font-weight: normal;
-	background: #fff;
+	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg);
+	border-bottom: 1px solid var(--advmo-color-border-light);
+	background: var(--advmo-color-bg-subtle);
 }
 
 #advmo .advmo-section-header h2 {
-	font-size: 1.2rem;
-	font-weight: bold;
-	color: #333333;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--advmo-color-text-primary);
+	margin: 0 0 var(--advmo-spacing-xs) 0;
+	letter-spacing: -0.01em;
+}
+
+#advmo .advmo-section-header p {
+	font-size: 13px;
+	color: var(--advmo-color-text-secondary);
+	margin: 0;
+	line-height: 1.5;
 }
 
 #advmo .form-table {
 	margin: 0;
+	background: #fff;
 }
 
 #advmo .form-table th {
-	background-color: #f9f9f9;
-	border-bottom: 1px solid #e5e5e5;
-	font-size: 0.9125rem;
+	background-color: #fff;
+	border-bottom: 1px solid var(--advmo-color-border-light);
+	font-size: 13px;
+	color: var(--advmo-color-text-primary);
 }
 
 #advmo .form-table td {
-	border-bottom: 1px solid #f0f0f0;
+	border-bottom: 1px solid var(--advmo-color-border-light);
+	background: #fff;
 }
 
 #advmo .form-table tr:last-child th,
@@ -218,130 +292,192 @@
 
 #advmo .form-table tbody tr th {
 	vertical-align: top;
-	padding-left: 1rem;
+	padding-left: var(--advmo-spacing-lg);
 }
 
-/* Submit button styling */
+/* ==========================================================================
+   Submit Button - Primary action styling
+   ========================================================================== */
 #advmo .submit {
-	margin-top: 30px;
-	text-align: center;
+	margin-top: var(--advmo-spacing-xl);
+	padding-top: var(--advmo-spacing-lg);
+	text-align: left;
+	border-top: 1px solid var(--advmo-color-border-light);
 }
 
 #advmo .button-primary {
-	background-color: #0073aa; /* WordPress blue */
+	background-color: var(--advmo-color-accent);
 	color: #ffffff;
-	font-weight: bold;
-	padding: 10px 20px;
-	border-radius: 4px;
-	border: none;
+	font-weight: 500;
+	font-size: 13px;
+	padding: 10px 24px;
+	border-radius: var(--advmo-radius-sm);
+	border: 1px solid var(--advmo-color-accent);
 	cursor: pointer;
-	transition: background-color 0.2s ease-in-out;
+	transition: all var(--advmo-transition-fast);
+	box-shadow: var(--advmo-shadow-sm);
 }
 
 #advmo .button-primary:hover,
 #advmo .button-primary:focus {
-	background-color: #005177;
+	background-color: var(--advmo-color-accent-hover);
+	border-color: var(--advmo-color-accent-hover);
+	box-shadow: var(--advmo-shadow-md);
 }
 
-/* Responsive adjustments */
+#advmo .button-primary:focus {
+	outline: 2px solid var(--advmo-color-accent);
+	outline-offset: 2px;
+}
+
+/* Responsive adjustments for form table */
 @media screen and (max-width: 782px) {
 	#advmo .form-table th,
 	#advmo .form-table td {
-		padding: 15px;
+		padding: var(--advmo-spacing-md);
 	}
 }
 
+/* ==========================================================================
+   Radio Options - Card-style selection for mutually exclusive choices
+   ========================================================================== */
 .advmo-radio-group {
-	margin-bottom: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--advmo-spacing-md);
 }
 
 .advmo-radio-option {
-	margin-bottom: 20px;
+	position: relative;
+	padding: var(--advmo-spacing-md);
+	padding-left: calc(var(--advmo-spacing-md) + 28px);
+	background: var(--advmo-color-bg-subtle);
+	border: 1px solid var(--advmo-color-border-light);
+	border-radius: var(--advmo-radius-sm);
+	transition: all var(--advmo-transition-fast);
+}
+
+.advmo-radio-option:hover {
+	border-color: var(--advmo-color-border);
+	background: #fff;
+}
+
+.advmo-radio-option:has(input[type="radio"]:checked) {
+	border-color: var(--advmo-color-accent);
+	background: #fff;
+	box-shadow: 0 0 0 1px var(--advmo-color-accent);
 }
 
 .advmo-radio-option input[type="radio"] {
-	margin-right: 10px;
-}
-
-.advmo-radio-option label {
-	font-weight: bold;
-	display: inline-block;
-	margin-bottom: 5px;
+	position: absolute;
+	left: var(--advmo-spacing-md);
+	top: calc(var(--advmo-spacing-md) + 2px);
+	margin: 0;
 	cursor: pointer;
 }
 
-.advmo-radio-option .description {
-	margin-left: 24px;
-	color: #666;
+.advmo-radio-option label {
+	font-weight: 600;
 	font-size: 13px;
-	line-height: 1.5;
+	display: block;
+	margin-bottom: var(--advmo-spacing-xs);
+	cursor: pointer;
+	color: var(--advmo-color-text-primary);
+	transition: color var(--advmo-transition-fast);
 }
 
+.advmo-radio-option .description {
+	margin: 0;
+	color: var(--advmo-color-text-muted);
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+/* Subtle highlight on selection - not jarring color change */
 .advmo-radio-option input[type="radio"]:checked + label {
-	color: #0073aa;
+	color: var(--advmo-color-text-primary);
 }
 
 @media screen and (max-width: 782px) {
 	.advmo-radio-option {
-		margin-bottom: 25px;
+		padding: var(--advmo-spacing-md);
+		padding-left: calc(var(--advmo-spacing-md) + 32px);
+	}
+	
+	.advmo-radio-option input[type="radio"] {
+		width: 20px;
+		height: 20px;
 	}
 }
 
-/* Checkboxes */
+/* ==========================================================================
+   Checkbox Options - Toggle-style for on/off settings
+   ========================================================================== */
 .advmo-checkbox-option {
-	margin-bottom: 20px;
-	padding-left: 24px;
 	position: relative;
+	padding-left: 28px;
+	margin-bottom: 0;
 }
 
 .advmo-checkbox-option input[type="checkbox"] {
 	position: absolute;
 	left: 0;
-	top: 5px;
+	top: 2px;
+	margin: 0;
+	cursor: pointer;
 }
 
 .advmo-checkbox-option label {
-	font-weight: bold;
+	font-weight: 600;
+	font-size: 13px;
 	cursor: pointer;
 	display: inline-block;
-	margin-bottom: 5px;
+	margin-bottom: var(--advmo-spacing-xs);
+	color: var(--advmo-color-text-primary);
+	transition: color var(--advmo-transition-fast);
 }
 
 .advmo-checkbox-option .description {
-	margin-top: 5px;
-	color: #666;
+	margin-top: var(--advmo-spacing-xs);
+	color: var(--advmo-color-text-muted);
 	font-size: 13px;
-	line-height: 1.5;
+	line-height: 1.6;
 }
 
+/* Keep label color consistent - no jarring blue change */
 .advmo-checkbox-option input[type="checkbox"]:checked + label {
-	color: #0073aa;
+	color: var(--advmo-color-text-primary);
 }
 
-/* Input below Checkbox */
-
-.advmo-checkbox-option input[type="input"]#path_prefix {
+/* Input below Checkbox - for path prefix field */
+.advmo-checkbox-option input[type="text"]#path_prefix {
 	width: 100%;
-	max-width: 300px;
-	padding: 8px;
-	margin-top: 5px;
-	border: 1px solid #ddd;
-	border-radius: 4px;
+	max-width: 320px;
+	padding: 10px 12px;
+	margin-top: var(--advmo-spacing-sm);
+	border: 1px solid var(--advmo-color-border);
+	border-radius: var(--advmo-radius-sm);
 	font-size: 14px;
-	color: #333;
-	transition: all 0.3s ease;
+	color: var(--advmo-color-text-primary);
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+	transition: all var(--advmo-transition-fast);
 }
 
-.advmo-checkbox-option input[type="input"]#path_prefix:focus {
-	border-color: #007cba;
-	box-shadow: 0 0 0 1px #007cba;
-	outline: 2px solid transparent;
+.advmo-checkbox-option input[type="text"]#path_prefix:hover:not(:disabled) {
+	border-color: var(--advmo-color-accent);
 }
 
-.advmo-checkbox-option input[type="input"]#path_prefix:disabled {
-	background-color: #f0f0f0;
-	color: #888;
+.advmo-checkbox-option input[type="text"]#path_prefix:focus {
+	border-color: var(--advmo-color-accent);
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.15);
+	outline: none;
+}
+
+.advmo-checkbox-option input[type="text"]#path_prefix:disabled {
+	background-color: var(--advmo-color-bg-subtle);
+	color: var(--advmo-color-text-muted);
 	cursor: not-allowed;
+	border-color: var(--advmo-color-border-light);
 }
 
 @media screen and (max-width: 782px) {
@@ -350,24 +486,30 @@
 	}
 
 	.advmo-checkbox-option input[type="checkbox"] {
-		width: 25px;
-		height: 25px;
+		width: 20px;
+		height: 20px;
 	}
 
 	.advmo-checkbox-option label {
-		line-height: 25px;
+		line-height: 1.4;
+		padding-top: 2px;
 	}
 }
 
+/* Code snippets */
 .advmo-code-snippet {
-	margin-top: 20px;
-	padding: 10px;
-	border-radius: 3px;
-	background-color: #f9f9f9;
-	border: 1px;
+	margin-top: var(--advmo-spacing-md);
+	padding: var(--advmo-spacing-md);
+	border-radius: var(--advmo-radius-sm);
+	background-color: var(--advmo-color-bg-subtle);
+	border: 1px solid var(--advmo-color-border-light);
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
 }
 
-/* Add Your CSS Codes Here */
+/* ==========================================================================
+   Page Layout and Header
+   ========================================================================== */
 #wpcontent {
 	background: #f0f0f1;
 	padding: 0;
@@ -383,78 +525,589 @@
 .advmo-topbar .advmo-header {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	background: #fff;
-	padding: 23px 30px;
+	padding: var(--advmo-spacing-lg);
+	border-bottom: 1px solid var(--advmo-color-border-light);
 }
+
 .advmo-topbar .advmo-header h1 {
-	font-size: 1.1rem;
+	font-size: 15px;
+	font-weight: 600;
 	display: flex;
 	align-items: center;
-	gap: 0.6rem;
-	color: #424242;
+	gap: var(--advmo-spacing-sm);
+	color: var(--advmo-color-text-primary);
+	margin: 0;
+	letter-spacing: -0.01em;
 }
 
 .advmo-topbar .advmo-header a {
 	display: flex;
 	align-items: center;
-	font-size: clamp(14px, 1.5vw, 16px);
+	font-size: 13px;
 	font-weight: 500;
 	margin-left: auto;
 	text-decoration: none;
-	color: #6f6f84;
+	color: var(--advmo-color-text-secondary);
 	outline: none !important;
 	box-shadow: none !important;
+	padding: var(--advmo-spacing-xs) var(--advmo-spacing-sm);
+	border-radius: var(--advmo-radius-sm);
+	transition: all var(--advmo-transition-fast);
 }
 
-.advmo-topbar .advmo-header a:active,
-.advmo-topbar .advmo-header a :hover {
-	color: #3a3a56;
+.advmo-topbar .advmo-header a:hover {
+	color: var(--advmo-color-text-primary);
+	background: var(--advmo-color-bg-subtle);
 }
 
 .advmo-topbar .advmo-header a svg {
-	margin-right: 6px;
+	margin-right: var(--advmo-spacing-xs);
 }
 
+/* Navigation Menu */
 .advmo-topbar .advmo-menu {
-	padding: 0 30px;
+	padding: 0 var(--advmo-spacing-lg);
+	background: #fff;
 }
 
 .advmo-topbar .advmo-menu nav {
 	display: flex;
 	flex-wrap: wrap;
-	border-bottom: 1px solid #dadadf;
+	gap: var(--advmo-spacing-lg);
+	border-bottom: 1px solid var(--advmo-color-border);
 }
 
 .advmo-topbar .advmo-menu nav a {
-	padding: 20.5px 0 17.5px;
+	padding: var(--advmo-spacing-md) 0;
 	text-decoration: none;
-	font-size: 15px;
-	line-height: 18px;
-	color: #3a3a56;
-	margin-right: 30px;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--advmo-color-text-secondary);
 	outline: none;
 	box-shadow: none;
-	border-bottom: 3px solid rgba(0, 0, 0, 0);
+	border-bottom: 2px solid transparent;
 	margin-bottom: -1px;
-	transition: all 0.2s ease;
+	transition: all var(--advmo-transition-fast);
 }
 
 .advmo-topbar .advmo-menu nav a:hover {
-	border-bottom: 3px solid #1a325e;
+	color: var(--advmo-color-text-primary);
+	border-bottom-color: var(--advmo-color-border);
 }
 
 .advmo-topbar .advmo-menu nav a.active,
-.advmo-topbar.advmo-menu nav a:focus {
-	color: #09092c;
-	font-weight: 500;
-	border-color: #1a325e;
+.advmo-topbar .advmo-menu nav a:focus {
+	color: var(--advmo-color-accent);
+	border-bottom-color: var(--advmo-color-accent);
 }
 
 .advmo-code-snippet {
 	direction: ltr;
 	text-align: left;
 	white-space: pre-wrap;
-	background: #f0f0f1;
-	padding: 10px;
+	word-break: break-all;
+}
+
+/* ==========================================================================
+   Credential Fields - Clean form layout for sensitive data
+   ========================================================================== */
+.advmo-credentials-container {
+	margin-top: 0;
+}
+
+/* Info notices - subtle, non-competing with form fields */
+.advmo-credentials-info {
+	padding: var(--advmo-spacing-md);
+	margin-bottom: var(--advmo-spacing-lg);
+	background: #f0f6fc;
+	border: 1px solid #c5d9ed;
+	border-radius: var(--advmo-radius-sm);
+	border-left: none;
+}
+
+.advmo-credentials-info p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-credentials-info strong {
+	color: var(--advmo-color-text-primary);
+}
+
+.advmo-credentials-info code {
+	background: rgba(0, 0, 0, 0.06);
+	padding: 2px 6px;
 	border-radius: 3px;
+	font-size: 12px;
+}
+
+/* Provider description notice */
+.advmo-provider-description {
+	margin-bottom: var(--advmo-spacing-lg) !important;
+	padding: var(--advmo-spacing-md) !important;
+	background: #f0f6fc !important;
+	border: 1px solid #c5d9ed !important;
+	border-radius: var(--advmo-radius-sm) !important;
+}
+
+.advmo-provider-description p {
+	margin: 0 !important;
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-credential-fields {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--advmo-spacing-lg);
+	margin-bottom: var(--advmo-spacing-lg);
+}
+
+.advmo-credential-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--advmo-spacing-xs);
+}
+
+.advmo-credential-field label {
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--advmo-color-text-primary);
+	display: block;
+}
+
+.advmo-credential-field input[type="text"],
+.advmo-credential-field input[type="password"] {
+	padding: 10px 12px;
+	border: 1px solid var(--advmo-color-border);
+	border-radius: var(--advmo-radius-sm);
+	font-size: 14px;
+	line-height: 1.4;
+	background-color: #fff;
+	transition: border-color var(--advmo-transition-fast), box-shadow var(--advmo-transition-fast);
+}
+
+.advmo-credential-field input[type="text"]:hover,
+.advmo-credential-field input[type="password"]:hover {
+	border-color: var(--advmo-color-accent);
+}
+
+.advmo-credential-field input[type="text"]:focus,
+.advmo-credential-field input[type="password"]:focus {
+	border-color: var(--advmo-color-accent);
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.15);
+}
+
+.advmo-credential-field .description {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--advmo-color-text-muted);
+}
+
+/* Password field wrapper with toggle button */
+.advmo-password-field-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	max-width: 400px;
+}
+
+.advmo-password-field-wrapper .advmo-password-input {
+	flex: 1;
+	padding-right: 36px !important;
+}
+
+.advmo-toggle-password {
+	position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0 !important;
+    background: transparent !important;
+    border: none;
+    cursor: pointer !important;
+    color: #50575e !important;
+    transition: all 0.2s ease;
+    height: 28px;
+    width: 28px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px !important;
+}
+
+.advmo-toggle-password:hover {
+	color: #2271b1 !important;
+}
+
+.advmo-toggle-password:focus {
+	outline: 1px solid #2271b1 !important;
+	outline-offset: 1px;
+	border-radius: 2px !important;
+}
+
+.advmo-toggle-password .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+/* Disabled field styles */
+.advmo-credential-field.advmo-field-disabled input {
+	background-color: #f6f7f7;
+	color: #646970;
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+.advmo-credential-field.advmo-field-disabled label {
+	color: #646970;
+}
+
+.advmo-credential-field.advmo-field-disabled .description {
+	color: #646970;
+	font-style: italic;
+}
+
+/* Fade out animation for status messages */
+.advmo-last-check.fade-out {
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+/* ==========================================================================
+   Connection Status Badge - Clear success/warning states
+   ========================================================================== */
+.advmo-connection-status {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--advmo-spacing-sm);
+	padding: var(--advmo-spacing-md);
+	border-radius: var(--advmo-radius-sm);
+	margin: var(--advmo-spacing-lg) 0 var(--advmo-spacing-md) 0;
+	font-size: 13px;
+	font-weight: 500;
+	border: 1px solid;
+	transition: all var(--advmo-transition-normal);
+	animation: advmoSlideIn 0.3s ease-out;
+}
+
+@keyframes advmoSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.advmo-connection-status.connected {
+	background-color: #ecfdf3;
+	border-color: #a3e6cd;
+	color: #065f46;
+}
+
+.advmo-connection-status.disconnected {
+	background-color: #fffbeb;
+	border-color: #fde68a;
+	color: #92400e;
+}
+
+.advmo-connection-status .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.advmo-connection-status.connected .dashicons {
+	color: #059669;
+}
+
+.advmo-connection-status.disconnected .dashicons {
+	color: #d97706;
+}
+
+.advmo-status-text {
+	font-weight: 600;
+}
+
+.advmo-status-time {
+	color: inherit;
+	opacity: 0.75;
+	font-size: 12px;
+	margin-left: var(--advmo-spacing-sm);
+}
+
+/* ==========================================================================
+   Action Buttons - Consistent button styling
+   ========================================================================== */
+.advmo-credentials-actions {
+	display: flex;
+	gap: var(--advmo-spacing-md);
+	align-items: center;
+	margin-top: var(--advmo-spacing-sm);
+	flex-wrap: wrap;
+}
+
+.advmo-save-credentials {
+	font-size: 13px !important;
+	padding: 8px 16px !important;
+	height: auto !important;
+	line-height: 1.5 !important;
+	display: inline-flex !important;
+	align-items: center;
+	gap: var(--advmo-spacing-xs);
+	font-weight: 500 !important;
+	border-radius: var(--advmo-radius-sm) !important;
+	transition: all var(--advmo-transition-fast) !important;
+}
+
+.advmo-save-credentials .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.advmo_js_test_connection {
+	font-size: 13px;
+	padding: 8px 16px;
+	height: auto;
+	line-height: 1.5;
+	border-radius: var(--advmo-radius-sm);
+	transition: all var(--advmo-transition-fast);
+}
+
+.advmo_js_test_connection:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.advmo_js_test_connection.loading {
+	position: relative;
+	color: transparent;
+	pointer-events: none;
+}
+
+.advmo_js_test_connection.loading::after {
+	content: "";
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	top: 50%;
+	left: 50%;
+	margin-left: -7px;
+	margin-top: -7px;
+	border: 2px solid rgba(0, 0, 0, 0.1);
+	border-top-color: var(--advmo-color-accent);
+	border-radius: 50%;
+	animation: advmoSpin 0.6s linear infinite;
+}
+
+@keyframes advmoSpin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments for credentials */
+@media screen and (max-width: 782px) {
+	.advmo-credential-fields {
+		gap: var(--advmo-spacing-md);
+	}
+	
+	.advmo-credential-field input[type="text"],
+	.advmo-credential-field input[type="password"],
+	.advmo-password-field-wrapper {
+		max-width: 100%;
+	}
+	
+	.advmo-connection-status {
+		display: flex;
+		flex-wrap: wrap;
+		width: 100%;
+	}
+	
+	.advmo-status-time {
+		flex-basis: 100%;
+		margin-left: 26px;
+		margin-top: var(--advmo-spacing-xs);
+	}
+	
+	.advmo-credentials-actions {
+		gap: var(--advmo-spacing-sm);
+		width: 100%;
+	}
+	
+	.advmo-save-credentials,
+	.advmo_js_test_connection {
+		flex: 1;
+		justify-content: center;
+		min-width: 130px;
+	}
+}
+
+/* AJAX Save Settings - Section Overlay */
+.advmo-section-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(255, 255, 255, 0.7);
+	z-index: 100;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.advmo-section-overlay.active {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.advmo-section-overlay::after {
+	content: "";
+	width: 32px;
+	height: 32px;
+	border: 3px solid rgba(0, 0, 0, 0.1);
+	border-top-color: var(--advmo-color-accent);
+	border-radius: 50%;
+	animation: advmoSpin 0.6s linear infinite;
+}
+
+/* Button wrapper for INPUT elements (needed for spinner) */
+.advmo-button-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.advmo-button-wrapper::after {
+	content: "";
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	top: 50%;
+	left: 50%;
+	margin-left: -7px;
+	margin-top: -7px;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: advmoSpin 0.6s linear infinite;
+}
+
+/* Loading state for save buttons */
+#advmo .button-primary.loading,
+.advmo-save-credentials.loading {
+	position: relative;
+	color: transparent !important;
+	pointer-events: none;
+	opacity: 0.9;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Only apply ::after to BUTTON elements (not INPUT) */
+button.button-primary.loading::after,
+button.advmo-save-credentials.loading::after {
+	content: "";
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	top: 50%;
+	left: 50%;
+	margin-left: -7px;
+	margin-top: -7px;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: advmoSpin 0.6s linear infinite;
+}
+
+#advmo .button-primary.loading .dashicons,
+.advmo-save-credentials.loading .dashicons {
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+/* Success state for save buttons */
+#advmo .button-primary.success,
+.advmo-save-credentials.success {
+	background-color: var(--advmo-color-success) !important;
+	border-color: var(--advmo-color-success) !important;
+	animation: advmoSuccessPulse 0.4s ease;
+	transition: background-color var(--advmo-transition-normal), border-color var(--advmo-transition-normal);
+}
+
+#advmo .button-primary.success .dashicons,
+.advmo-save-credentials.success .dashicons {
+	animation: advmoCheckmarkAppear 0.3s ease 0.1s backwards;
+}
+
+@keyframes advmoSuccessPulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.04);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes advmoCheckmarkAppear {
+	0% {
+		opacity: 0;
+		transform: scale(0.6);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+/* Smooth button transitions */
+#advmo .button-primary,
+.advmo-save-credentials {
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Error messages for AJAX */
+.advmo-ajax-error {
+	animation: advmoSlideDown 0.3s ease-out;
+}
+
+@keyframes advmoSlideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Ensure sections have position relative for overlay */
+.advmo-section {
+	position: relative;
 }

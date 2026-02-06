@@ -21,37 +21,75 @@ class Cloudflare_R2 extends S3_Provider
 
 	public function getClient()
 	{
+		$endpoint = advmo_get_provider_credential('cloudflare_r2', 'endpoint');
+		if (!empty($endpoint)) {
+			$endpoint = advmo_normalize_url($endpoint);
+		}
+
 		return new S3Client([
 			'version' => 'latest',
-			'endpoint' => defined("ADVMO_CLOUDFLARE_R2_ENDPOINT") ? ADVMO_CLOUDFLARE_R2_ENDPOINT : '',
-			'region' => defined("ADVMO_CLOUDFLARE_R2_REGION") ? ADVMO_CLOUDFLARE_R2_REGION : 'us-east-1',
+			'use_aws_shared_config_files' => false,
+			'endpoint' => $endpoint,
+			'region' => advmo_get_provider_credential('cloudflare_r2', 'region') ?: 'us-east-1',
 			'credentials' => [
-				'key' => defined("ADVMO_CLOUDFLARE_R2_KEY") ? ADVMO_CLOUDFLARE_R2_KEY : '',
-				'secret' => defined("ADVMO_CLOUDFLARE_R2_SECRET") ? ADVMO_CLOUDFLARE_R2_SECRET : '',
+				'key' => advmo_get_provider_credential('cloudflare_r2', 'key'),
+				'secret' => advmo_get_provider_credential('cloudflare_r2', 'secret'),
 			]
 		]);
 	}
 
 	public function getBucket()
 	{
-		return defined("ADVMO_CLOUDFLARE_R2_BUCKET") ? ADVMO_CLOUDFLARE_R2_BUCKET : null;
+		$bucket = advmo_get_provider_credential('cloudflare_r2', 'bucket');
+		return !empty($bucket) ? $bucket : null;
 	}
 
 	public function getDomain()
 	{
-		return defined('ADVMO_CLOUDFLARE_R2_DOMAIN') ? trailingslashit(ADVMO_CLOUDFLARE_R2_DOMAIN) : '';
+		$domain = '';
+		$domain_value = advmo_get_provider_credential('cloudflare_r2', 'domain');
+		if (!empty($domain_value)) {
+			$normalized_url = advmo_normalize_url($domain_value);
+			$domain = $normalized_url ? trailingslashit($normalized_url) : '';
+		}
+		return apply_filters('advmo_cloudflare_r2_domain', $domain);
 	}
 
 	public function credentialsField()
 	{
-		$requiredConstants = [
-			'ADVMO_CLOUDFLARE_R2_KEY' => 'Your Cloudflare R2 Access Key',
-			'ADVMO_CLOUDFLARE_R2_SECRET' => 'Your Cloudflare R2 Secret Key',
-			'ADVMO_CLOUDFLARE_R2_ENDPOINT' => 'Your Cloudflare R2 Endpoint URL',
-			'ADVMO_CLOUDFLARE_R2_BUCKET' => 'Your Cloudflare R2 Bucket Name',
-			'ADVMO_CLOUDFLARE_R2_DOMAIN' => 'Your Custom Domain',
+		$credentialFields = [
+			[
+				'name' => 'key',
+				'label' => __('Access Key ID', 'advanced-media-offloader'),
+				'type' => 'text',
+				'placeholder' => __('Your Cloudflare R2 Access Key', 'advanced-media-offloader')
+			],
+			[
+				'name' => 'secret',
+				'label' => __('Secret Access Key', 'advanced-media-offloader'),
+				'type' => 'password',
+				'placeholder' => __('Your Cloudflare R2 Secret Key', 'advanced-media-offloader')
+			],
+			[
+				'name' => 'endpoint',
+				'label' => __('Endpoint URL', 'advanced-media-offloader'),
+				'type' => 'text',
+				'placeholder' => __('https://your-account-id.r2.cloudflarestorage.com', 'advanced-media-offloader')
+			],
+			[
+				'name' => 'bucket',
+				'label' => __('Bucket Name', 'advanced-media-offloader'),
+				'type' => 'text',
+				'placeholder' => __('Your Cloudflare R2 Bucket Name', 'advanced-media-offloader')
+			],
+			[
+				'name' => 'domain',
+				'label' => __('Custom Domain (CDN URL)', 'advanced-media-offloader'),
+				'type' => 'text',
+				'placeholder' => __('https://media.yourdomain.com', 'advanced-media-offloader')
+			],
 		];
 
-		echo $this->getCredentialsFieldHTML($requiredConstants);
+		echo $this->getCredentialsFieldHTML($credentialFields, 'cloudflare_r2');
 	}
 }

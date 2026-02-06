@@ -282,30 +282,54 @@ class OffloadCommand
     {
         global $wpdb;
 
-        $limit_clause = $limit > 0 ? "LIMIT {$limit}" : '';
+        // Sanitize limit to ensure it's a positive integer
+        $limit = absint($limit);
 
         if ($skip_failed) {
             // Exclude attachments with errors
-            $query = $wpdb->prepare(
-                "SELECT p.ID FROM {$wpdb->posts} p 
-                LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = 'advmo_offloaded'
-                LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'advmo_error_log'
-                WHERE p.post_type = 'attachment' 
-                AND (pm1.meta_value IS NULL OR pm1.meta_value = '') 
-                AND pm2.meta_id IS NULL
-                ORDER BY p.post_date ASC
-                {$limit_clause}"
-            );
+            if ($limit > 0) {
+                $query = $wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p 
+                    LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = 'advmo_offloaded'
+                    LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'advmo_error_log'
+                    WHERE p.post_type = 'attachment' 
+                    AND (pm1.meta_value IS NULL OR pm1.meta_value = '') 
+                    AND pm2.meta_id IS NULL
+                    ORDER BY p.post_date ASC
+                    LIMIT %d",
+                    $limit
+                );
+            } else {
+                // No user-supplied values, so no need for prepare()
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are from $wpdb
+                $query = "SELECT p.ID FROM {$wpdb->posts} p 
+                    LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = 'advmo_offloaded'
+                    LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'advmo_error_log'
+                    WHERE p.post_type = 'attachment' 
+                    AND (pm1.meta_value IS NULL OR pm1.meta_value = '') 
+                    AND pm2.meta_id IS NULL
+                    ORDER BY p.post_date ASC";
+            }
         } else {
             // Include all non-offloaded attachments
-            $query = $wpdb->prepare(
-                "SELECT p.ID FROM {$wpdb->posts} p 
-                LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = 'advmo_offloaded'
-                WHERE p.post_type = 'attachment' 
-                AND (pm.meta_value IS NULL OR pm.meta_value = '')
-                ORDER BY p.post_date ASC
-                {$limit_clause}"
-            );
+            if ($limit > 0) {
+                $query = $wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p 
+                    LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = 'advmo_offloaded'
+                    WHERE p.post_type = 'attachment' 
+                    AND (pm.meta_value IS NULL OR pm.meta_value = '')
+                    ORDER BY p.post_date ASC
+                    LIMIT %d",
+                    $limit
+                );
+            } else {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are from $wpdb
+                $query = "SELECT p.ID FROM {$wpdb->posts} p 
+                    LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = 'advmo_offloaded'
+                    WHERE p.post_type = 'attachment' 
+                    AND (pm.meta_value IS NULL OR pm.meta_value = '')
+                    ORDER BY p.post_date ASC";
+            }
         }
 
         return $wpdb->get_col($query);

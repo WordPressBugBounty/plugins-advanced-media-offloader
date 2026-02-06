@@ -44,10 +44,17 @@ class AttachmentUrlObserver implements ObserverInterface
      */
     public function run(string $url, int $post_id): string
     {
-        if ($this->is_offloaded($post_id)) {
-            $subDir = $this->get_attachment_subdir($post_id);
-            $url = rtrim($this->cloudProvider->getDomain(), '/') . '/' . ltrim($subDir, '/') . basename($url);
+        if (! $this->is_offloaded($post_id)) {
+            return $url;
         }
-        return $url;
+
+        $domain = $this->cloudProvider->getDomain();
+        if (empty($domain)) {
+            // No custom domain provided, keep the original URL untouched.
+            return $url;
+        }
+
+        $subDir = $this->get_attachment_subdir($post_id);
+        return rtrim($domain, '/') . '/' . ltrim($subDir, '/') . basename($url);
     }
 }

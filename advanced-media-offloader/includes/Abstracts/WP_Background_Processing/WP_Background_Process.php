@@ -112,7 +112,8 @@ abstract class WP_Background_Process extends WP_Async_Request
      */
     public function dispatch()
     {
-        if ($this->is_processing()) {
+        // If cancelled, still allow dispatch so cleanup can run even with a process lock.
+        if ($this->is_processing() && ! $this->is_cancelled()) {
             // Process already running.
             return false;
         }
@@ -345,17 +346,21 @@ abstract class WP_Background_Process extends WP_Async_Request
         // Don't lock up other requests while processing.
         session_write_close();
 
-        if ($this->is_processing()) {
-            // Background process already running.
-            return $this->maybe_wp_die();
-        }
-
+        // If cancelled, prioritize cleanup even if a stale process lock exists.
         if ($this->is_cancelled()) {
+            // Clear scheduled event and any process lock to avoid getting stuck in "Canceling…".
             $this->clear_scheduled_event();
+            $this->unlock_process();
             $this->delete_all();
 
             return $this->maybe_wp_die();
         }
+
+        if ($this->is_processing()) {
+            // Background process already running.
+            return $this->maybe_wp_die();
+        }
+        // NOTE: cancelled case handled above, before is_processing(), to avoid lock-induced delays.
 
         if ($this->is_paused()) {
             $this->clear_scheduled_event();

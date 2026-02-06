@@ -23,29 +23,37 @@ class Wasabi extends S3_Provider
     {
         return new S3Client([
             'version' => 'latest',
+            'use_aws_shared_config_files' => false,
             'endpoint' => $this->getEndpoint(),
-            'region' => defined("ADVMO_WASABI_REGION") ? ADVMO_WASABI_REGION : 'us-east-1',
-            'use_path_style_endpoint' => defined("ADVMO_WASABI_PATH_STYLE_ENDPOINT") ? ADVMO_WASABI_PATH_STYLE_ENDPOINT : true,
+            'region' => $this->getRegion(),
+            'use_path_style_endpoint' => true,
             'credentials' => [
-                'key' => defined("ADVMO_WASABI_KEY") ? ADVMO_WASABI_KEY : '',
-                'secret' => defined("ADVMO_WASABI_SECRET") ? ADVMO_WASABI_SECRET : '',
+                'key' => advmo_get_provider_credential('wasabi', 'key'),
+                'secret' => advmo_get_provider_credential('wasabi', 'secret'),
             ],
         ]);
     }
 
     public function getBucket()
     {
-        return defined("ADVMO_WASABI_BUCKET") ? ADVMO_WASABI_BUCKET : null;
+        $bucket = advmo_get_provider_credential('wasabi', 'bucket');
+        return !empty($bucket) ? $bucket : null;
     }
 
     public function getDomain()
     {
-        return defined('ADVMO_WASABI_DOMAIN') ? trailingslashit(ADVMO_WASABI_DOMAIN) : '';
+        $domain = '';
+        $domain_value = advmo_get_provider_credential('wasabi', 'domain');
+        if (!empty($domain_value)) {
+            $normalized_url = advmo_normalize_url($domain_value);
+            $domain = $normalized_url ? trailingslashit($normalized_url) : '';
+        }
+        return apply_filters('advmo_wasabi_domain', $domain);
     }
 
     private function getRegion(): string
     {
-        return defined("ADVMO_WASABI_REGION") ? ADVMO_WASABI_REGION : 'us-east-1';
+        return advmo_get_provider_credential('wasabi', 'region') ?: 'us-east-1';
     }
 
     private function getEndpoint(): string
@@ -58,14 +66,39 @@ class Wasabi extends S3_Provider
 
     public function credentialsField()
     {
-        $requiredConstants = [
-            'ADVMO_WASABI_KEY' => 'Your Wasabi Access Key',
-            'ADVMO_WASABI_SECRET' => 'Your Wasabi Secret Key',
-            'ADVMO_WASABI_BUCKET' => 'Your Wasabi Bucket Name',
-            'ADVMO_WASABI_REGION' => 'Your Wasabi Region',
-            'ADVMO_WASABI_DOMAIN' => 'Your Custom Domain',
+        $credentialFields = [
+            [
+                'name' => 'key',
+                'label' => __('Access Key ID', 'advanced-media-offloader'),
+                'type' => 'text',
+                'placeholder' => __('Your Wasabi Access Key', 'advanced-media-offloader')
+            ],
+            [
+                'name' => 'secret',
+                'label' => __('Secret Access Key', 'advanced-media-offloader'),
+                'type' => 'password',
+                'placeholder' => __('Your Wasabi Secret Key', 'advanced-media-offloader')
+            ],
+            [
+                'name' => 'bucket',
+                'label' => __('Bucket Name', 'advanced-media-offloader'),
+                'type' => 'text',
+                'placeholder' => __('Your Wasabi Bucket Name', 'advanced-media-offloader')
+            ],
+            [
+                'name' => 'region',
+                'label' => __('Region', 'advanced-media-offloader'),
+                'type' => 'text',
+                'placeholder' => __('us-east-1', 'advanced-media-offloader')
+            ],
+            [
+                'name' => 'domain',
+                'label' => __('Custom Domain (CDN URL)', 'advanced-media-offloader'),
+                'type' => 'text',
+                'placeholder' => __('https://media.yourdomain.com', 'advanced-media-offloader')
+            ],
         ];
 
-        echo $this->getCredentialsFieldHTML($requiredConstants);
+        echo $this->getCredentialsFieldHTML($credentialFields, 'wasabi');
     }
 }

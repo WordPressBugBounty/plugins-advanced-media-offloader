@@ -53,6 +53,9 @@ class BulkMediaOffloader extends WP_Background_Process
     {
         parent::complete();
         advmo_update_bulk_offload_data(['status' => 'completed']);
+
+        // Clear any stale cancel flag on normal completion.
+        delete_option('advmo_bulk_offload_cancelled');
     }
 
     public function update_processed_count($result_status)

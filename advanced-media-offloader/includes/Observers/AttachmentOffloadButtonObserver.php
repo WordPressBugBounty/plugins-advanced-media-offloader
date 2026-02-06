@@ -176,21 +176,9 @@ class AttachmentOffloadButtonObserver implements ObserverInterface
         }
 
         $attachment_id = intval($_POST['attachment_id']);
-        $nonce = sanitize_text_field($_POST['nonce']);
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
         return wp_verify_nonce($nonce, 'advmo_offload_single_' . $attachment_id);
-    }
-
-    /**
-     * Check if attachment has errors.
-     *
-     * @param int $attachment_id The attachment ID.
-     * @return bool
-     */
-    private function has_errors(int $attachment_id): bool
-    {
-        $errors = get_post_meta($attachment_id, 'advmo_error_log', true);
-        return !empty($errors);
     }
 
     /**

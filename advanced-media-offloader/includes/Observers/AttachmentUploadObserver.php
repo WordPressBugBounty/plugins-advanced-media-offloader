@@ -22,6 +22,14 @@ class AttachmentUploadObserver implements ObserverInterface
 
     public function run($metadata, $attachment_id)
     {
+        // Check if auto-offload is enabled in settings
+        $options = get_option('advmo_settings', []);
+        $auto_offload_enabled = isset($options['auto_offload_uploads']) ? (int) $options['auto_offload_uploads'] : 1;
+        
+        if (!$auto_offload_enabled) {
+            return $metadata;
+        }
+
         /**
          * Filter to determine whether an attachment should be offloaded.
          *
@@ -37,7 +45,12 @@ class AttachmentUploadObserver implements ObserverInterface
         }
 
         if (!$this->cloudAttachmentUploader->uploadAttachment($attachment_id)) {
-            wp_delete_attachment($attachment_id, true);
+            // Log the failure but do NOT delete the attachment
+            // The error is already logged by CloudAttachmentUploader
+            error_log(sprintf(
+                'ADVMO: Failed to offload attachment ID %d. Attachment preserved locally.',
+                $attachment_id
+            ));
         }
 
         return $metadata;

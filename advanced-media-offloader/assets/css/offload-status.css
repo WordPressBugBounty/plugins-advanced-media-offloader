@@ -1,0 +1,98 @@
+/**
+ * Offload Status Indicator Styles
+ *
+ * Styles for media library offload status badges and icons.
+ */
+
+/* Status Badge (Attachment Edit Form) */
+.advmo-status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.advmo-status-badge--success {
+    color: #00a32a;
+}
+
+.advmo-status-badge--error,
+.advmo-status-badge--pending {
+    color: #d63638;
+}
+
+.advmo-status-badge a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.advmo-status-badge a:hover {
+    text-decoration: none;
+}
+
+/* SVG Icon Base */
+.advmo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.advmo-icon svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* List View Column */
+.fixed .column-advmo_offload {
+    width: 2.5rem;
+    text-align: center;
+}
+
+.advmo-icon--header {
+    color: #50575e;
+}
+
+.advmo-icon--success {
+    color: #2271b1;
+    opacity: 0.6;
+}
+
+.advmo-icon--error {
+    color: #d63638;
+    opacity: 0.6;
+}
+
+/* Grid View Badges (Media Library + Gutenberg Modal) */
+.advmo-grid-badge {
+    position: absolute;
+    top: 0.375rem;
+    left: 0.375rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    padding: 0.0625rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.advmo-grid-badge svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.advmo-grid-badge--success {
+    color: #2271b1;
+    opacity: 0.6;
+}
+
+.advmo-grid-badge--error {
+    color: #d63638;
+    opacity: 0.6;
+}
+

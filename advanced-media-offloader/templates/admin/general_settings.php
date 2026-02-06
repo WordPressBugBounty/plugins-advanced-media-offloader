@@ -17,6 +17,7 @@ if (!current_user_can('manage_options')) {
 <div id="advmo">
 	<div class="wrap">
 		<h2 class="advmo-print-notices-after"></h2>
+		<?php settings_errors('advmo_messages'); ?>
 		<form method="post" action="options.php">
 			<?php settings_fields('advmo'); ?>
 			<?php do_settings_sections('advmo'); ?>

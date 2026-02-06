@@ -15,7 +15,15 @@
             Advanced Media Offloader
         </h1>
 
-        <a href="https://wpfitter.com/contact/?utm_source=wp-plugin&utm_medium=plugin&utm_campaign=advanced-media-offloader" target="_blank">
+		<?php
+		$support_url = add_query_arg(array(
+			'utm_source'   => 'wp-plugin',
+			'utm_medium'   => 'admin-header',
+			'utm_campaign' => 'advanced-media-offloader',
+			'utm_content'  => 'header-support',
+		), 'https://wpfitter.com/contact/');
+		?>
+		<a href="<?php echo esc_url($support_url); ?>" target="_blank" rel="noopener noreferrer" title="<?php esc_attr_e('Get support for Advanced Media Offloader', 'advanced-media-offloader'); ?>">
             <svg width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clip-path="url(#a)" fill="currentColor">
                     <path d="M8 14.222A6.222 6.222 0 1 1 8 1.778a6.222 6.222 0 0 1 0 12.444zm0 .89A7.111 7.111 0 1 0 8 .888 7.111 7.111 0 0 0 8 15.11z" stroke="#53536B" stroke-width=".444"></path>
@@ -29,6 +37,19 @@
             </svg>
             <?php _e('Support', 'advanced-media-offloader'); ?>
         </a>
+		<?php if (apply_filters('advmo_show_donate_links', true)) : ?>
+		<?php
+		$donate_url = add_query_arg(array(
+			'utm_source'   => 'wp-plugin',
+			'utm_medium'   => 'admin-header',
+			'utm_campaign' => 'advanced-media-offloader',
+			'utm_content'  => 'header-donate',
+		), 'https://buymeacoffee.com/wpfitter');
+		?>
+		<a href="<?php echo esc_url($donate_url); ?>" target="_blank" rel="noopener noreferrer" style="margin-left:12px;" title="<?php esc_attr_e('Donate to support Advanced Media Offloader', 'advanced-media-offloader'); ?>">
+			<?php _e('Donate', 'advanced-media-offloader'); ?>
+		</a>
+		<?php endif; ?>
     </div>
 
     <?php advmo_get_view('admin/navmenu'); ?>

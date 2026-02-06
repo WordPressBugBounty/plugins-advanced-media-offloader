@@ -1,14 +1,16 @@
 === Advanced Media Offloader ===
-Contributors: masoudin, bahreynipour, wpfitter, teledark
-Tags: s3, media library, cloudflare, offload
+Contributors: masoudin, wpfitter, bahreynipour, teledark
+Donate link: https://buymeacoffee.com/wpfitter?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=readme-donate
+Tags: s3, media library, cloudflare, offload, storage
 Requires at least: 5.6
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 4.0.3
+Stable tag: 4.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Offload WordPress media to cloud storage (Amazon S3, Cloudflare R2, DigitalOcean, MinIO, Wasabi) to reduce server load & improve site performance.
+Save server space & speed up your site by automatically offloading media to Amazon S3, Cloudflare R2 & more.
+
 == Description ==
 
 **Advanced Media Offloader** helps you optimize your WordPress media handling by automatically uploading your media files to S3-compatible cloud storage services.
@@ -28,21 +30,40 @@ Struggling with server space limitations? Want to improve your site's performanc
 * **Amazon S3** - The industry standard object storage service
 * **Cloudflare R2** - S3-compatible storage with zero egress fees
 * **DigitalOcean Spaces** - Simple object storage from DigitalOcean
-* **MinIO** - Self-hosted, S3-compatible object storage
+* **Backblaze B2** - Affordable S3-compatible storage with predictable pricing
 * **Wasabi** - Hot cloud storage with predictable pricing
+* **MinIO** - Any S3-compatible storage (MinIO, OVHcloud Object Storage, Scaleway, Linode, Vultr, IBM COS, and more)
 
 == Features ==
 
 * **Automatic Offloading** - New media uploads are automatically sent to your cloud storage
 * **Smart Policies** - Create advanced rules to control exactly which files are offloaded and when, giving you granular control over your storage. ([Learn more](https://wpfitter.com/blog/implementing-smart-retention-policies-with-advanced-media-offloader/))
 * **Bulk Migration & WP CLI** - Easily move existing media to the cloud with powerful command-line support for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
+* **Thumbnail Regeneration Compatibility** - Compatible with WP-CLI `wp media regenerate` command and the Regenerate Thumbnails plugin. Regenerated thumbnails automatically offload to cloud storage. Note: Not compatible with Full Cloud Migration retention policy.
 * **Smart URL Rewriting** - All media URLs are automatically rewritten to serve from cloud storage
 * **File Versioning** - Add unique timestamps to media paths to prevent caching issues
 * **Flexible Retention** - Choose to keep local copies or remove them after successful offloading
 * **Mirror Deletion** - Optionally remove files from cloud storage when deleted from WordPress
 * **Custom Paths** - Configure custom path prefixes in your cloud storage
-* **Developer-Friendly** - Action hooks for extending functionality
+* **Developer-Friendly** - Extensive action and filter hooks for extending functionality ([View Documentation](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/))
 
+= Developer Documentation =
+
+For developers looking to extend or customize the plugin behavior, we provide comprehensive documentation for all available hooks:
+
+**[View Developer Hooks Documentation →](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/)**
+
+Quick example - skip offloading files larger than 5MB:
+
+`
+add_filter('advmo_should_offload_attachment', function($should_offload, $attachment_id) {
+    $file = get_attached_file($attachment_id);
+    if ($file && filesize($file) > 5 * 1024 * 1024) {
+        return false;
+    }
+    return $should_offload;
+}, 10, 2);
+`
 
 == Installation ==
 
@@ -55,6 +76,8 @@ Struggling with server space limitations? Want to improve your site's performanc
 == Configuration ==
 
 For security, cloud provider credentials are stored in your `wp-config.php` file rather than the database.
+
+**Note:** Domain and endpoint URLs will automatically be prefixed with `https://` if you don't include it, but we recommend always including the full URL for clarity.
 
 **[Cloudflare R2](https://developers.cloudflare.com/r2/) Configuration**
 `
@@ -75,6 +98,9 @@ For security, cloud provider credentials are stored in your `wp-config.php` file
 `
 
 **[MinIO](https://min.io/docs/minio/linux/administration/identity-access-management/minio-user-management.html) Configuration**
+
+Use this for any storage that supports the S3 API via a custom endpoint (e.g., MinIO, OVHcloud Object Storage, Scaleway, Linode, Vultr, IBM COS). Select this if your provider isn't listed separately.
+
 `
 	define('ADVMO_MINIO_KEY', 'your-access-key');
 	define('ADVMO_MINIO_SECRET', 'your-secret-key');
@@ -90,8 +116,18 @@ For security, cloud provider credentials are stored in your `wp-config.php` file
 	define('ADVMO_AWS_KEY', 'your-access-key');
 	define('ADVMO_AWS_SECRET', 'your-secret-key');
 	define('ADVMO_AWS_BUCKET', 'your-bucket-name');
-    define('ADVMO_AWS_REGION', 'your-bukcet-region');
+    define('ADVMO_AWS_REGION', 'your-bucket-region');
     define('ADVMO_AWS_DOMAIN', 'your-domain-url');
+`
+
+**[Backblaze B2](https://www.backblaze.com/apidocs/introduction-to-the-s3-compatible-api) Configuration**
+`
+	define('ADVMO_BACKBLAZE_B2_KEY', 'your-application-key-id');
+	define('ADVMO_BACKBLAZE_B2_SECRET', 'your-application-key');
+	define('ADVMO_BACKBLAZE_B2_BUCKET', 'your-bucket-name');
+	define('ADVMO_BACKBLAZE_B2_REGION', 'your-bucket-region');
+    define('ADVMO_BACKBLAZE_B2_DOMAIN', 'your-domain-url');
+    define('ADVMO_BACKBLAZE_B2_ENDPOINT', 'your-endpoint-url');
 `
 
 **[Wasabi](https://docs.wasabi.com/docs/creating-a-new-access-key) Configuration**
@@ -99,7 +135,7 @@ For security, cloud provider credentials are stored in your `wp-config.php` file
 	define('ADVMO_WASABI_KEY', 'your-access-key');
 	define('ADVMO_WASABI_SECRET', 'your-secret-key');
 	define('ADVMO_WASABI_BUCKET', 'your-bucket-name');
-    define('ADVMO_WASABI_REGION', 'your-bukcet-region');
+    define('ADVMO_WASABI_REGION', 'your-bucket-region');
     define('ADVMO_WASABI_DOMAIN', 'your-domain-url');
 `
 
@@ -107,7 +143,7 @@ For security, cloud provider credentials are stored in your `wp-config.php` file
 
 = Does this plugin support other cloud storage platforms? =
 
-Currently supports Cloudflare R2, DigitalOcean Spaces, Amazon S3, Wasabi & MinIO. Additional providers are on the roadmap based on user demand.
+Currently supports Amazon S3, Backblaze B2, Cloudflare R2, DigitalOcean Spaces, MinIO & Wasabi. Additional providers are on the roadmap based on user demand.
 
 = What happens to the media files already uploaded on my server? =
 
@@ -149,7 +185,59 @@ For optimal performance:
 3. Configure proper region (closest to your audience)
 4. Consider using a CDN for global distributions
 
+= How do I configure public access for my bucket? =
+
+By default, the plugin sets `public-read` ACL on uploaded objects. However, some providers don't support ACLs, and AWS S3 has ACLs disabled by default on new buckets since April 2023. You should configure bucket-level public access using your provider's bucket policies.
+
+If you encounter `AccessControlListNotSupported` errors or need to disable ACLs, add the following code to your theme's `functions.php` or a custom plugin:
+
+`
+add_filter('advmo_object_acl', '__return_false');
+`
+
 == Changelog ==
+= 4.3.1 =
+* Added: `advmo_object_acl` filter to customize or disable object-level ACL permissions
+
+= 4.3.0 =
+* Added: New visual badges in Media Library show offload status at a glance. Cloud icon for offloaded files, warning icon for failed uploads.
+* Added: Visual "Deleting..." loading indicator with spinner in Media Library attachment modal when deleting offloaded media
+* Added: Offload status filter dropdown in Media Library for quick filtering by offload state.
+* Improved: Optimized cloud deletion performance using batched deleteObjects API (up to 1000 keys per request) for faster deletion of attachments with multiple sizes
+* Fixed: MinIO “Use Path-Style Endpoint” now correctly respects boolean `wp-config.php` constants (e.g. `define('ADVMO_MINIO_PATH_STYLE_ENDPOINT', true);`).
+
+= 4.2.3 =
+* Fixed: TypeError when uploading non-image files (SVG, ZIP, PDF)
+
+= 4.2.2 =
+* Added: Compatibility with WordPress 6.9
+* Added: Full Compatibility with [Modern Image Formats](https://wordpress.org/plugins/webp-uploads/)
+* Fixed: Minor changes and improvements
+
+= 4.2.1 =
+* Fix: Checkbox states for credential fields now properly persist when unchecked
+* Fix: Deletion failure when WordPress year/month folders are disabled
+
+= 4.2.0 =
+* New: Added compatibility for thumbnail regeneration with WP-CLI `wp media regenerate` command and the Regenerate Thumbnails plugin. Regenerated thumbnails now automatically offload to cloud storage. Note: This feature does not work with Full Cloud Migration retention policy.
+* New: Added the ability to configure cloud provider credentials through the WordPress admin settings page while maintaining backward compatibility with wp-config.php constants. Constants take priority and disable corresponding fields when defined.
+* New: Added setting to toggle automatic cloud offloading for new uploads
+* New: Added customizable Name field S3-compatible providers to identify specific storage services (e.g., MinIO, OVHcloud, Scaleway). Default is "MinIO" with backward compatibility for existing installations.
+* Fix: Minor changes and improvements
+
+= 4.1.1 =
+* New: Added Backblaze B2 support - affordable S3-compatible cloud storage with predictable pricing
+* Improved: Automatic URL normalization - Domain and endpoint URLs are now automatically prefixed with `https://` if missing, eliminating common configuration errors
+
+= 4.1.0 =
+* New: Added `advmo_cloud_providers` filter to allow adding, removing, or customizing the list of available cloud providers
+* New: Added Unique Filename Protection - UniqueFilenameObserver automatically prevents file overwrites when full cloud migration is enabled
+* New: Added domain filters for developers to programmatically modify CDN/custom domains for each provider (`advmo_aws_domain`, `advmo_cloudflare_r2_domain`, `advmo_dos_domain`, `advmo_minio_domain`, `advmo_wasabi_domain`)
+* New: Added `advmo_should_upload_original_image` filter to control whether original images should be uploaded to cloud (default: true)
+* Fix: Original images are now correctly uploaded to and deleted from cloud storage alongside scaled versions
+* Fix: Background processes that could get stuck now have proper recovery mechanisms
+* Fix: Disabled `use_aws_shared_config_files` option across all S3-compatible providers to prevent potential conflicts and security issues
+
 = 4.0.3 =
 * Fixed memory exhaustion and fatal errors when handling offloaded SVG files.
 
@@ -299,6 +387,12 @@ For optimal performance:
 - Initial release.
 
 == Upgrade Notice ==
+= 4.3.1 =
+New `advmo_object_acl` filter allows disabling ACLs for providers like Cloudflare R2 or AWS S3 buckets with ACLs disabled.
+
+= 4.3.0 =
+New visual badges in Media Library show offload status at a glance. Cloud icon for offloaded files, warning icon for failed uploads.
+
 = 4.0.0 =
 This update fixes admin notices display issues on the Media Overview page for a cleaner admin experience.
 

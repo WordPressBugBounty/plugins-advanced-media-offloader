@@ -95,6 +95,8 @@ trait OffloaderTrait
         $dimensionMap = [];
 
         foreach ($sizes as $name => $sizeInfo) {
+            // Some metadata entries do not include filesize; treat as 0 to avoid PHP warnings.
+            $sizeInfo['filesize'] = isset($sizeInfo['filesize']) ? (int) $sizeInfo['filesize'] : 0;
             $dimension = $sizeInfo['width'] . 'x' . $sizeInfo['height'];
 
             if (!isset($dimensionMap[$dimension])) {
@@ -119,6 +121,18 @@ trait OffloaderTrait
         return (bool)get_post_meta($post_id, 'advmo_offloaded', true);
     }
 
+    /**
+     * Check if an attachment has offload errors.
+     *
+     * @param int $attachment_id The attachment ID.
+     * @return bool True if there are errors, false otherwise.
+     */
+    private function has_errors(int $attachment_id): bool
+    {
+        $errors = get_post_meta($attachment_id, 'advmo_error_log', true);
+        return !empty($errors);
+    }
+
     private function shouldDeleteLocal()
     {
         $settings = get_option('advmo_settings');
@@ -137,5 +151,54 @@ trait OffloaderTrait
         }
 
         return $mirror_delete && $post->post_type === 'attachment' && $this->is_offloaded($post->ID);
+    }
+
+    /**
+     * Get all files from a size data entry, including sources for Modern Image Formats.
+     *
+     * @param array $sizeData The size data array from metadata.
+     * @return array Array of unique file names.
+     */
+    private function getFilesFromSizeData(array $sizeData): array
+    {
+        $files = [];
+        
+        // Add the primary file
+        if (!empty($sizeData['file'])) {
+            $files[] = $sizeData['file'];
+        }
+        
+        // Add files from sources array (Modern Image Formats support)
+        if (!empty($sizeData['sources']) && is_array($sizeData['sources'])) {
+            foreach ($sizeData['sources'] as $source) {
+                if (!empty($source['file']) && !in_array($source['file'], $files, true)) {
+                    $files[] = $source['file'];
+                }
+            }
+        }
+        
+        return $files;
+    }
+
+    /**
+     * Get root-level source files from metadata (Modern Image Formats support).
+     *
+     * @param array $metadata The attachment metadata.
+     * @return array Array of additional source file names (excluding the main file).
+     */
+    private function getRootSourceFiles(array $metadata): array
+    {
+        $files = [];
+        
+        if (!empty($metadata['sources']) && is_array($metadata['sources'])) {
+            $mainFile = $metadata['file'] ?? '';
+            foreach ($metadata['sources'] as $source) {
+                if (!empty($source['file']) && $source['file'] !== $mainFile) {
+                    $files[] = $source['file'];
+                }
+            }
+        }
+        
+        return $files;
     }
 }

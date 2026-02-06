@@ -2,8 +2,8 @@
 /*
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
- * Description:       Offload WordPress media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Min.io or Wasabi.
- * Version:           4.0.3
+ * Description:       Save server space & speed up your site by automatically offloading media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2 and more.
+ * Version:           4.3.1
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter
@@ -25,7 +25,7 @@ if (!class_exists('ADVMO')) {
 	class ADVMO
 	{
 
-		/** @var Container */
+		/** @var \Advanced_Media_Offloader\Core\Container */
 		public $container;
 
 		/**
@@ -199,39 +199,18 @@ if (!class_exists('ADVMO')) {
 		{
 			$settings_page_link = '<a href="' . esc_url(admin_url('admin.php?page=advmo')) . '">' . __('Settings', 'advanced-media-offloader') . '</a>';
 			array_unshift($links, $settings_page_link);
-			return $links;
-		}
-
-		/**
-		 * Completes the setup process on "init" of earlier.
-		 *
-		 * @since   1.0.0
-		 *
-		 * @return  void
-		 */
-		public function init()
-		{
-			// Load textdomain file.
-			load_plugin_textdomain('advanced-media-offloader', false, dirname(plugin_basename(__FILE__)) . '/languages/');
-
-			// Get selected cloud provider in plugin settings page.
-			$cloud_provider_key = advmo_get_cloud_provider_key();
-
-			if ($cloud_provider_key) {
-				try {
-					// Use the Factory to create the cloud provider instance.
-					$cloud_provider = Advanced_Media_Offloader\Factories\CloudProviderFactory::create($cloud_provider_key);
-
-					// Instantiate the Offloader with the cloud provider.
-					$this->offloader = Advanced_Media_Offloader\Offloader::get_instance($cloud_provider);
-					$this->offloader->initializeHooks();
-				} catch (Exception $e) {
-					// Handle exception or display admin notice.
-					add_action('admin_notices', function () use ($e) {
-						$this->notice($e->getMessage(), 'error');
-					});
-				}
+			// Append Donate link (non-intrusive), gated by filter
+			if (apply_filters('advmo_show_donate_links', true)) {
+				$donate_url = add_query_arg(array(
+					'utm_source'   => 'wp-plugin',
+					'utm_medium'   => 'plugins-list',
+					'utm_campaign' => 'advanced-media-offloader',
+					'utm_content'  => 'plugin-row-donate',
+				), 'https://buymeacoffee.com/wpfitter');
+				$donate_link = '<a href="' . esc_url($donate_url) . '" target="_blank" rel="noopener noreferrer" title="' . esc_attr__('Donate to support Advanced Media Offloader', 'advanced-media-offloader') . '">' . esc_html__('Donate', 'advanced-media-offloader') . '</a>';
+				$links[] = $donate_link;
 			}
+			return $links;
 		}
 
 		/**
@@ -263,7 +242,17 @@ if (!class_exists('ADVMO')) {
 			delete_option('advmo_bulk_offload_data');
 			delete_option('advmo_last_connection_check');
 			// Clear any custom cron schedules
-			remove_filter('cron_schedules', array($this->container->get('bulk_offload_handler'), 'add_cron_interval'));
+			if ($this->container && $this->container->has('bulk_offload_handler')) {
+				try {
+					$bulk_offload_handler = $this->container->get('bulk_offload_handler');
+					if ($bulk_offload_handler) {
+						remove_filter('cron_schedules', array($bulk_offload_handler, 'add_cron_interval'));
+					}
+				} catch (\Exception $e) {
+					// Silently fail if handler cannot be retrieved
+					error_log('ADVMO: Error removing cron schedule filter during deactivation: ' . $e->getMessage());
+				}
+			}
 
 			// Note: We don't delete the cloud provider settings to preserve configuration
 		}

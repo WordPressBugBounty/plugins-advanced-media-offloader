@@ -3,6 +3,7 @@
 namespace Advanced_Media_Offloader\Factories;
 
 use Advanced_Media_Offloader\Integrations\AmazonS3;
+use Advanced_Media_Offloader\Integrations\BackblazeB2;
 use Advanced_Media_Offloader\Integrations\Cloudflare_R2;
 use Advanced_Media_Offloader\Integrations\DigitalOceanSpaces;
 use Advanced_Media_Offloader\Integrations\MinIO;
@@ -22,21 +23,25 @@ class CloudProviderFactory
             'name'  => 'Amazon S3',
             'class' => AmazonS3::class,
         ],
-        'digitalocean'  => [
-            'name'  => 'DigitalOcean Spaces',
-            'class' => DigitalOceanSpaces::class,
-        ],
-        'minio'         => [
-            'name'  => 'MinIO',
-            'class' => MinIO::class,
-        ],
         'cloudflare_r2' => [
             'name'  => 'Cloudflare R2',
             'class' => Cloudflare_R2::class,
         ],
+        'backblaze_b2'  => [
+            'name'  => 'Backblaze B2',
+            'class' => BackblazeB2::class,
+        ],
+        'digitalocean'  => [
+            'name'  => 'DigitalOcean Spaces',
+            'class' => DigitalOceanSpaces::class,
+        ],
         'wasabi'        => [
             'name'  => 'Wasabi',
             'class' => Wasabi::class,
+        ],
+        'minio'         => [
+            'name'  => 'Any S3‑Compatible Storage (MinIO, OVHcloud, ...)',
+            'class' => MinIO::class,
         ],
     ];
 
@@ -69,6 +74,15 @@ class CloudProviderFactory
      */
     public static function getAvailableProviders(): array
     {
-        return self::$cloud_providers;
+        /**
+         * Filters the list of available cloud providers.
+         *
+         * This filter allows other plugins or themes to add, remove, or modify
+         * the cloud providers supported by Advanced Media Offloader.
+         *
+         * @param array $cloud_providers The array of cloud provider configurations.
+         * @return array The filtered array of cloud providers.
+         */
+        return apply_filters('advmo_cloud_providers', self::$cloud_providers);
     }
 }

@@ -195,13 +195,11 @@ class MediaOverview
         $nonce = wp_create_nonce('advmo_download_errors_csv');
         $download_url = admin_url('admin-ajax.php?action=advmo_download_errors_csv&nonce=' . $nonce);
 
-        $output = "<p>" . __('Number of attachments with errors:', 'advanced-media-offloader') . " <strong>{$count}</strong></p>";
+        echo '<p>' . esc_html__('Number of attachments with errors:', 'advanced-media-offloader') . ' <strong>' . esc_html($count) . '</strong></p>';
 
         if ($count > 0) {
-            $output .= "<p><a href='{$download_url}' class='button button-secondary'>" . __('Download Errors CSV', 'advanced-media-offloader') . "</a></p>";
+            echo '<p><a href="' . esc_url($download_url) . '" class="button button-secondary">' . esc_html__('Download Errors CSV', 'advanced-media-offloader') . '</a></p>';
         }
-
-        echo $output;
     }
 
     private function get_attachments_with_errors()
@@ -311,10 +309,12 @@ class MediaOverview
             }
 
             $progress_status = $is_offloading ? 'processing' : 'idle';
-            $processed = $bulk_offload_data['processed'] ?? 0;
-            $total = $bulk_offload_data['total'] ?? 0;
+            // When not actively offloading, use the current unoffloaded count as an estimate
+            // so the UI can show "0 of N" immediately on start (before the first AJAX response).
+            $processed = $is_offloading ? ($bulk_offload_data['processed'] ?? 0) : 0;
+            $total = $is_offloading ? ($bulk_offload_data['total'] ?? 0) : $count;
 
-            echo '<div id="progress-container" style="display: ' . esc_attr($display_style) . '; margin-top: 20px;" data-status="' . esc_attr($progress_status) . '">';
+            echo '<div id="progress-container" style="display: ' . esc_attr($display_style) . '; margin-top: 20px;" data-status="' . esc_attr($progress_status) . '" data-total-estimate="' . esc_attr($count) . '">';
             echo '<p id="progress-title" style="font-size: 16px; font-weight: bold;">' .
                 sprintf(
                     __('Offloading media files to cloud storage (%1$s of %2$s)', 'advanced-media-offloader'),
@@ -326,7 +326,10 @@ class MediaOverview
             printf('        <div id="offload-progress" style="width: %.1f%%; height: 20px; background-color: #0073aa; border-radius: 2px; transition: width 0.5s;"></div>', esc_html($progress_width));
             echo '    </div>';
             printf('    <p id="progress-text" style="margin-top: 10px; font-weight: bold;">%s</p>', esc_html($progress_text));
-            if (get_option("advmo_bulk_offload_cancelled") === false) {
+            $cancel_flag = get_option("advmo_bulk_offload_cancelled");
+            $bg_cancelled = absint(get_site_option('advmo_bulk_offload_media_process_status', 0)) === 1;
+
+            if (!$cancel_flag || !$bg_cancelled) {
                 echo '<button type="button" id="bulk-offload-cancel-button" class="button">' . __('Cancel', 'advanced-media-offloader') . '</button>';
             } else {
                 echo "<p>Canceling the bulk offload process…</p>";

@@ -15,6 +15,10 @@ use Advanced_Media_Offloader\Observers\AttachmentUploadObserver;
 use Advanced_Media_Offloader\Observers\PostContentImageTagObserver;
 use Advanced_Media_Offloader\Observers\GetAttachedFileObserver;
 use Advanced_Media_Offloader\Observers\AttachmentUpdateObserver;
+use Advanced_Media_Offloader\Observers\ThumbnailRegenerationObserver;
+use Advanced_Media_Offloader\Observers\UniqueFilenameObserver;
+use Advanced_Media_Offloader\Observers\MediaLibraryFilterObserver;
+use Advanced_Media_Offloader\Observers\AttachmentDeleteLoadingObserver;
 
 class Offloader
 {
@@ -46,8 +50,12 @@ class Offloader
 		$this->attach(new OffloadStatusObserver($this->cloudProvider));
 		$this->attach(new AttachmentOffloadButtonObserver($this->cloudProvider));
 		$this->attach(new AttachmentDeleteObserver($this->cloudProvider));
+		$this->attach(new AttachmentDeleteLoadingObserver());
 		$this->attach(new PostContentImageTagObserver($this->cloudProvider));
+		$this->attach(new ThumbnailRegenerationObserver($this->cloudProvider));
 		$this->attach(new AttachmentUpdateObserver($this->cloudProvider));
+		$this->attach(new UniqueFilenameObserver($this->cloudProvider));
+		$this->attach(new MediaLibraryFilterObserver());
 
 		foreach ($this->observers as $observer) {
 			$observer->register();

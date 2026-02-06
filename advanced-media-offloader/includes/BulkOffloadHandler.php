@@ -1,5 +1,5 @@
 <?php
-
+# bulk offlaod handler
 namespace Advanced_Media_Offloader;
 
 use Advanced_Media_Offloader\Services\BulkMediaOffloader;
@@ -7,6 +7,9 @@ use Advanced_Media_Offloader\Factories\CloudProviderFactory;
 
 class BulkOffloadHandler
 {
+    /**
+     * @var BulkMediaOffloader|null
+     */
     protected $process_all;
 
     # singleton
@@ -23,10 +26,11 @@ class BulkOffloadHandler
 
     public function __construct()
     {
-        add_action('plugins_loaded', array($this, 'init'));
+        add_action('init', array($this, 'init'));
         add_action('wp_ajax_advmo_check_bulk_offload_progress', array($this, 'get_progress'));
         add_action('wp_ajax_advmo_start_bulk_offload', array($this, 'bulk_offload'));
         add_action('wp_ajax_advmo_cancel_bulk_offload', array($this, 'cancel_bulk_offload'));
+        add_action('advmo_cleanup_orphaned_queue', array($this, 'cleanup_orphaned_queue'));
     }
 
     /**
@@ -36,6 +40,11 @@ class BulkOffloadHandler
     {
         try {
             $cloud_provider_key = advmo_get_cloud_provider_key();
+
+            if (empty($cloud_provider_key)) {
+                throw new \Exception(__('No cloud provider is configured.', 'advanced-media-offloader'));
+            }
+
             $cloud_provider = CloudProviderFactory::create($cloud_provider_key);
             $this->process_all    = new BulkMediaOffloader($cloud_provider);
             add_action($this->process_all->get_identifier() . '_cancelled', array($this, 'process_is_cancelled'));
@@ -64,22 +73,89 @@ class BulkOffloadHandler
 
     public function check_stalled_processes()
     {
+        if (! $this->process_all instanceof BulkMediaOffloader) {
+            return;
+        }
+
         // Check if a process is locked but not updating
         $process_lock = get_site_transient($this->process_all->get_identifier() . '_process_lock');
-        $last_update = get_option('advmo_bulk_offload_last_update', 0);
+        $bulk_data = advmo_get_bulk_offload_data();
+        $last_update = isset($bulk_data['last_update']) ? (int) $bulk_data['last_update'] : 0;
+
+        // Falls back to legacy option for backwards compatibility.
+        if (0 === $last_update) {
+            $last_update = (int) get_option('advmo_bulk_offload_last_update', 0);
+        }
+        $current_time = time();
 
         // If process locked but hasn't updated in 10 minutes
-        if ($process_lock && (time() - $last_update) > 600) {
-            // Force unlock and reset
-            delete_site_transient($this->process_all->get_identifier() . '_process_lock');
-            delete_option('advmo_bulk_offload_cancelled');
+        if ($process_lock && ($current_time - $last_update) > 600) {
 
-            // Update status to ready for restart
+            // Get current bulk offload data for logging
+            $bulk_data = advmo_get_bulk_offload_data();
+
+            error_log(sprintf(
+                'ADVMO: Detected stalled bulk offload process. Lock time: %s, Last update: %s, Processed: %d/%d',
+                date('Y-m-d H:i:s', $process_lock),
+                date('Y-m-d H:i:s', $last_update),
+                $bulk_data['processed'] ?? 0,
+                $bulk_data['total'] ?? 0
+            ));
+
+            // Clear all process-related transients and options
+            $this->force_unlock_process();
+
+            // Update status with recovery information
             advmo_update_bulk_offload_data([
-                'status' => 'ready',
+                'status' => 'recovered_from_stall',
+                'last_recovery' => $current_time
             ]);
 
-            error_log('ADVMO: Detected and unlocked stalled bulk offload process');
+            // Schedule a cleanup of any orphaned queue items
+            wp_schedule_single_event(time() + 60, 'advmo_cleanup_orphaned_queue');
+        }
+
+        // Also check for very old processes (over 1 hour) regardless of lock status
+        if ($last_update > 0 && ($current_time - $last_update) > 3600) {
+            $bulk_data = advmo_get_bulk_offload_data();
+
+            // Only reset if status indicates it's still processing
+            if (isset($bulk_data['status']) && in_array($bulk_data['status'], ['processing', 'starting'])) {
+                error_log('ADVMO: Cleaning up very old bulk offload process (>1 hour)');
+
+                $this->force_unlock_process();
+                advmo_update_bulk_offload_data([
+                    'status' => 'timeout_cleanup',
+                    'last_cleanup' => $current_time
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Force unlock all process locks and clean up related data.
+     */
+    private function force_unlock_process()
+    {
+        if (! $this->process_all instanceof BulkMediaOffloader) {
+            return;
+        }
+
+        // Clear process lock
+        delete_site_transient($this->process_all->get_identifier() . '_process_lock');
+
+        // Clear batch lock
+        delete_site_transient($this->process_all->get_identifier() . '_batch_lock');
+
+        // Clear any process-specific options
+        delete_option('advmo_bulk_offload_cancelled');
+
+        // Cancel any scheduled cron events for this process
+        wp_clear_scheduled_hook($this->process_all->get_identifier() . '_cron');
+
+        // Restart processing if there is pending work.
+        if ($this->process_all->is_queued() && ! $this->process_all->is_processing()) {
+            $this->process_all->dispatch();
         }
     }
 
@@ -92,10 +168,25 @@ class BulkOffloadHandler
             ], 403);
         }
 
-        if (!wp_verify_nonce(sanitize_key($_POST['bulk_offload_nonce'] ?? ''), 'advmo_bulk_offload')) {
+        // Use check_ajax_referer which handles sanitization and verification properly
+        if (!check_ajax_referer('advmo_bulk_offload', 'bulk_offload_nonce', false)) {
             wp_send_json_error([
                 'message' => __('Security check failed', 'advanced-media-offloader')
             ], 403);
+        }
+
+        // Starting a new run should always reset any previous "cancel requested" flag.
+        $prev_cancelled = get_option('advmo_bulk_offload_cancelled');
+        if ($prev_cancelled) {
+            delete_option('advmo_bulk_offload_cancelled');
+        }
+
+        $ready = $this->ensure_process_ready();
+        if (is_wp_error($ready)) {
+            wp_send_json_error([
+                'message' => $ready->get_error_message(),
+                'code' => $ready->get_error_code(),
+            ], 400);
         }
 
         try {
@@ -129,6 +220,13 @@ class BulkOffloadHandler
 
         $bulk_offload_data = advmo_get_bulk_offload_data();
         $is_bulk_offload_cancelled = get_option("advmo_bulk_offload_cancelled");
+
+        // Clear stale cancel flag when job is in terminal state (or status isn't actually cancelled anymore).
+        $terminal_statuses = ['completed', 'cancelled', 'timeout_cleanup', 'recovered_from_stall'];
+        if ($is_bulk_offload_cancelled && isset($bulk_offload_data['status']) && in_array($bulk_offload_data['status'], $terminal_statuses, true)) {
+            delete_option('advmo_bulk_offload_cancelled');
+            $is_bulk_offload_cancelled = get_option("advmo_bulk_offload_cancelled");
+        }
         wp_send_json_success([
             'processed' => $bulk_offload_data['processed'],
             'total'     => $bulk_offload_data['total'],
@@ -140,10 +238,12 @@ class BulkOffloadHandler
 
     protected function handle_all()
     {
-        if (!wp_verify_nonce($_POST['bulk_offload_nonce'], 'advmo_bulk_offload')) {
-            wp_send_json_error([
-                'message' => __('Invalid nonce', 'advanced-media-offloader')
-            ]);
+        // Nonce is already verified in bulk_offload() which calls this method
+        // No need for redundant check here since handle_all() is only called internally
+
+        $ready = $this->ensure_process_ready();
+        if (is_wp_error($ready)) {
+            throw new \Exception($ready->get_error_message());
         }
 
         $names = $this->get_unoffloaded_attachments();
@@ -197,10 +297,10 @@ class BulkOffloadHandler
                 $file_size = filesize($file_path) / (1024 * 1024); // Size in MB
 
                 // Skip massive files entirely (> 10MB)
-                if ($file_size > 10) {
+                if ($file_size > 25) {
                     $error_msg = sprintf(
                         __('File exceeds maximum size (%s MB) for bulk processing', 'advanced-media-offloader'),
-                        '10'
+                        '25'
                     );
                     update_post_meta($attachment_id, 'advmo_error_log', $error_msg);
                     $oversized_files++;
@@ -258,7 +358,7 @@ class BulkOffloadHandler
                     $file_size = filesize($file_path) / (1024 * 1024); // Size in MB
 
                     // Skip massive files
-                    if ($file_size > 100) {
+                    if ($file_size > 25) {
                         continue;
                     }
 
@@ -295,16 +395,32 @@ class BulkOffloadHandler
 
     public function cancel_bulk_offload()
     {
+        // Verify user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error([
+                'message' => __('Permission denied', 'advanced-media-offloader')
+            ], 403);
+        }
 
-        if (!wp_verify_nonce($_POST['bulk_offload_nonce'], 'advmo_bulk_offload')) {
+        // Use check_ajax_referer which handles sanitization and verification properly
+        if (!check_ajax_referer('advmo_bulk_offload', 'bulk_offload_nonce', false)) {
             wp_send_json_error([
                 'message' => __('Invalid nonce', 'advanced-media-offloader')
-            ]);
+            ], 403);
         }
-        $this->process_all->cancel();
 
-        # lock the bulk offload cancel
+        $ready = $this->ensure_process_ready();
+        if (is_wp_error($ready)) {
+            wp_send_json_error([
+                'message' => $ready->get_error_message(),
+                'code' => $ready->get_error_code(),
+            ], 400);
+        }
+
+        // Set the "cancel requested" flag BEFORE calling cancel(); cancellation may complete immediately.
         update_option("advmo_bulk_offload_cancelled", true);
+
+        $this->process_all->cancel();
 
         wp_send_json_success([
             "message" => __('Bulk offload cancelled successfully.', 'advanced-media-offloader')
@@ -317,6 +433,49 @@ class BulkOffloadHandler
             'status' => 'cancelled'
         ]);
         delete_option("advmo_bulk_offload_cancelled");
+    }
+
+    /**
+     * Cleanup any orphaned queue batches and resume processing if needed.
+     */
+    public function cleanup_orphaned_queue()
+    {
+        if (! $this->process_all instanceof BulkMediaOffloader) {
+            return;
+        }
+
+        $batches = $this->process_all->get_batches();
+        $has_pending_items = false;
+
+        foreach ($batches as $batch) {
+            if (empty($batch->data)) {
+                $this->process_all->delete($batch->key);
+                continue;
+            }
+
+            $has_pending_items = true;
+        }
+
+        if ($has_pending_items && ! $this->process_all->is_processing()) {
+            $this->process_all->dispatch();
+        }
+    }
+
+    /**
+     * Ensure the background process is ready before handling actions.
+     *
+     * @return true|\WP_Error
+     */
+    private function ensure_process_ready()
+    {
+        if ($this->process_all instanceof BulkMediaOffloader) {
+            return true;
+        }
+
+        return new \WP_Error(
+            'advmo_offloader_unavailable',
+            __('Bulk offload requires a configured cloud provider. Please configure one before trying again.', 'advanced-media-offloader')
+        );
     }
 
     public function bulk_offload_cron_healthcheck()
