@@ -294,11 +294,12 @@ class MediaLibraryFilterObserver implements ObserverInterface
     /**
      * Enqueue script for grid view filter functionality.
      *
-     * @param string $hook The current admin page hook.
+     * @param mixed $hook The current admin page hook (may be empty in some contexts).
      */
-    public function enqueueGridFilterScript(string $hook): void
+    public function enqueueGridFilterScript($hook = ''): void
     {
-        if ($hook !== 'upload.php') {
+        // Ensure hook is a valid string (some page builders may not pass this parameter)
+        if (!is_string($hook) || $hook !== 'upload.php') {
             return;
         }
 

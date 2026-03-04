@@ -157,10 +157,15 @@ class OffloadStatusObserver implements ObserverInterface
     /**
      * Enqueue styles and scripts for media library and editor.
      *
-     * @param string $hook The current admin page hook.
+     * @param mixed $hook The current admin page hook (may be empty in some contexts).
      */
-    public function enqueueAssets(string $hook): void
+    public function enqueueAssets($hook = ''): void
     {
+        // Ensure hook is a valid string (some page builders may not pass this parameter)
+        if (!is_string($hook) || $hook === '') {
+            return;
+        }
+
         if (!$this->shouldEnqueueAssets($hook)) {
             return;
         }
@@ -175,7 +180,7 @@ class OffloadStatusObserver implements ObserverInterface
      * @param string $hook The current admin page hook.
      * @return bool True if assets should be loaded.
      */
-    private function shouldEnqueueAssets(string $hook): bool
+    private function shouldEnqueueAssets($hook): bool
     {
         // Media library (grid/list view)
         if ($hook === 'upload.php') {

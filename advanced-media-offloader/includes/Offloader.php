@@ -19,6 +19,8 @@ use Advanced_Media_Offloader\Observers\ThumbnailRegenerationObserver;
 use Advanced_Media_Offloader\Observers\UniqueFilenameObserver;
 use Advanced_Media_Offloader\Observers\MediaLibraryFilterObserver;
 use Advanced_Media_Offloader\Observers\AttachmentDeleteLoadingObserver;
+use Advanced_Media_Offloader\Observers\ImagifyCompatObserver;
+use Advanced_Media_Offloader\Observers\EWWWCompatObserver;
 
 class Offloader
 {
@@ -56,6 +58,8 @@ class Offloader
 		$this->attach(new AttachmentUpdateObserver($this->cloudProvider));
 		$this->attach(new UniqueFilenameObserver($this->cloudProvider));
 		$this->attach(new MediaLibraryFilterObserver());
+		$this->attach(new ImagifyCompatObserver($this->cloudProvider));
+		$this->attach(new EWWWCompatObserver($this->cloudProvider));
 
 		foreach ($this->observers as $observer) {
 			$observer->register();

@@ -15,12 +15,12 @@ class AttachmentDeleteLoadingObserver implements ObserverInterface
     }
 
     /**
-     * @param string $hook Current admin page hook.
+     * @param mixed $hook Current admin page hook (may be empty in some contexts).
      */
-    public function enqueueAssets(string $hook): void
+    public function enqueueAssets($hook = ''): void
     {
-        // Media Library screen (both list + grid live under upload.php).
-        if ($hook !== 'upload.php') {
+        // Ensure hook is a valid string (some page builders may not pass this parameter)
+        if (!is_string($hook) || $hook !== 'upload.php') {
             return;
         }
 

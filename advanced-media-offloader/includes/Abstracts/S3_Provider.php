@@ -414,6 +414,18 @@ abstract class S3_Provider
 			}
 		}
 
+		/**
+		 * Filter the list of S3 object keys to delete for an attachment.
+		 *
+		 * Allows other observers (e.g. Imagify compatibility) to append
+		 * additional keys such as WebP/AVIF sidecar files.
+		 *
+		 * @param string[] $keys          Object keys collected so far.
+		 * @param int      $attachment_id The attachment being deleted.
+		 * @param string   $base_dir      The base directory prefix for this attachment's keys.
+		 */
+		$keys = apply_filters('advmo_attachment_delete_keys', $keys, $attachment_id, $base_dir);
+
 		// Dedupe + remove empties.
 		$keys = array_values(array_unique(array_filter($keys, 'strlen')));
 

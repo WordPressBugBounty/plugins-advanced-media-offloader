@@ -5,7 +5,7 @@ Tags: s3, media library, cloudflare, offload, storage
 Requires at least: 5.6
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 4.3.1
+Stable tag: 4.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -196,6 +196,13 @@ add_filter('advmo_object_acl', '__return_false');
 `
 
 == Changelog ==
+= 4.4.0 =
+* Added: Imagify compatibility for WebP/AVIF offloading
+* Added: EWWW Image Optimizer compatibility
+
+= 4.3.2 =
+* Fixed: Visual Composer compatibility - resolved PHP TypeError caused by strict type hints on admin_enqueue_scripts callbacks
+
 = 4.3.1 =
 * Added: `advmo_object_acl` filter to customize or disable object-level ACL permissions
 
@@ -387,6 +394,9 @@ add_filter('advmo_object_acl', '__return_false');
 - Initial release.
 
 == Upgrade Notice ==
+= 4.4.0 =
+New compatibility with Imagify and EWWW Image Optimizer for WebP/AVIF offloading.
+
 = 4.3.1 =
 New `advmo_object_acl` filter allows disabling ACLs for providers like Cloudflare R2 or AWS S3 buckets with ACLs disabled.
 

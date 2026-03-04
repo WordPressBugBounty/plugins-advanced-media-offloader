@@ -228,6 +228,10 @@ class CloudAttachmentUploader
 
         // Handle local cleanup based on retention policy
         $deleteLocalRule = $this->shouldDeleteLocal();
+
+        /** @see CloudAttachmentUploader::uploadToCloud() for the equivalent filter usage. */
+        $deleteLocalRule = apply_filters('advmo_local_deletion_rule', $deleteLocalRule, $attachment_id);
+
         if ($deleteLocalRule !== 0 && (!empty($thumbnails_to_upload) || $has_new_root_sources)) {
             $this->deleteRegeneratedLocalThumbnails($attachment_id, $thumbnails_to_upload, $deleteLocalRule, $has_new_root_sources ? $new_metadata : null);
         }
@@ -387,6 +391,18 @@ class CloudAttachmentUploader
         }
 
         $deleteLocalRule = $this->shouldDeleteLocal();
+
+        /**
+         * Filter the local file deletion rule before applying it.
+         *
+         * Allows third-party integrations (e.g. image optimizers) to defer
+         * local file deletion until their processing completes.
+         *
+         * @param int $deleteLocalRule The deletion rule: 0 = keep, 1 = smart cleanup, 2 = full migration.
+         * @param int $attachment_id   The attachment ID.
+         */
+        $deleteLocalRule = apply_filters('advmo_local_deletion_rule', $deleteLocalRule, $attachment_id);
+
         if ($deleteLocalRule !== 0) {
             $this->deleteLocalFile($attachment_id, $deleteLocalRule);
         }
@@ -400,6 +416,100 @@ class CloudAttachmentUploader
          * @param int $attachment_id    The ID of the attachment that was processed.
          */
         do_action('advmo_after_upload_to_cloud', $attachment_id);
+
+        return true;
+    }
+
+    /**
+     * Re-upload all files for an already-offloaded attachment.
+     *
+     * Overwrites cloud copies with current local files, then fires
+     * advmo_reoffload_attachment so integration observers (EWWW, Imagify)
+     * can upload their sidecar files (WebP, AVIF).
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return bool True on success, false on failure.
+     */
+    public function reoffloadAttachment(int $attachment_id): bool
+    {
+        if (!$this->is_offloaded($attachment_id)) {
+            return false;
+        }
+
+        $advmo_path = get_post_meta($attachment_id, 'advmo_path', true);
+        if (empty($advmo_path)) {
+            return false;
+        }
+
+        delete_post_meta($attachment_id, 'advmo_error_log');
+
+        $base_file = get_attached_file($attachment_id, true);
+        if (!file_exists($base_file)) {
+            $this->logError($attachment_id, 'Main file does not exist for reoffload.');
+            return false;
+        }
+
+        $file_dir = trailingslashit(dirname($base_file));
+        $metadata = wp_get_attachment_metadata($attachment_id);
+
+        $uploadResult = $this->cloudProvider->uploadFile($base_file, $advmo_path . wp_basename($base_file));
+        if (!$uploadResult) {
+            $this->logError($attachment_id, 'Failed to re-upload main file to cloud storage.');
+            return false;
+        }
+
+        if (!empty($metadata['sizes']) && is_array($metadata['sizes'])) {
+            $metadata_sizes = $this->uniqueMetaDataSizes($metadata['sizes']);
+
+            foreach ($metadata_sizes as $size => $data) {
+                $size_files = $this->getFilesFromSizeData($data);
+
+                foreach ($size_files as $size_file) {
+                    $file_path = $file_dir . $size_file;
+                    if (file_exists($file_path)) {
+                        $uploadResult = $this->cloudProvider->uploadFile($file_path, $advmo_path . $size_file);
+                        if (!$uploadResult) {
+                            $this->logError($attachment_id, "Failed to re-upload size '{$size}' file '{$size_file}' to cloud storage.");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($metadata['original_image'])) {
+            $original_image = wp_get_original_image_path($attachment_id);
+            if ($original_image && file_exists($original_image)) {
+                $uploadResult = $this->cloudProvider->uploadFile($original_image, $advmo_path . wp_basename($original_image));
+                if (!$uploadResult) {
+                    $this->logError($attachment_id, 'Failed to re-upload original image to cloud storage.');
+                    return false;
+                }
+            }
+        }
+
+        $root_source_files = is_array($metadata) ? $this->getRootSourceFiles($metadata) : [];
+        foreach ($root_source_files as $source_file) {
+            $source_path = $file_dir . $source_file;
+            if (file_exists($source_path)) {
+                $uploadResult = $this->cloudProvider->uploadFile($source_path, $advmo_path . $source_file);
+                if (!$uploadResult) {
+                    $this->logError($attachment_id, "Failed to re-upload source file '{$source_file}' to cloud storage.");
+                    return false;
+                }
+            }
+        }
+
+        /**
+         * Fires after standard files have been re-uploaded during a reoffload.
+         *
+         * Third-party integration observers (EWWW, Imagify) should hook here
+         * to upload their sidecar files (WebP, AVIF).
+         *
+         * @param int    $attachment_id The attachment ID.
+         * @param string $advmo_path    The cloud storage path prefix for this attachment.
+         */
+        do_action('advmo_reoffload_attachment', $attachment_id, $advmo_path);
 
         return true;
     }
@@ -428,7 +538,7 @@ class CloudAttachmentUploader
         update_post_meta($attachment_id, 'advmo_bucket', $this->cloudProvider->getBucket());
     }
 
-    private function deleteLocalFile(int $attachment_id, int $deleteLocalRule): bool
+    public function deleteLocalFile(int $attachment_id, int $deleteLocalRule): bool
     {
         /**
          * Fires before the local file(s) associated with an attachment are deleted.
