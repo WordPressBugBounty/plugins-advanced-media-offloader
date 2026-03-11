@@ -5,7 +5,7 @@ Tags: s3, media library, cloudflare, offload, storage
 Requires at least: 5.6
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 4.4.0
+Stable tag: 4.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,24 +34,27 @@ Struggling with server space limitations? Want to improve your site's performanc
 * **Wasabi** - Hot cloud storage with predictable pricing
 * **MinIO** - Any S3-compatible storage (MinIO, OVHcloud Object Storage, Scaleway, Linode, Vultr, IBM COS, and more)
 
+Not sure which provider to choose? Check our [cloud storage pricing comparison](https://wpfitter.com/blog/best-cloud-storage-for-wordpress-media-pricing-comparison/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=pricing-comparison) for real-world cost breakdowns.
+
 == Features ==
 
 * **Automatic Offloading** - New media uploads are automatically sent to your cloud storage
-* **Smart Policies** - Create advanced rules to control exactly which files are offloaded and when, giving you granular control over your storage. ([Learn more](https://wpfitter.com/blog/implementing-smart-retention-policies-with-advanced-media-offloader/))
-* **Bulk Migration & WP CLI** - Easily move existing media to the cloud with powerful command-line support for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
+* **Smart Policies** - Create advanced rules to control exactly which files are offloaded and when, giving you granular control over your storage. ([Learn more](https://wpfitter.com/blog/implementing-smart-retention-policies-with-advanced-media-offloader/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=smart-policies))
+* **Bulk Migration & WP CLI** - Easily move existing media to the cloud with powerful command-line support for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=bulk-offload-cli))
 * **Thumbnail Regeneration Compatibility** - Compatible with WP-CLI `wp media regenerate` command and the Regenerate Thumbnails plugin. Regenerated thumbnails automatically offload to cloud storage. Note: Not compatible with Full Cloud Migration retention policy.
 * **Smart URL Rewriting** - All media URLs are automatically rewritten to serve from cloud storage
 * **File Versioning** - Add unique timestamps to media paths to prevent caching issues
 * **Flexible Retention** - Choose to keep local copies or remove them after successful offloading
 * **Mirror Deletion** - Optionally remove files from cloud storage when deleted from WordPress
 * **Custom Paths** - Configure custom path prefixes in your cloud storage
-* **Developer-Friendly** - Extensive action and filter hooks for extending functionality ([View Documentation](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/))
+* **Image Optimizer Compatibility** - Works with [Modern Image Formats](https://wordpress.org/plugins/webp-uploads/) (recommended), Imagify, and EWWW Image Optimizer. Optimized WebP and AVIF files are automatically offloaded alongside originals. ([Learn more](https://wpfitter.com/blog/ewww-imagify-support-added-to-advanced-media-offloader/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=image-optimizer-compatibility))
+* **Developer-Friendly** - Extensive action and filter hooks for extending functionality ([View Documentation](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=developer-hooks))
 
 = Developer Documentation =
 
 For developers looking to extend or customize the plugin behavior, we provide comprehensive documentation for all available hooks:
 
-**[View Developer Hooks Documentation →](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/)**
+**[View Developer Hooks Documentation →](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=developer-hooks)**
 
 Quick example - skip offloading files larger than 5MB:
 
@@ -196,6 +199,9 @@ add_filter('advmo_object_acl', '__return_false');
 `
 
 == Changelog ==
+= 4.4.1 =
+* Fixed: Custom/intermediate image sizes in src attribute being replaced with the full-size URL when using page builders like Elementor
+
 = 4.4.0 =
 * Added: Imagify compatibility for WebP/AVIF offloading
 * Added: EWWW Image Optimizer compatibility
@@ -394,6 +400,9 @@ add_filter('advmo_object_acl', '__return_false');
 - Initial release.
 
 == Upgrade Notice ==
+= 4.4.1 =
+Fixed custom image sizes being replaced with the full-size URL in page builder content.
+
 = 4.4.0 =
 New compatibility with Imagify and EWWW Image Optimizer for WebP/AVIF offloading.
 
