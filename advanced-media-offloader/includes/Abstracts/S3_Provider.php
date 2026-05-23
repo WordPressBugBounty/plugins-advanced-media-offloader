@@ -352,7 +352,8 @@ abstract class S3_Provider
 	 * - generated sizes + modern format sources
 	 * - original_image (when present)
 	 * - root-level sources
-	 * - backup sizes (_wp_attachment_backup_sizes)
+	 * - backup sizes + their sources (_wp_attachment_backup_sizes)
+	 * - backup full-image sources (_wp_attachment_backup_sources, set by webp-uploads)
 	 *
 	 * @param int $attachment_id
 	 * @return string[]
@@ -403,14 +404,37 @@ abstract class S3_Provider
 			}
 		}
 
-		// Backup sizes for edited images.
+		// Backup sizes for edited images (include Modern Image Format sources).
 		$backup_sizes = get_post_meta($attachment_id, '_wp_attachment_backup_sizes', true);
 		if (is_array($backup_sizes)) {
 			foreach ($backup_sizes as $sizeinfo) {
-				if (!is_array($sizeinfo) || empty($sizeinfo['file']) || !is_string($sizeinfo['file'])) {
+				if (!is_array($sizeinfo)) {
 					continue;
 				}
-				$keys[] = $base_dir . $sizeinfo['file'];
+				foreach ($this->getFilesFromSizeData($sizeinfo) as $backup_file) {
+					if (!empty($backup_file) && is_string($backup_file)) {
+						$keys[] = $base_dir . $backup_file;
+					}
+				}
+			}
+		}
+
+		// Backup full-image sources for edited images (Modern Image Formats).
+		// webp-uploads stores the full-size WebP/AVIF backups in its own meta
+		// key (_wp_attachment_backup_sources), separate from core's
+		// _wp_attachment_backup_sizes. The edited full-size source is recorded
+		// only here, so it must be collected or it is orphaned on delete.
+		$backup_sources = get_post_meta($attachment_id, '_wp_attachment_backup_sources', true);
+		if (is_array($backup_sources)) {
+			foreach ($backup_sources as $sources_set) {
+				if (!is_array($sources_set)) {
+					continue;
+				}
+				foreach ($sources_set as $source) {
+					if (is_array($source) && !empty($source['file']) && is_string($source['file'])) {
+						$keys[] = $base_dir . $source['file'];
+					}
+				}
 			}
 		}
 

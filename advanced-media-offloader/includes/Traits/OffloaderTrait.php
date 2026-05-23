@@ -154,6 +154,36 @@ trait OffloaderTrait
     }
 
     /**
+     * Determine whether the current request is a WordPress image-editor
+     * operation: an edit save (wp_save_image()) or a restore to original
+     * (wp_restore_image()).
+     *
+     * The wp_update_attachment_metadata filter fires for both thumbnail
+     * regeneration and image-editor operations. This lets the regeneration
+     * handler defer those operations to AttachmentUpdateObserver so the two do
+     * not both process (and, under Full Cloud Migration, race on) the same
+     * files. On restore the originals are already in the cloud, so a
+     * regeneration pass would only do pointless work and log noise.
+     *
+     * @return bool
+     */
+    private function isImageEditorOperation(): bool
+    {
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+        foreach ($trace as $frame) {
+            if (!isset($frame['function'])) {
+                continue;
+            }
+            if ('wp_save_image' === $frame['function'] || 'wp_restore_image' === $frame['function']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get all files from a size data entry, including sources for Modern Image Formats.
      *
      * @param array $sizeData The size data array from metadata.

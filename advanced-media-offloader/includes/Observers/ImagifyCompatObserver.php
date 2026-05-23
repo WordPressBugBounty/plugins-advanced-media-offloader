@@ -133,24 +133,43 @@ class ImagifyCompatObserver implements ObserverInterface
         $metadata = wp_get_attachment_metadata($attachment_id);
         $extensions = ['.webp', '.avif'];
 
+        // Collect every standard file basename Imagify may have a next-gen
+        // sidecar for. This includes the non-current files kept in
+        // _wp_attachment_backup_sizes: after an image edit/restore the current
+        // metadata points at one version while the sidecars for the other
+        // version remain in the bucket, so building from current metadata
+        // alone would orphan them.
+        $basenames = [];
+
         $main_file = get_post_meta($attachment_id, '_wp_attached_file', true);
-        $main_basename = $main_file ? wp_basename($main_file) : '';
+        if (!empty($main_file)) {
+            $basenames[] = wp_basename($main_file);
+        }
 
-        foreach ($extensions as $ext) {
-            if (!empty($main_basename)) {
-                $keys[] = $base_dir . $main_basename . $ext;
-            }
-
-            if (!empty($metadata['sizes']) && is_array($metadata['sizes'])) {
-                foreach ($metadata['sizes'] as $sizeinfo) {
-                    if (!empty($sizeinfo['file'])) {
-                        $keys[] = $base_dir . $sizeinfo['file'] . $ext;
-                    }
+        if (!empty($metadata['sizes']) && is_array($metadata['sizes'])) {
+            foreach ($metadata['sizes'] as $sizeinfo) {
+                if (!empty($sizeinfo['file'])) {
+                    $basenames[] = $sizeinfo['file'];
                 }
             }
+        }
 
-            if (!empty($metadata['original_image'])) {
-                $keys[] = $base_dir . $metadata['original_image'] . $ext;
+        if (!empty($metadata['original_image'])) {
+            $basenames[] = $metadata['original_image'];
+        }
+
+        $backup_sizes = get_post_meta($attachment_id, '_wp_attachment_backup_sizes', true);
+        if (is_array($backup_sizes)) {
+            foreach ($backup_sizes as $sizeinfo) {
+                if (is_array($sizeinfo) && !empty($sizeinfo['file']) && is_string($sizeinfo['file'])) {
+                    $basenames[] = $sizeinfo['file'];
+                }
+            }
+        }
+
+        foreach (array_unique($basenames) as $basename) {
+            foreach ($extensions as $ext) {
+                $keys[] = $base_dir . $basename . $ext;
             }
         }
 

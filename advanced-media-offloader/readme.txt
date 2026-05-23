@@ -3,9 +3,9 @@ Contributors: masoudin, wpfitter, bahreynipour, teledark
 Donate link: https://buymeacoffee.com/wpfitter?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=readme-donate
 Tags: s3, media library, cloudflare, offload, storage
 Requires at least: 5.6
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 4.4.1
+Stable tag: 4.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,7 +40,7 @@ Not sure which provider to choose? Check our [cloud storage pricing comparison](
 
 * **Automatic Offloading** - New media uploads are automatically sent to your cloud storage
 * **Smart Policies** - Create advanced rules to control exactly which files are offloaded and when, giving you granular control over your storage. ([Learn more](https://wpfitter.com/blog/implementing-smart-retention-policies-with-advanced-media-offloader/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=smart-policies))
-* **Bulk Migration & WP CLI** - Easily move existing media to the cloud with powerful command-line support for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=bulk-offload-cli))
+* **Bulk Migration & WP CLI** - Easily move existing media to the cloud with powerful command-line support for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=bulk-offload-cli))
 * **Thumbnail Regeneration Compatibility** - Compatible with WP-CLI `wp media regenerate` command and the Regenerate Thumbnails plugin. Regenerated thumbnails automatically offload to cloud storage. Note: Not compatible with Full Cloud Migration retention policy.
 * **Smart URL Rewriting** - All media URLs are automatically rewritten to serve from cloud storage
 * **File Versioning** - Add unique timestamps to media paths to prevent caching issues
@@ -199,6 +199,13 @@ add_filter('advmo_object_acl', '__return_false');
 `
 
 == Changelog ==
+= 4.4.2 =
+* Added: Compatibility with WordPress 7.0
+* Fixed: Editing an image (crop, rotate, or scale) could fail to upload to your cloud storage and show an error. Edited images now offload reliably.
+* Fixed: With Full Cloud Migration active alongside an image optimizer (such as Imagify or EWWW), editing an image could leave the edited copies — including their WebP/AVIF versions — on your server. They are now removed according to your retention policy.
+* Fixed: With EWWW Image Optimizer in background mode, newly offloaded images could be left on your server instead of being removed under your retention policy. They are now cleaned up reliably.
+* Fixed: Deleting an image you had previously edited could leave leftover WebP/AVIF copies behind in your cloud storage. These are now removed too — covering Modern Image Formats, Imagify, and EWWW Image Optimizer.
+
 = 4.4.1 =
 * Fixed: Custom/intermediate image sizes in src attribute being replaced with the full-size URL when using page builders like Elementor
 
@@ -261,7 +268,7 @@ add_filter('advmo_object_acl', '__return_false');
 * feat: add advmo_should_offload_attachment filter to conditionally skip offloading
 
 = 4.0.0 =
-* Added: WP CLI command `wp advmo offload` for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli))
+* Added: WP CLI command `wp advmo offload` for bulk operations and automation ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli/))
 * Added: Individual "Offload Now" button in attachment edit screen for on-demand offloading
 * Added: Retry functionality for failed offloads with dedicated "Retry Offload" button
 * Fixed: Admin notices from other plugins now properly disabled on Media Overview page
@@ -400,6 +407,9 @@ add_filter('advmo_object_acl', '__return_false');
 - Initial release.
 
 == Upgrade Notice ==
+= 4.4.2 =
+Fixes image editing, restoring, and deletion with cloud offloading — including WebP/AVIF cleanup for Modern Image Formats, Imagify, and EWWW — plus WordPress 7.0 compatibility.
+
 = 4.4.1 =
 Fixed custom image sizes being replaced with the full-size URL in page builder content.
 

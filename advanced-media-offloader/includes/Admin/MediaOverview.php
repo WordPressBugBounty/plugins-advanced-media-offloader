@@ -274,7 +274,7 @@ class MediaOverview
         echo '<p style="margin: 0 0 8px 0; font-size: 13px;">' . __('For sites with hundreds or thousands of media files, our WP CLI command offers superior performance and control:', 'advanced-media-offloader') . '</p>';
         echo '<p style="margin: 0 0 8px 0;"><code style="background: #fff; padding: 2px 6px; border-radius: 3px; font-family: monospace;">wp advmo offload</code></p>';
         echo '<p style="margin: 0; font-size: 13px;">';
-        echo ' <a href="https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli" target="_blank" style="color: #0073aa; text-decoration: none;">' . __('Learn more →', 'advanced-media-offloader') . '</a>';
+        echo ' <a href="https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli/" target="_blank" style="color: #0073aa; text-decoration: none;">' . __('Learn more →', 'advanced-media-offloader') . '</a>';
         echo '</p>';
         echo '</div>';
 

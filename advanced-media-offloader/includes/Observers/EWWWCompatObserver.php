@@ -11,6 +11,14 @@ class EWWWCompatObserver implements ObserverInterface
 {
     use OffloaderTrait;
 
+    /**
+     * Post-meta flag set by afterEWWWOptimize() when EWWW finishes optimizing an
+     * attachment before AMO has offloaded it (EWWW runs at priority 15, AMO at
+     * 99). afterAdvmoUpload() reads it to learn EWWW is already done so it can
+     * complete the deferred WebP upload + local cleanup itself.
+     */
+    private const META_OPTIMIZED_PRE_OFFLOAD = '_advmo_ewww_optimized_preoffload';
+
     private S3_Provider $cloudProvider;
 
     public function __construct(S3_Provider $cloudProvider)
@@ -96,7 +104,17 @@ class EWWWCompatObserver implements ObserverInterface
             return;
         }
 
-        if (function_exists('ewww_image_optimizer_test_background_opt') && ewww_image_optimizer_test_background_opt()) {
+        // In background mode AMO offloads before EWWW optimizes, so completion
+        // is split: whichever of "offload done" / "optimize done" happens last
+        // finishes the deferral. If EWWW already finished before this offload
+        // (it runs at priority 15, and falls back to synchronous when its async
+        // queue is unavailable), afterEWWWOptimize() could not act pre-offload
+        // and left a marker -> complete now. Otherwise EWWW is optimizing
+        // asynchronously and afterEWWWOptimize() will complete it once that job
+        // runs (the attachment is offloaded by then) -> bail here.
+        $optimized_pre_offload = (bool) get_post_meta($attachment_id, self::META_OPTIMIZED_PRE_OFFLOAD, true);
+        delete_post_meta($attachment_id, self::META_OPTIMIZED_PRE_OFFLOAD);
+        if (!$optimized_pre_offload) {
             return;
         }
 
@@ -140,6 +158,11 @@ class EWWWCompatObserver implements ObserverInterface
     public function afterEWWWOptimize(int $attachment_id, array $meta): void
     {
         if (!$this->is_offloaded($attachment_id)) {
+            // EWWW finished before AMO offloaded this attachment (EWWW optimizes
+            // at priority 15, the offload runs at 99). The cloud copy doesn't
+            // exist yet, so leave a marker and let afterAdvmoUpload() complete
+            // the deferred WebP upload + local cleanup once the offload is done.
+            update_post_meta($attachment_id, self::META_OPTIMIZED_PRE_OFFLOAD, 1);
             return;
         }
 
@@ -305,7 +328,19 @@ class EWWWCompatObserver implements ObserverInterface
             $basenames[] = $metadata['original_image'];
         }
 
-        foreach ($basenames as $basename) {
+        // Include the non-current files kept in _wp_attachment_backup_sizes
+        // (the other version after an image edit/restore), so their WebP
+        // sidecars are not orphaned in cloud storage.
+        $backup_sizes = get_post_meta($attachment_id, '_wp_attachment_backup_sizes', true);
+        if (is_array($backup_sizes)) {
+            foreach ($backup_sizes as $sizeinfo) {
+                if (is_array($sizeinfo) && !empty($sizeinfo['file']) && is_string($sizeinfo['file'])) {
+                    $basenames[] = $sizeinfo['file'];
+                }
+            }
+        }
+
+        foreach (array_unique($basenames) as $basename) {
             $webp_names = $this->getAllWebPBasenames($basename);
             foreach ($webp_names as $webp_name) {
                 $keys[] = $base_dir . $webp_name;

@@ -32,6 +32,17 @@ class ThumbnailRegenerationObserver implements ObserverInterface
 
     public function run($metadata, $attachment_id)
     {
+        // Image-editor operations fire this same filter: edits (wp_save_image)
+        // and restore-original (wp_restore_image). Edits are handled by
+        // AttachmentUpdateObserver; on restore the originals are already in the
+        // cloud. Bail out either way so the two observers do not both process
+        // the operation and race on the same files (which fails the offload
+        // under Full Cloud Migration), and so restore does no pointless
+        // re-uploads or log noise.
+        if ($this->isImageEditorOperation()) {
+            return $metadata;
+        }
+
         // Only process if attachment is already offloaded
         if (!$this->is_offloaded($attachment_id)) {
             return $metadata;
