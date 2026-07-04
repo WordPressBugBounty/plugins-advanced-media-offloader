@@ -10,7 +10,6 @@ use WPFitter\GuzzleHttp\Promise\EachPromise;
  *
  * The pool will read command objects from an iterator until it is cancelled or
  * until the iterator is consumed.
- * @internal
  */
 class CommandPool implements PromisorInterface
 {
@@ -48,18 +47,18 @@ class CommandPool implements PromisorInterface
             $config['concurrency'] = 25;
         }
         $before = $this->getBefore($config);
-        $mapFn = function ($commands) use($client, $before, $config) {
+        $mapFn = function ($commands) use ($client, $before, $config) {
             foreach ($commands as $key => $command) {
                 if (!$command instanceof CommandInterface) {
-                    throw new \InvalidArgumentException('Each value yielded by ' . 'the iterator must be an Aws\\CommandInterface.');
+                    throw new \InvalidArgumentException('Each value yielded by ' . 'the iterator must be an Aws\CommandInterface.');
                 }
                 if ($before) {
                     $before($command, $key);
                 }
                 if (!empty($config['preserve_iterator_keys'])) {
-                    (yield $key => $client->executeAsync($command));
+                    yield $key => $client->executeAsync($command);
                 } else {
-                    (yield $client->executeAsync($command));
+                    yield $client->executeAsync($command);
                 }
             }
         };
@@ -68,7 +67,7 @@ class CommandPool implements PromisorInterface
     /**
      * @return PromiseInterface
      */
-    public function promise() : PromiseInterface
+    public function promise(): PromiseInterface
     {
         return $this->each->promise();
     }
@@ -88,8 +87,8 @@ class CommandPool implements PromisorInterface
         $results = [];
         self::cmpCallback($config, 'fulfilled', $results);
         self::cmpCallback($config, 'rejected', $results);
-        return (new self($client, $commands, $config))->promise()->then(static function () use(&$results) {
-            \ksort($results);
+        return (new self($client, $commands, $config))->promise()->then(static function () use (&$results) {
+            ksort($results);
             return $results;
         })->wait();
     }
@@ -101,7 +100,7 @@ class CommandPool implements PromisorInterface
         if (!isset($config['before'])) {
             return null;
         }
-        if (\is_callable($config['before'])) {
+        if (is_callable($config['before'])) {
             return $config['before'];
         }
         throw new \InvalidArgumentException('before must be callable');
@@ -118,12 +117,12 @@ class CommandPool implements PromisorInterface
     private static function cmpCallback(array &$config, $name, array &$results)
     {
         if (!isset($config[$name])) {
-            $config[$name] = function ($v, $k) use(&$results) {
+            $config[$name] = function ($v, $k) use (&$results) {
                 $results[$k] = $v;
             };
         } else {
             $currentFn = $config[$name];
-            $config[$name] = function ($v, $k) use(&$results, $currentFn) {
+            $config[$name] = function ($v, $k) use (&$results, $currentFn) {
                 $currentFn($v, $k);
                 $results[$k] = $v;
             };

@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Represents a web service API model.
- * @internal
  */
 class Service extends AbstractModel
 {
@@ -277,7 +276,7 @@ class Service extends AbstractModel
     public function getPaginators()
     {
         if (!isset($this->paginators)) {
-            $res = \call_user_func($this->apiProvider, 'paginator', $this->serviceName, $this->apiVersion);
+            $res = call_user_func($this->apiProvider, 'paginator', $this->serviceName, $this->apiVersion);
             $this->paginators = isset($res['pagination']) ? $res['pagination'] : [];
         }
         return $this->paginators;
@@ -320,7 +319,7 @@ class Service extends AbstractModel
     public function getWaiters()
     {
         if (!isset($this->waiters)) {
-            $res = \call_user_func($this->apiProvider, 'waiter', $this->serviceName, $this->apiVersion);
+            $res = call_user_func($this->apiProvider, 'waiter', $this->serviceName, $this->apiVersion);
             $this->waiters = isset($res['waiters']) ? $res['waiters'] : [];
         }
         return $this->waiters;

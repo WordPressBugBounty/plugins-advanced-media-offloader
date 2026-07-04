@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws;
 
-/** @internal */
 trait HasMonitoringEventsTrait
 {
     private $monitoringEvents = [];
@@ -23,7 +22,7 @@ trait HasMonitoringEventsTrait
      */
     public function prependMonitoringEvent(array $event)
     {
-        \array_unshift($this->monitoringEvents, $event);
+        array_unshift($this->monitoringEvents, $event);
     }
     /**
      * Append a client-side monitoring event to this object's event list

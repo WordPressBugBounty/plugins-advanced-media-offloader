@@ -16,7 +16,6 @@ use WPFitter\GuzzleHttp\Promise;
  * for encryption since there is no native PHP support. The performance for large
  * inputs will be a lot slower than for PHP 7.1+, so upgrading older PHP version
  * environments may be necessary to use this effectively.
- * @internal
  */
 class S3EncryptionMultipartUploaderV2 extends MultipartUploader
 {
@@ -34,7 +33,7 @@ class S3EncryptionMultipartUploaderV2 extends MultipartUploader
      */
     public static function isSupportedCipher($cipherName)
     {
-        return \in_array($cipherName, AbstractCryptoClientV2::$supportedCiphers);
+        return in_array($cipherName, AbstractCryptoClientV2::$supportedCiphers);
     }
     private $provider;
     private $instructionFileSuffix;
@@ -138,7 +137,7 @@ class S3EncryptionMultipartUploaderV2 extends MultipartUploader
         return function () {
             // Defer encryption work until promise is executed
             $envelope = new MetadataEnvelope();
-            list($this->source, $params) = Promise\Create::promiseFor($this->encrypt($this->source, $this->config ?: [], $this->provider, $envelope))->then(function ($bodyStream) use($envelope) {
+            list($this->source, $params) = Promise\Create::promiseFor($this->encrypt($this->source, $this->config ?: [], $this->provider, $envelope))->then(function ($bodyStream) use ($envelope) {
                 $params = $this->strategy->save($envelope, $this->config['params']);
                 return [$bodyStream, $params];
             })->wait();

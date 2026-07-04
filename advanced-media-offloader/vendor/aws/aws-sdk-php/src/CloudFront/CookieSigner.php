@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws\CloudFront;
 
-/** @internal */
 class CookieSigner
 {
     /** @var Signer */
@@ -50,8 +49,8 @@ class CookieSigner
     }
     private function validateUrl($url)
     {
-        $scheme = \str_replace('*', '', \explode('://', $url)[0]);
-        if (empty(self::$schemes[\strtolower($scheme)])) {
+        $scheme = str_replace('*', '', explode('://', $url)[0]);
+        if (empty(self::$schemes[strtolower($scheme)])) {
             throw new \InvalidArgumentException('Invalid or missing URI scheme');
         }
     }

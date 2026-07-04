@@ -38,7 +38,6 @@ use WPFitter\Aws\Token\BearerTokenAuthorization;
  *     $signer = $c('v4', 'abc', '123');     // $a handles this.
  *     $signer = $c('foo', 'abc', '123');    // $b handles this.
  *     $nullValue = $c('???', 'abc', '123'); // Neither can handle this.
- * @internal
  */
 class SignatureProvider
 {
@@ -83,7 +82,7 @@ class SignatureProvider
     public static function memoize(callable $provider)
     {
         $cache = [];
-        return function ($version, $service, $region) use(&$cache, $provider) {
+        return function ($version, $service, $region) use (&$cache, $provider) {
             $key = "({$version})({$service})({$region})";
             if (!isset($cache[$key])) {
                 $cache[$key] = $provider($version, $service, $region);

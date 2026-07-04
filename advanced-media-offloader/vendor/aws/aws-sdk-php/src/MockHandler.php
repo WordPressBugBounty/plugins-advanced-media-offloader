@@ -10,7 +10,6 @@ use Exception;
 /**
  * Returns promises that are rejected or fulfilled using a queue of
  * Aws\ResultInterface and Aws\Exception\AwsException objects.
- * @internal
  */
 class MockHandler implements \Countable
 {
@@ -34,7 +33,7 @@ class MockHandler implements \Countable
         $this->onFulfilled = $onFulfilled;
         $this->onRejected = $onRejected;
         if ($resultOrQueue) {
-            \call_user_func_array([$this, 'append'], \array_values($resultOrQueue));
+            call_user_func_array([$this, 'append'], array_values($resultOrQueue));
         }
     }
     /**
@@ -43,11 +42,11 @@ class MockHandler implements \Countable
      */
     public function append()
     {
-        foreach (\func_get_args() as $value) {
-            if ($value instanceof ResultInterface || $value instanceof Exception || \is_callable($value)) {
+        foreach (func_get_args() as $value) {
+            if ($value instanceof ResultInterface || $value instanceof Exception || is_callable($value)) {
                 $this->queue[] = $value;
             } else {
-                throw new \InvalidArgumentException('Expected an Aws\\ResultInterface or Exception.');
+                throw new \InvalidArgumentException('Expected an Aws\ResultInterface or Exception.');
             }
         }
     }
@@ -56,11 +55,11 @@ class MockHandler implements \Countable
      */
     public function appendException()
     {
-        foreach (\func_get_args() as $value) {
+        foreach (func_get_args() as $value) {
             if ($value instanceof \Exception || $value instanceof \Throwable) {
                 $this->queue[] = $value;
             } else {
-                throw new \InvalidArgumentException('Expected an \\Exception or \\Throwable.');
+                throw new \InvalidArgumentException('Expected an \Exception or \Throwable.');
             }
         }
     }
@@ -72,8 +71,8 @@ class MockHandler implements \Countable
         }
         $this->lastCommand = $command;
         $this->lastRequest = $request;
-        $result = \array_shift($this->queue);
-        if (\is_callable($result)) {
+        $result = array_shift($this->queue);
+        if (is_callable($result)) {
             $result = $result($command, $request);
         }
         if ($result instanceof \Exception) {
@@ -119,6 +118,6 @@ class MockHandler implements \Countable
     #[\ReturnTypeWillChange]
     public function count()
     {
-        return \count($this->queue);
+        return count($this->queue);
     }
 }

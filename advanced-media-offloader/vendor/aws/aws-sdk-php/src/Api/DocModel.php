@@ -6,7 +6,6 @@ namespace WPFitter\Aws\Api;
  * Encapsulates the documentation strings for a given service-version and
  * provides methods for extracting the desired parts related to a service,
  * operation, error, or shape (i.e., parameter).
- * @internal
  */
 class DocModel
 {
@@ -19,7 +18,7 @@ class DocModel
      */
     public function __construct(array $docs)
     {
-        if (!\extension_loaded('tidy')) {
+        if (!extension_loaded('tidy')) {
             throw new \RuntimeException('The "tidy" PHP extension is required.');
         }
         $this->docs = $docs;
@@ -86,11 +85,11 @@ class DocModel
             $result = $d['base'];
         }
         if (isset($d['append'])) {
-            if (!isset($d['excludeAppend']) || !\in_array($parentName, $d['excludeAppend'])) {
+            if (!isset($d['excludeAppend']) || !in_array($parentName, $d['excludeAppend'])) {
                 $result .= $d['append'];
             }
         }
-        if (isset($d['appendOnly']) && \in_array($parentName, $d['appendOnly']['shapes'])) {
+        if (isset($d['appendOnly']) && in_array($parentName, $d['appendOnly']['shapes'])) {
             $result .= $d['appendOnly']['message'];
         }
         return $this->clean($result);

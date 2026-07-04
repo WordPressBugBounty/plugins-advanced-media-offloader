@@ -5,7 +5,6 @@ namespace WPFitter\Aws\S3\Exception;
 use WPFitter\Aws\CommandInterface;
 use WPFitter\Aws\Exception\AwsException;
 use WPFitter\Aws\Multipart\UploadState;
-/** @internal */
 class S3MultipartUploadException extends \WPFitter\Aws\Exception\MultipartUploadException
 {
     /** @var string Bucket of the transfer object */
@@ -24,7 +23,7 @@ class S3MultipartUploadException extends \WPFitter\Aws\Exception\MultipartUpload
      */
     public function __construct(UploadState $state, $prev = null)
     {
-        if (\is_array($prev) && ($error = $prev[\key($prev)])) {
+        if (is_array($prev) && $error = $prev[key($prev)]) {
             $this->collectPathInfo($error->getCommand());
         } elseif ($prev instanceof AwsException) {
             $this->collectPathInfo($prev->getCommand());

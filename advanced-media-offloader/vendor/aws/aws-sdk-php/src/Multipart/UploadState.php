@@ -7,7 +7,6 @@ namespace WPFitter\Aws\Multipart;
  *
  * This object keeps track of the state of the upload, including the status and
  * which parts have been uploaded.
- * @internal
  */
 class UploadState
 {
@@ -97,7 +96,7 @@ class UploadState
      */
     public function getUploadedParts()
     {
-        \ksort($this->uploadedParts);
+        ksort($this->uploadedParts);
         return $this->uploadedParts;
     }
     /**

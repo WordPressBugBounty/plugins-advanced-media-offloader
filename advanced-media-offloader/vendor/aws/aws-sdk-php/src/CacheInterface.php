@@ -4,7 +4,6 @@ namespace WPFitter\Aws;
 
 /**
  * Represents a simple cache interface.
- * @internal
  */
 interface CacheInterface
 {

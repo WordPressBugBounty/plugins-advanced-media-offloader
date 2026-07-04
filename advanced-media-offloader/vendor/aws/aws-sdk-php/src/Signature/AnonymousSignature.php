@@ -6,7 +6,6 @@ use WPFitter\Aws\Credentials\CredentialsInterface;
 use WPFitter\Psr\Http\Message\RequestInterface;
 /**
  * Provides anonymous client access (does not sign requests).
- * @internal
  */
 class AnonymousSignature implements SignatureInterface
 {

@@ -26,7 +26,7 @@ class RequestCompressionMiddleware
      */
     public static function wrap(array $config)
     {
-        return function (callable $handler) use($config) {
+        return function (callable $handler) use ($config) {
             return new self($handler, $config);
         };
     }
@@ -38,7 +38,7 @@ class RequestCompressionMiddleware
     }
     public function __invoke(CommandInterface $command, RequestInterface $request)
     {
-        if (isset($command['@request_min_compression_size_bytes']) && \is_int($command['@request_min_compression_size_bytes']) && $this->isValidCompressionSize($command['@request_min_compression_size_bytes'])) {
+        if (isset($command['@request_min_compression_size_bytes']) && is_int($command['@request_min_compression_size_bytes']) && $this->isValidCompressionSize($command['@request_min_compression_size_bytes'])) {
             $this->minimumCompressionSize = $command['@request_min_compression_size_bytes'];
         }
         $nextHandler = $this->nextHandler;
@@ -54,7 +54,7 @@ class RequestCompressionMiddleware
     private function compressRequestBody(RequestInterface $request)
     {
         $fn = $this->determineEncoding();
-        if (\is_null($fn)) {
+        if (is_null($fn)) {
             return $request;
         }
         $body = $request->getBody()->getContents();
@@ -97,7 +97,7 @@ class RequestCompressionMiddleware
     }
     private function determineMinimumCompressionSize($config)
     {
-        if (\is_callable($config['request_min_compression_size_bytes'])) {
+        if (is_callable($config['request_min_compression_size_bytes'])) {
             $minCompressionSz = $config['request_min_compression_size_bytes']();
         } else {
             $minCompressionSz = $config['request_min_compression_size_bytes'];
@@ -108,7 +108,7 @@ class RequestCompressionMiddleware
     }
     private function isValidCompressionSize($compressionSize)
     {
-        if (\is_numeric($compressionSize) && ($compressionSize >= 0 && $compressionSize <= 10485760)) {
+        if (is_numeric($compressionSize) && ($compressionSize >= 0 && $compressionSize <= 10485760)) {
             return \true;
         }
         throw new \InvalidArgumentException('The minimum request compression size must be a ' . 'non-negative integer value between 0 and 10485760 bytes, inclusive.');

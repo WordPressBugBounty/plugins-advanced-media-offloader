@@ -2,7 +2,6 @@
 
 namespace WPFitter\Psr\Http\Message;
 
-/** @internal */
 interface ResponseFactoryInterface
 {
     /**
@@ -15,5 +14,5 @@ interface ResponseFactoryInterface
      *
      * @return ResponseInterface
      */
-    public function createResponse(int $code = 200, string $reasonPhrase = '') : ResponseInterface;
+    public function createResponse(int $code = 200, string $reasonPhrase = ''): ResponseInterface;
 }

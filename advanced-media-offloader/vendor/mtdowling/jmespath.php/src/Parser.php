@@ -6,7 +6,6 @@ use WPFitter\JmesPath\Lexer as T;
 /**
  * JMESPath Pratt parser
  * @link http://hall.org.ua/halls/wizzard/pdf/Vaughan.Pratt.TDOP.pdf
- * @internal
  */
 class Parser
 {
@@ -342,13 +341,13 @@ class Parser
      */
     public function __call($method, $args)
     {
-        $prefix = \substr($method, 0, 4);
+        $prefix = substr($method, 0, 4);
         if ($prefix == 'nud_' || $prefix == 'led_') {
-            $token = \substr($method, 4);
-            $message = "Unexpected \"{$token}\" token ({$method}). Expected one of" . " the following tokens: " . \implode(', ', \array_map(function ($i) {
-                return '"' . \substr($i, 4) . '"';
-            }, \array_filter(\get_class_methods($this), function ($i) use($prefix) {
-                return \strpos($i, $prefix) === 0;
+            $token = substr($method, 4);
+            $message = "Unexpected \"{$token}\" token ({$method}). Expected one of" . " the following tokens: " . implode(', ', array_map(function ($i) {
+                return '"' . substr($i, 4) . '"';
+            }, array_filter(get_class_methods($this), function ($i) use ($prefix) {
+                return strpos($i, $prefix) === 0;
             })));
             throw $this->syntax($message);
         }

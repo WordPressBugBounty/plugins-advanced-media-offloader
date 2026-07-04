@@ -4,7 +4,6 @@ namespace WPFitter\Aws;
 
 /**
  * Represents an AWS result object that is returned from executing an operation.
- * @internal
  */
 interface ResultInterface extends \ArrayAccess, \IteratorAggregate, \Countable
 {

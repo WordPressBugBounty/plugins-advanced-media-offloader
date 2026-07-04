@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Retry;
 
 use WPFitter\Aws\Exception\AwsException;
 use WPFitter\Aws\ResultInterface;
-/** @internal */
 trait RetryHelperTrait
 {
     private function addRetryHeader($request, $retries, $delayBy)

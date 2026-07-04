@@ -5,7 +5,6 @@ namespace WPFitter\Aws;
 /**
  * Trait implementing ToArrayInterface, \ArrayAccess, \Countable, and
  * \IteratorAggregate
- * @internal
  */
 trait HasDataTrait
 {
@@ -70,6 +69,6 @@ trait HasDataTrait
     #[\ReturnTypeWillChange]
     public function count()
     {
-        return \count($this->data);
+        return count($this->data);
     }
 }

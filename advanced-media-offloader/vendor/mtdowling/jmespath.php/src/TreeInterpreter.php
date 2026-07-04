@@ -4,7 +4,6 @@ namespace WPFitter\JmesPath;
 
 /**
  * Tree visitor used to evaluates JMESPath AST expressions.
- * @internal
  */
 class TreeInterpreter
 {
@@ -42,7 +41,7 @@ class TreeInterpreter
         $dispatcher = $this->fnDispatcher;
         switch ($node['type']) {
             case 'field':
-                if (\is_array($value) || $value instanceof \ArrayAccess) {
+                if (is_array($value) || $value instanceof \ArrayAccess) {
                     return isset($value[$node['value']]) ? $value[$node['value']] : null;
                 } elseif ($value instanceof \stdClass) {
                     return isset($value->{$node['value']}) ? $value->{$node['value']} : null;
@@ -54,7 +53,7 @@ class TreeInterpreter
                 if (!Utils::isArray($value)) {
                     return null;
                 }
-                $idx = $node['value'] >= 0 ? $node['value'] : $node['value'] + \count($value);
+                $idx = $node['value'] >= 0 ? $node['value'] : $node['value'] + count($value);
                 return isset($value[$idx]) ? $value[$idx] : null;
             case 'projection':
                 $left = $this->dispatch($node['children'][0], $value);
@@ -70,7 +69,7 @@ class TreeInterpreter
                         }
                         break;
                     default:
-                        if (!\is_array($left) || !$left instanceof \stdClass) {
+                        if (!is_array($left) || !$left instanceof \stdClass) {
                             return null;
                         }
                 }
@@ -91,8 +90,8 @@ class TreeInterpreter
                 $merged = [];
                 foreach ($value as $values) {
                     // Only merge up arrays lists and not hashes
-                    if (\is_array($values) && \array_key_exists(0, $values)) {
-                        $merged = \array_merge($merged, $values);
+                    if (is_array($values) && array_key_exists(0, $values)) {
+                        $merged = array_merge($merged, $values);
                     } elseif ($values !== $skipElement) {
                         $merged[] = $values;
                     }
@@ -149,10 +148,10 @@ class TreeInterpreter
                 }
                 return $dispatcher($node['value'], $args);
             case 'slice':
-                return \is_string($value) || Utils::isArray($value) ? Utils::slice($value, $node['value'][0], $node['value'][1], $node['value'][2]) : null;
+                return is_string($value) || Utils::isArray($value) ? Utils::slice($value, $node['value'][0], $node['value'][1], $node['value'][2]) : null;
             case 'expref':
                 $apply = $node['children'][0];
-                return function ($value) use($apply) {
+                return function ($value) use ($apply) {
                     return $this->visit($apply, $value);
                 };
             default:
@@ -164,7 +163,7 @@ class TreeInterpreter
      */
     private static function relativeCmp($left, $right, $cmp)
     {
-        if (!(\is_int($left) || \is_float($left)) || !(\is_int($right) || \is_float($right))) {
+        if (!(is_int($left) || is_float($left)) || !(is_int($right) || is_float($right))) {
             return \false;
         }
         switch ($cmp) {

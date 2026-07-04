@@ -7,7 +7,6 @@
 namespace WPFitter\AWS\CRT\HTTP;
 
 use WPFitter\AWS\CRT\Internal\Encoding;
-/** @internal */
 final class Headers
 {
     private $headers;
@@ -28,14 +27,14 @@ final class Headers
     {
         $strings = Encoding::readStrings($buf);
         $headers = [];
-        for ($idx = 0; $idx < \count($strings);) {
+        for ($idx = 0; $idx < count($strings);) {
             $headers[$strings[$idx++]] = $strings[$idx++];
         }
         return new Headers($headers);
     }
     public function count()
     {
-        return \count($this->headers);
+        return count($this->headers);
     }
     public function get($header)
     {

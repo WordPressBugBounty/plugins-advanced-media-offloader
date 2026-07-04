@@ -6,7 +6,6 @@
  */
 namespace WPFitter\AWS\CRT\Auth;
 
-/** @internal */
 class SigningAlgorithm
 {
     const SIGv4 = 0;

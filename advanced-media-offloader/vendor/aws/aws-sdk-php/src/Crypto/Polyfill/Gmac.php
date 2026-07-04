@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Crypto\Polyfill;
 
 /**
  * Class Gmac
- * @internal
  */
 class Gmac
 {

@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Exception;
 
 /**
  * Represents an exception that was supplied via an EventStream.
- * @internal
  */
 class EventStreamDataException extends \RuntimeException
 {

@@ -4,7 +4,6 @@ namespace WPFitter\Aws\EndpointV2\Rule;
 
 use WPFitter\Aws\EndpointV2\Ruleset\RulesetStandardLibrary;
 use WPFitter\Aws\Exception\UnresolvedEndpointException;
-/** @internal */
 class ErrorRule extends AbstractRule
 {
     /** @var array */

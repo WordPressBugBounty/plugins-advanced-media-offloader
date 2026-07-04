@@ -5,7 +5,6 @@ namespace WPFitter\Aws\Crypto\Polyfill;
 use WPFitter\Aws\Exception\CryptoPolyfillException;
 /**
  * Trait NeedsTrait
- * @internal
  */
 trait NeedsTrait
 {

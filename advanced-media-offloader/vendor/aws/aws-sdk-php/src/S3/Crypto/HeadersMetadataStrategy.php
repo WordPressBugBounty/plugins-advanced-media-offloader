@@ -4,7 +4,6 @@ namespace WPFitter\Aws\S3\Crypto;
 
 use WPFitter\Aws\Crypto\MetadataStrategyInterface;
 use WPFitter\Aws\Crypto\MetadataEnvelope;
-/** @internal */
 class HeadersMetadataStrategy implements MetadataStrategyInterface
 {
     /**

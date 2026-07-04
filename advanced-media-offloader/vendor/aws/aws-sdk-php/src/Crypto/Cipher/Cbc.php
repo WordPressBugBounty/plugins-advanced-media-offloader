@@ -13,7 +13,6 @@ use LogicException;
  * for more information.
  *
  * @deprecated
- * @internal
  */
 class Cbc implements CipherMethod
 {
@@ -42,7 +41,7 @@ class Cbc implements CipherMethod
     {
         $this->baseIv = $this->iv = $iv;
         $this->keySize = $keySize;
-        if (\strlen($iv) !== \openssl_cipher_iv_length($this->getOpenSslName())) {
+        if (strlen($iv) !== openssl_cipher_iv_length($this->getOpenSslName())) {
             throw new InvalidArgumentException('Invalid initialization vector');
         }
     }
@@ -72,6 +71,6 @@ class Cbc implements CipherMethod
     }
     public function update($cipherTextBlock)
     {
-        $this->iv = \substr($cipherTextBlock, self::BLOCK_SIZE * -1);
+        $this->iv = substr($cipherTextBlock, self::BLOCK_SIZE * -1);
     }
 }

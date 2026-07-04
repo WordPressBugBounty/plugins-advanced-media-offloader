@@ -6,7 +6,6 @@ use WPFitter\AWS\CRT\CRT;
 use WPFitter\Aws\Exception\CommonRuntimeException;
 use WPFitter\GuzzleHttp\Psr7;
 use InvalidArgumentException;
-/** @internal */
 trait CalculatesChecksumTrait
 {
     /**
@@ -16,18 +15,18 @@ trait CalculatesChecksumTrait
      */
     public static function getEncodedValue($requestedAlgorithm, $value)
     {
-        $requestedAlgorithm = \strtolower($requestedAlgorithm);
-        $useCrt = \extension_loaded('awscrt');
+        $requestedAlgorithm = strtolower($requestedAlgorithm);
+        $useCrt = extension_loaded('awscrt');
         if ($useCrt) {
             $crt = new Crt();
             switch ($requestedAlgorithm) {
                 case 'crc32c':
-                    return \base64_encode(\pack('N*', $crt->crc32c($value)));
+                    return base64_encode(pack('N*', $crt->crc32c($value)));
                 case 'crc32':
-                    return \base64_encode(\pack('N*', $crt->crc32($value)));
+                    return base64_encode(pack('N*', $crt->crc32($value)));
                 case 'sha256':
                 case 'sha1':
-                    return \base64_encode(Psr7\Utils::hash($value, $requestedAlgorithm, \true));
+                    return base64_encode(Psr7\Utils::hash($value, $requestedAlgorithm, \true));
                 default:
                     break;
                     throw new InvalidArgumentException("Invalid checksum requested: {$requestedAlgorithm}." . "  Valid algorithms are CRC32C, CRC32, SHA256, and SHA1.");
@@ -39,7 +38,7 @@ trait CalculatesChecksumTrait
             if ($requestedAlgorithm == "crc32") {
                 $requestedAlgorithm = "crc32b";
             }
-            return \base64_encode(Psr7\Utils::hash($value, $requestedAlgorithm, \true));
+            return base64_encode(Psr7\Utils::hash($value, $requestedAlgorithm, \true));
         }
     }
 }

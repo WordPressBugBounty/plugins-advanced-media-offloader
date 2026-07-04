@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws\Crypto\Cipher;
 
-/** @internal */
 interface CipherMethod
 {
     /**

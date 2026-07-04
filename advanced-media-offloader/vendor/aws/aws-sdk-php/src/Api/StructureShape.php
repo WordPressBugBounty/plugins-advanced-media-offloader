@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Represents a structure shape and resolve member shape references.
- * @internal
  */
 class StructureShape extends Shape
 {

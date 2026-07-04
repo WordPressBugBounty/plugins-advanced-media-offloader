@@ -50,7 +50,7 @@ class JsonRpcParser extends AbstractParser
             }
         }
         $result = $this->parseMemberFromStream($response->getBody(), $operation->getOutput(), $response);
-        return new Result(\is_null($result) ? [] : $result);
+        return new Result(is_null($result) ? [] : $result);
     }
     public function parseMemberFromStream(StreamInterface $stream, StructureShape $member, $response)
     {

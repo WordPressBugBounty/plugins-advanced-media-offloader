@@ -5,7 +5,6 @@ namespace WPFitter\Aws\Crypto;
 use WPFitter\GuzzleHttp\Psr7;
 use WPFitter\GuzzleHttp\Psr7\LimitStream;
 use WPFitter\Psr\Http\Message\StreamInterface;
-/** @internal */
 trait DecryptionTrait
 {
     /**
@@ -18,7 +17,7 @@ trait DecryptionTrait
      *
      * @internal
      */
-    protected abstract function getCipherFromAesName($aesName);
+    abstract protected function getCipherFromAesName($aesName);
     /**
      * Dependency to generate a CipherMethod from a set of inputs for loading
      * in to an AesDecryptingStream.
@@ -32,7 +31,7 @@ trait DecryptionTrait
      *
      * @internal
      */
-    protected abstract function buildCipherMethod($cipherName, $iv, $keySize);
+    abstract protected function buildCipherMethod($cipherName, $iv, $keySize);
     /**
      * Builds an AesStreamInterface using cipher options loaded from the
      * MetadataEnvelope and MaterialsProvider. Can decrypt data from both the
@@ -55,10 +54,10 @@ trait DecryptionTrait
      */
     public function decrypt($cipherText, MaterialsProviderInterface $provider, MetadataEnvelope $envelope, array $cipherOptions = [])
     {
-        $cipherOptions['Iv'] = \base64_decode($envelope[MetadataEnvelope::IV_HEADER]);
+        $cipherOptions['Iv'] = base64_decode($envelope[MetadataEnvelope::IV_HEADER]);
         $cipherOptions['TagLength'] = $envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER] / 8;
-        $cek = $provider->decryptCek(\base64_decode($envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER]), \json_decode($envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER], \true));
-        $cipherOptions['KeySize'] = \strlen($cek) * 8;
+        $cek = $provider->decryptCek(base64_decode($envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER]), json_decode($envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER], \true));
+        $cipherOptions['KeySize'] = strlen($cek) * 8;
         $cipherOptions['Cipher'] = $this->getCipherFromAesName($envelope[MetadataEnvelope::CONTENT_CRYPTO_SCHEME_HEADER]);
         $decryptionStream = $this->getDecryptingStream($cipherText, $cek, $cipherOptions);
         unset($cek);

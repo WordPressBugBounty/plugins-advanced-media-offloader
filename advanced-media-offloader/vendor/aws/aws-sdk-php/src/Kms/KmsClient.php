@@ -112,7 +112,6 @@ use WPFitter\Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise verifyAsync(array $args = [])
  * @method \Aws\Result verifyMac(array $args = [])
  * @method \GuzzleHttp\Promise\Promise verifyMacAsync(array $args = [])
- * @internal
  */
 class KmsClient extends AwsClient
 {

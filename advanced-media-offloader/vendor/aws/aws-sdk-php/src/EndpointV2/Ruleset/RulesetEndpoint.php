@@ -5,7 +5,6 @@ namespace WPFitter\Aws\EndpointV2\Ruleset;
 /**
  * Represents a fully resolved endpoint that a
  * rule returns if input parameters meet its requirements.
- * @internal
  */
 class RulesetEndpoint
 {

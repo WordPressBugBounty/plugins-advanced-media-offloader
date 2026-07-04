@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Represents a map shape.
- * @internal
  */
 class MapShape extends Shape
 {

@@ -3,7 +3,6 @@
 namespace WPFitter\Aws;
 
 use WPFitter\Psr\Cache\CacheItemPoolInterface;
-/** @internal */
 class PsrCacheAdapter implements CacheInterface
 {
     /** @var CacheItemPoolInterface */

@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws\Endpoint\UseDualstackEndpoint;
 
-/** @internal */
 interface ConfigurationInterface
 {
     /**

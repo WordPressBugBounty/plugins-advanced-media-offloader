@@ -13,7 +13,6 @@ use WPFitter\Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise listAccountsAsync(array $args = [])
  * @method \Aws\Result logout(array $args = [])
  * @method \GuzzleHttp\Promise\Promise logoutAsync(array $args = [])
- * @internal
  */
 class SSOClient extends AwsClient
 {

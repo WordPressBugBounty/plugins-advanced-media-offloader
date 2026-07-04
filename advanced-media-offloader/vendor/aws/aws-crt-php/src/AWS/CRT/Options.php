@@ -6,7 +6,6 @@
  */
 namespace WPFitter\AWS\CRT;
 
-/** @internal */
 final class OptionValue
 {
     private $value;
@@ -28,28 +27,27 @@ final class OptionValue
     }
     public function asBool()
     {
-        return \boolval($this->value);
+        return boolval($this->value);
     }
     public function asString()
     {
-        return !empty($this->value) ? \strval($this->value) : "";
+        return !empty($this->value) ? strval($this->value) : "";
     }
     public function asArray()
     {
-        return \is_array($this->value) ? $this->value : (!empty($this->value) ? [$this->value] : []);
+        return is_array($this->value) ? $this->value : (!empty($this->value) ? [$this->value] : []);
     }
     public function asCallable()
     {
-        return \is_callable($this->value) ? $this->value : null;
+        return is_callable($this->value) ? $this->value : null;
     }
 }
-/** @internal */
 final class Options
 {
     private $options;
     public function __construct($opts = [], $defaults = [])
     {
-        $this->options = \array_replace($defaults, empty($opts) ? [] : $opts);
+        $this->options = array_replace($defaults, empty($opts) ? [] : $opts);
     }
     public function __get($name)
     {
@@ -61,7 +59,7 @@ final class Options
     }
     public function toArray()
     {
-        return \array_merge_recursive([], $this->options);
+        return array_merge_recursive([], $this->options);
     }
     public function get($name)
     {

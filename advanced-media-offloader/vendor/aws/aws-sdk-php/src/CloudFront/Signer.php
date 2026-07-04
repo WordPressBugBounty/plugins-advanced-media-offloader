@@ -22,30 +22,30 @@ class Signer
      */
     public function __construct($keyPairId, $privateKey, $passphrase = "")
     {
-        if (!\extension_loaded('openssl')) {
+        if (!extension_loaded('openssl')) {
             //@codeCoverageIgnoreStart
             throw new \RuntimeException('The openssl extension is required to ' . 'sign CloudFront urls.');
             //@codeCoverageIgnoreEnd
         }
         $this->keyPairId = $keyPairId;
-        if (!($this->pkHandle = \openssl_pkey_get_private($privateKey, $passphrase))) {
-            if (!\file_exists($privateKey)) {
+        if (!$this->pkHandle = openssl_pkey_get_private($privateKey, $passphrase)) {
+            if (!file_exists($privateKey)) {
                 throw new \InvalidArgumentException("PK file not found: {$privateKey}");
             }
-            $this->pkHandle = \openssl_pkey_get_private("file://{$privateKey}", $passphrase);
+            $this->pkHandle = openssl_pkey_get_private("file://{$privateKey}", $passphrase);
             if (!$this->pkHandle) {
                 $errorMessages = [];
-                while (($newMessage = \openssl_error_string()) !== \false) {
+                while (($newMessage = openssl_error_string()) !== \false) {
                     $errorMessages[] = $newMessage;
                 }
-                throw new \InvalidArgumentException(\implode("\n", $errorMessages));
+                throw new \InvalidArgumentException(implode("\n", $errorMessages));
             }
         }
     }
     public function __destruct()
     {
         if (\PHP_MAJOR_VERSION < 8) {
-            $this->pkHandle && \openssl_pkey_free($this->pkHandle);
+            $this->pkHandle && openssl_pkey_free($this->pkHandle);
         }
     }
     /**
@@ -74,7 +74,7 @@ class Signer
     {
         $signatureHash = [];
         if ($policy) {
-            $policy = \preg_replace('/\\s/s', '', $policy);
+            $policy = preg_replace('/\s/s', '', $policy);
             $signatureHash['Policy'] = $this->encode($policy);
         } elseif ($resource && $expires) {
             $expires = (int) $expires;
@@ -90,19 +90,19 @@ class Signer
     }
     private function createCannedPolicy($resource, $expiration)
     {
-        return \json_encode(['Statement' => [['Resource' => $resource, 'Condition' => ['DateLessThan' => ['AWS:EpochTime' => $expiration]]]]], \JSON_UNESCAPED_SLASHES);
+        return json_encode(['Statement' => [['Resource' => $resource, 'Condition' => ['DateLessThan' => ['AWS:EpochTime' => $expiration]]]]], \JSON_UNESCAPED_SLASHES);
     }
     private function sign($policy)
     {
         $signature = '';
-        if (!\openssl_sign($policy, $signature, $this->pkHandle)) {
+        if (!openssl_sign($policy, $signature, $this->pkHandle)) {
             $errorMessages = [];
-            while (($newMessage = \openssl_error_string()) !== \false) {
+            while (($newMessage = openssl_error_string()) !== \false) {
                 $errorMessages[] = $newMessage;
             }
             $exceptionMessage = "An error has occurred when signing the policy";
-            if (\count($errorMessages) > 0) {
-                $exceptionMessage = \implode("\n", $errorMessages);
+            if (count($errorMessages) > 0) {
+                $exceptionMessage = implode("\n", $errorMessages);
             }
             throw new \RuntimeException($exceptionMessage);
         }
@@ -110,6 +110,6 @@ class Signer
     }
     private function encode($policy)
     {
-        return \strtr(\base64_encode($policy), '+=/', '-_~');
+        return strtr(base64_encode($policy), '+=/', '-_~');
     }
 }

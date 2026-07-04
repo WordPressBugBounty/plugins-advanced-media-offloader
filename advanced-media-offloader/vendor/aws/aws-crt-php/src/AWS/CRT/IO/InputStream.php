@@ -7,7 +7,6 @@
 namespace WPFitter\AWS\CRT\IO;
 
 use WPFitter\AWS\CRT\NativeResource as NativeResource;
-/** @internal */
 final class InputStream extends NativeResource
 {
     private $stream = null;

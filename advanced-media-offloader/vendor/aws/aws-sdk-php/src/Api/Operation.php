@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Represents an API operation.
- * @internal
  */
 class Operation extends AbstractModel
 {
@@ -121,7 +120,7 @@ class Operation extends AbstractModel
      *
      * @return array
      */
-    public function getOperationContextParams() : array
+    public function getOperationContextParams(): array
     {
         return $this->operationContextParams;
     }

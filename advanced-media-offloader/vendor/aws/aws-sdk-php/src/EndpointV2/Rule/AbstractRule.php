@@ -6,7 +6,6 @@ use WPFitter\Aws\EndpointV2\Ruleset\RulesetStandardLibrary;
 /**
  *  A rule within a rule set. All rules contain a conditions property,
  * which can be empty, and documentation about the rule.
- * @internal
  */
 abstract class AbstractRule
 {
@@ -40,11 +39,11 @@ abstract class AbstractRule
     {
         foreach ($this->getConditions() as $condition) {
             $result = $standardLibrary->callFunction($condition, $inputParameters);
-            if (\is_null($result) || $result === \false) {
+            if (is_null($result) || $result === \false) {
                 return \false;
             }
         }
         return \true;
     }
-    public abstract function evaluate(array $inputParameters, RulesetStandardLibrary $standardLibrary);
+    abstract public function evaluate(array $inputParameters, RulesetStandardLibrary $standardLibrary);
 }

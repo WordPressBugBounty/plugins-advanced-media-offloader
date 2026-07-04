@@ -6,7 +6,6 @@
  */
 namespace WPFitter\AWS\CRT\Auth;
 
-/** @internal */
 class SignedBodyHeaderType
 {
     const NONE = 0;

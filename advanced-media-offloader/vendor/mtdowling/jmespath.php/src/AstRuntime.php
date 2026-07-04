@@ -4,7 +4,6 @@ namespace WPFitter\JmesPath;
 
 /**
  * Uses an external tree visitor to interpret an AST.
- * @internal
  */
 class AstRuntime
 {

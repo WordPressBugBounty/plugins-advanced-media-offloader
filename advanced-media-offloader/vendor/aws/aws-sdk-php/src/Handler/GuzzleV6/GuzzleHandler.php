@@ -12,7 +12,6 @@ use WPFitter\GuzzleHttp\TransferStats;
 use WPFitter\Psr\Http\Message\RequestInterface as Psr7Request;
 /**
  * A request handler that sends PSR-7-compatible requests with Guzzle 6.
- * @internal
  */
 class GuzzleHandler
 {
@@ -48,8 +47,8 @@ class GuzzleHandler
             $fn = $options['http_stats_receiver'];
             unset($options['http_stats_receiver']);
             $prev = isset($options['on_stats']) ? $options['on_stats'] : null;
-            $options['on_stats'] = static function (TransferStats $stats) use($fn, $prev) {
-                if (\is_callable($prev)) {
+            $options['on_stats'] = static function (TransferStats $stats) use ($fn, $prev) {
+                if (is_callable($prev)) {
                     $prev($stats);
                 }
                 $transferStats = ['total_time' => $stats->getTransferTime()];

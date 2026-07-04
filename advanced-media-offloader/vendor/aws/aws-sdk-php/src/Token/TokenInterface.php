@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Token;
 
 /**
  * Provides access to an AWS token used for accessing AWS services
- * @internal
  */
 interface TokenInterface
 {

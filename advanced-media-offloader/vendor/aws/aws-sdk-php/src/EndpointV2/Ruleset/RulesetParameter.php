@@ -6,7 +6,6 @@ use WPFitter\Aws\Exception\UnresolvedEndpointException;
 use function WPFitter\Aws\is_associative;
 /**
  * Houses properties of an individual parameter definition.
- * @internal
  */
 class RulesetParameter
 {
@@ -28,7 +27,7 @@ class RulesetParameter
     private static $typeMap = ['String' => 'is_string', 'Boolean' => 'is_bool', 'StringArray' => 'isStringArray'];
     public function __construct($name, array $definition)
     {
-        $type = \ucfirst($definition['type']);
+        $type = ucfirst($definition['type']);
         if ($this->isValidType($type)) {
             $this->type = $type;
         } else {
@@ -106,36 +105,36 @@ class RulesetParameter
             $deprecationString = "{$this->name} has been deprecated ";
             $msg = $deprecated['message'] ?? null;
             $since = $deprecated['since'] ?? null;
-            if (!\is_null($since)) {
+            if (!is_null($since)) {
                 $deprecationString .= 'since ' . $since . '. ';
             }
-            if (!\is_null($msg)) {
+            if (!is_null($msg)) {
                 $deprecationString .= $msg;
             }
-            \trigger_error($deprecationString, \E_USER_WARNING);
+            trigger_error($deprecationString, \E_USER_WARNING);
         }
     }
     private function isValidType($type)
     {
         return isset(self::$typeMap[$type]);
     }
-    private function isValidInput($inputParam) : bool
+    private function isValidInput($inputParam): bool
     {
         $method = self::$typeMap[$this->type];
-        if (\is_callable($method)) {
+        if (is_callable($method)) {
             return $method($inputParam);
-        } elseif (\method_exists($this, $method)) {
+        } elseif (method_exists($this, $method)) {
             return $this->{$method}($inputParam);
         }
         return \false;
     }
-    private function isStringArray(array $array) : bool
+    private function isStringArray(array $array): bool
     {
         if (is_associative($array)) {
             return \false;
         }
         foreach ($array as $value) {
-            if (!\is_string($value)) {
+            if (!is_string($value)) {
                 return \false;
             }
         }

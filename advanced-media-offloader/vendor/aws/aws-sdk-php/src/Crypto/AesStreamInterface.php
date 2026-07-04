@@ -3,7 +3,6 @@
 namespace WPFitter\Aws\Crypto;
 
 use WPFitter\Psr\Http\Message\StreamInterface;
-/** @internal */
 interface AesStreamInterface extends StreamInterface
 {
     /**

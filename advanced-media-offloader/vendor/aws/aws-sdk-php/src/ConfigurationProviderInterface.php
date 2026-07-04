@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws;
 
-/** @internal */
 interface ConfigurationProviderInterface
 {
     /**

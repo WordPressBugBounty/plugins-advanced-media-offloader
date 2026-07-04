@@ -4,7 +4,6 @@ namespace WPFitter\Aws\DefaultsMode;
 
 /**
  * Provides access to defaultsMode configuration
- * @internal
  */
 interface ConfigurationInterface
 {

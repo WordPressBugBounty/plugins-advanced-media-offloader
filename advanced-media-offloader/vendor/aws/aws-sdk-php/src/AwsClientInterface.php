@@ -6,7 +6,6 @@ use WPFitter\Psr\Http\Message\UriInterface;
 use WPFitter\GuzzleHttp\Promise\PromiseInterface;
 /**
  * Represents an AWS client.
- * @internal
  */
 interface AwsClientInterface
 {

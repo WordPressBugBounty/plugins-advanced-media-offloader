@@ -42,10 +42,10 @@ class QuerySerializer
         $commandArgs = $command->toArray();
         // Only build up the parameters when there are parameters to build
         if ($commandArgs) {
-            $body += \call_user_func($this->paramBuilder, $operation->getInput(), $commandArgs);
+            $body += call_user_func($this->paramBuilder, $operation->getInput(), $commandArgs);
         }
-        $body = \http_build_query($body, '', '&', \PHP_QUERY_RFC3986);
-        $headers = ['Content-Length' => \strlen($body), 'Content-Type' => 'application/x-www-form-urlencoded'];
+        $body = http_build_query($body, '', '&', \PHP_QUERY_RFC3986);
+        $headers = ['Content-Length' => strlen($body), 'Content-Type' => 'application/x-www-form-urlencoded'];
         if ($endpoint instanceof RulesetEndpoint) {
             $this->setEndpointV2RequestOptions($endpoint, $headers);
         }

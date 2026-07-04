@@ -32,7 +32,7 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
      *
      * @return ResultInterface
      */
-    public function __invoke(ResultInterface $result, ?CommandInterface $command = null, ?ResponseInterface $response = null) : ResultInterface
+    public function __invoke(ResultInterface $result, ?CommandInterface $command = null, ?ResponseInterface $response = null): ResultInterface
     {
         $operation = $this->api->getOperation($command->getName());
         // Skip this middleware if the operation doesn't have an httpChecksum
@@ -45,15 +45,15 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
         $checksumModeEnabledMember = $checksumInfo['requestValidationModeMember'] ?? "";
         $checksumModeEnabled = $command[$checksumModeEnabledMember] ?? "";
         $responseAlgorithms = $checksumInfo['responseAlgorithms'] ?? [];
-        if (empty($responseAlgorithms) || \strtolower($checksumModeEnabled) !== "enabled") {
+        if (empty($responseAlgorithms) || strtolower($checksumModeEnabled) !== "enabled") {
             return $result;
         }
-        if (\extension_loaded('awscrt')) {
+        if (extension_loaded('awscrt')) {
             $checksumPriority = ['CRC32C', 'CRC32', 'SHA1', 'SHA256'];
         } else {
             $checksumPriority = ['CRC32', 'SHA1', 'SHA256'];
         }
-        $checksumsToCheck = \array_intersect($responseAlgorithms, $checksumPriority);
+        $checksumsToCheck = array_intersect($responseAlgorithms, $checksumPriority);
         $checksumValidationInfo = $this->validateChecksum($checksumsToCheck, $response);
         if ($checksumValidationInfo['status'] == "SUCCEEDED") {
             $result['ChecksumValidated'] = $checksumValidationInfo['checksum'];
@@ -62,9 +62,9 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
             // which returned a full multipart object
             if ($command->getName() === "GetObject" && !empty($checksumValidationInfo['checksumHeaderValue'])) {
                 $headerValue = $checksumValidationInfo['checksumHeaderValue'];
-                $lastDashPos = \strrpos($headerValue, '-');
-                $endOfChecksum = \substr($headerValue, $lastDashPos + 1);
-                if (\is_numeric($endOfChecksum) && \intval($endOfChecksum) > 1 && \intval($endOfChecksum) < 10000) {
+                $lastDashPos = strrpos($headerValue, '-');
+                $endOfChecksum = substr($headerValue, $lastDashPos + 1);
+                if (is_numeric($endOfChecksum) && intval($endOfChecksum) > 1 && intval($endOfChecksum) < 10000) {
                     return $result;
                 }
             }
@@ -78,7 +78,7 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
      *
      * @return array
      */
-    private function validateChecksum($checksumPriority, ResponseInterface $response) : array
+    private function validateChecksum($checksumPriority, ResponseInterface $response): array
     {
         $checksumToValidate = $this->chooseChecksumHeaderToValidate($checksumPriority, $response);
         $validationStatus = "SKIPPED";
@@ -99,7 +99,7 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
      *
      * @return string
      */
-    private function chooseChecksumHeaderToValidate($checksumPriority, ResponseInterface $response) : ?string
+    private function chooseChecksumHeaderToValidate($checksumPriority, ResponseInterface $response): ?string
     {
         foreach ($checksumPriority as $checksum) {
             $checksumHeader = 'x-amz-checksum-' . $checksum;

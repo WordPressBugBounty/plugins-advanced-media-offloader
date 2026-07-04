@@ -16,7 +16,6 @@ use WPFitter\Aws\S3\S3Client;
  *
  * If there is a failure after an instruction file has been uploaded, it will
  * not be automatically deleted.
- * @internal
  */
 class InstructionFileMetadataStrategy implements MetadataStrategyInterface
 {
@@ -45,7 +44,7 @@ class InstructionFileMetadataStrategy implements MetadataStrategyInterface
      */
     public function save(MetadataEnvelope $envelope, array $args)
     {
-        $this->client->putObject(['Bucket' => $args['Bucket'], 'Key' => $args['Key'] . $this->suffix, 'Body' => \json_encode($envelope)]);
+        $this->client->putObject(['Bucket' => $args['Bucket'], 'Key' => $args['Key'] . $this->suffix, 'Body' => json_encode($envelope)]);
         return $args;
     }
     /**
@@ -61,7 +60,7 @@ class InstructionFileMetadataStrategy implements MetadataStrategyInterface
     public function load(array $args)
     {
         $result = $this->client->getObject(['Bucket' => $args['Bucket'], 'Key' => $args['Key'] . $this->suffix]);
-        $metadataHeaders = \json_decode($result['Body'], \true);
+        $metadataHeaders = json_decode($result['Body'], \true);
         $envelope = new MetadataEnvelope();
         $constantValues = MetadataEnvelope::getConstantValues();
         foreach ($constantValues as $constant) {

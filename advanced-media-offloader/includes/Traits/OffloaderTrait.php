@@ -39,10 +39,12 @@ trait OffloaderTrait
         }
 
         // Generate a new version
+        // Use gmdate() so the version is timezone-independent (UTC), avoiding
+        // any dependence on the server's local timezone configuration.
         if (!advmo_is_media_organized_by_year_month()) {
-            $new_version = date("YmdHis");
+            $new_version = gmdate("YmdHis");
         } else {
-            $new_version = date("dHis");
+            $new_version = gmdate("dHis");
         }
 
         // Save the new version in post meta
@@ -66,8 +68,21 @@ trait OffloaderTrait
 
         // For images, use the metadata 'file' if available
         if (isset($metadata['file'])) {
-            $dirname = advmo_is_media_organized_by_year_month() ? trailingslashit(dirname($metadata['file'])) : "";
-            return  $path_prefix . $dirname . $object_version;
+            $dirname = '';
+            if (advmo_is_media_organized_by_year_month()) {
+                $file_dirname = dirname($metadata['file']);
+                // dirname() returns '.' when the file has no directory
+                // component — e.g. an attachment stored at the uploads root
+                // while year/month organization is enabled. Left untouched,
+                // trailingslashit('.') would inject a spurious "./" segment
+                // into advmo_path and every rewritten CDN URL
+                // (".../uploads/./image.png"). Treat it as "no subdirectory",
+                // matching the file-path branch used at upload time.
+                if ($file_dirname !== '.' && $file_dirname !== '') {
+                    $dirname = trailingslashit($file_dirname);
+                }
+            }
+            return $path_prefix . $dirname . $object_version;
         }
 
         // For non-images, extract the year/month structure from the file path

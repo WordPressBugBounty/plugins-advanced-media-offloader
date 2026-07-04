@@ -9,7 +9,6 @@ use WPFitter\Psr\Http\Message\StreamInterface as Psr7StreamInterface;
  * Adapts a Guzzle 5 Stream to a PSR-7 Stream.
  *
  * @codeCoverageIgnore
- * @internal
  */
 class PsrStream implements Psr7StreamInterface
 {

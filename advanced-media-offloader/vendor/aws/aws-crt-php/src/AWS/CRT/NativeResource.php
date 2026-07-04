@@ -10,7 +10,6 @@ use WPFitter\AWS\CRT\CRT as CRT;
 /**
  * Base class for all native resources, tracks all outstanding resources
  * and provides basic leak checking
- * @internal
  */
 abstract class NativeResource
 {
@@ -19,10 +18,10 @@ abstract class NativeResource
     protected $native = null;
     protected function __construct()
     {
-        if (\is_null(self::$crt)) {
+        if (is_null(self::$crt)) {
             self::$crt = new CRT();
         }
-        self::$resources[\spl_object_hash($this)] = 1;
+        self::$resources[spl_object_hash($this)] = 1;
     }
     protected function acquire($handle)
     {
@@ -37,7 +36,7 @@ abstract class NativeResource
     function __destruct()
     {
         // Should have been destroyed and released by derived resource
-        \assert($this->native == null);
-        unset(self::$resources[\spl_object_hash($this)]);
+        assert($this->native == null);
+        unset(self::$resources[spl_object_hash($this)]);
     }
 }

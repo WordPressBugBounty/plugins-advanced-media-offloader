@@ -14,7 +14,6 @@ use RangeException;
  * 2. Only 128-bit authentication tags are supported. (i.e. non-truncated)
  *
  * Supports AES key sizes of 128-bit, 192-bit, and 256-bit.
- * @internal
  */
 class AesGcm
 {
@@ -134,7 +133,7 @@ class AesGcm
      */
     protected static function strlen($string)
     {
-        if (\is_callable('WPFitter\\mb_strlen')) {
+        if (\is_callable('\mb_strlen')) {
             return (int) \mb_strlen($string, '8bit');
         }
         return (int) \strlen($string);
@@ -152,7 +151,7 @@ class AesGcm
      */
     protected static function substr($string, $offset = 0, $length = null)
     {
-        if (\is_callable('WPFitter\\mb_substr')) {
+        if (\is_callable('\mb_substr')) {
             return \mb_substr($string, $offset, $length, '8bit');
         } elseif (!\is_null($length)) {
             return \substr($string, $offset, $length);

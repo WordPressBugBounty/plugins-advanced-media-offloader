@@ -17,14 +17,14 @@ final class GetBucketLocationResultMutator implements S3ResultMutator
     /**
      * @inheritDoc
      */
-    public function __invoke(ResultInterface $result, CommandInterface $command, ResponseInterface $response) : ResultInterface
+    public function __invoke(ResultInterface $result, CommandInterface $command, ResponseInterface $response): ResultInterface
     {
         if ($command->getName() !== 'GetBucketLocation') {
             return $result;
         }
         static $location = 'us-east-1';
-        static $pattern = '/>(.+?)<\\/LocationConstraint>/';
-        if (\preg_match($pattern, $response->getBody(), $matches)) {
+        static $pattern = '/>(.+?)<\/LocationConstraint>/';
+        if (preg_match($pattern, $response->getBody(), $matches)) {
             $location = $matches[1] === 'EU' ? 'eu-west-1' : $matches[1];
         }
         $result['LocationConstraint'] = $location;

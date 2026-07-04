@@ -13,7 +13,6 @@ namespace WPFitter\AWS\CRT\Auth;
  * - string access_key_id - AWS Access Key Id
  * - string secret_access_key - AWS Secret Access Key
  * - string session_token - Optional STS session token
- * @internal
  */
 final class StaticCredentialsProvider extends CredentialsProvider
 {

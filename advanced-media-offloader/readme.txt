@@ -5,7 +5,7 @@ Tags: s3, media library, cloudflare, offload, storage
 Requires at least: 5.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 4.4.2
+Stable tag: 4.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -199,6 +199,11 @@ add_filter('advmo_object_acl', '__return_false');
 `
 
 == Changelog ==
+= 4.4.3 =
+* Fixed: With Object Versioning enabled, newly offloaded images could appear broken on your site. The files were uploaded correctly, but the saved location sometimes didn't match — so images failed to load. The correct location is now always saved, so your images display properly.
+* Fixed: Offloading an existing image that is stored directly in the uploads folder could add an extra `/./` to its URL — for example `https://cdn.example.com/./image.png` — so the image failed to load on some CDNs. The URL is now correct.
+* Fixed: Repeated PHP warnings and possible high server load on pages with images whose saved metadata had a broken size entry.
+
 = 4.4.2 =
 * Added: Compatibility with WordPress 7.0
 * Fixed: Editing an image (crop, rotate, or scale) could fail to upload to your cloud storage and show an error. Edited images now offload reliably.
@@ -407,6 +412,9 @@ add_filter('advmo_object_acl', '__return_false');
 - Initial release.
 
 == Upgrade Notice ==
+= 4.4.3 =
+Fixes broken images that could occur when Object Versioning is enabled, by always saving the correct file location.
+
 = 4.4.2 =
 Fixes image editing, restoring, and deletion with cloud offloading — including WebP/AVIF cleanup for Modern Image Formats, Imagify, and EWWW — plus WordPress 7.0 compatibility.
 

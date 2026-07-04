@@ -10,8 +10,7 @@ namespace WPFitter\JmesPath;
  *
  * @return mixed
  */
-if (!\function_exists(__NAMESPACE__ . '\\search')) {
-    /** @internal */
+if (!function_exists(__NAMESPACE__ . '\search')) {
     function search($expression, $data)
     {
         return Env::search($expression, $data);

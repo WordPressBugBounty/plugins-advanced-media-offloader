@@ -8,7 +8,6 @@ namespace WPFitter\AWS\CRT\Auth;
 
 use WPFitter\AWS\CRT\NativeResource;
 use WPFitter\AWS\CRT\HTTP\Request;
-/** @internal */
 class SigningResult extends NativeResource
 {
     protected function __construct($native)

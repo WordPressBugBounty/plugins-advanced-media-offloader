@@ -61,7 +61,7 @@ class AesGcmDecryptingStream implements AesStreamInterface
     }
     public function createStream()
     {
-        if (\version_compare(\PHP_VERSION, '7.1', '<')) {
+        if (version_compare(\PHP_VERSION, '7.1', '<')) {
             return Psr7\Utils::streamFor(AesGcm::decrypt((string) $this->cipherText, $this->initializationVector, new Key($this->key), $this->aad, $this->tag, $this->keySize));
         } else {
             $result = \openssl_decrypt((string) $this->cipherText, $this->getOpenSslName(), $this->key, \OPENSSL_RAW_DATA, $this->initializationVector, $this->tag, $this->aad);
@@ -71,7 +71,7 @@ class AesGcmDecryptingStream implements AesStreamInterface
             return Psr7\Utils::streamFor($result);
         }
     }
-    public function isWritable() : bool
+    public function isWritable(): bool
     {
         return \false;
     }

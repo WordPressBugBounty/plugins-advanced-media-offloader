@@ -11,7 +11,6 @@ use WPFitter\Psr\Http\Message\StreamInterface as Stream;
 use WPFitter\Aws\S3\Exception\S3MultipartUploadException;
 /**
  * Encapsulates the execution of a multipart upload to S3 or Glacier.
- * @internal
  */
 class MultipartUploader extends AbstractUploader
 {
@@ -61,7 +60,7 @@ class MultipartUploader extends AbstractUploader
      */
     public function __construct(S3ClientInterface $client, $source, array $config = [])
     {
-        parent::__construct($client, $source, \array_change_key_case($config) + ['bucket' => null, 'key' => null, 'exception_class' => S3MultipartUploadException::class]);
+        parent::__construct($client, $source, array_change_key_case($config) + ['bucket' => null, 'key' => null, 'exception_class' => S3MultipartUploadException::class]);
     }
     protected function loadUploadWorkflowInfo()
     {
@@ -128,8 +127,8 @@ class MultipartUploader extends AbstractUploader
     {
         // Decorate source with a hashing stream
         $hash = new PhpHash('sha256');
-        return new HashingStream($stream, $hash, function ($result) use(&$data) {
-            $data['ContentSHA256'] = \bin2hex($result);
+        return new HashingStream($stream, $hash, function ($result) use (&$data) {
+            $data['ContentSHA256'] = bin2hex($result);
         });
     }
 }

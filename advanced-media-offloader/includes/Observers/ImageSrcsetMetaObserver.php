@@ -64,6 +64,15 @@ class ImageSrcsetMetaObserver implements ObserverInterface
         $image_sizes = isset($image_meta['sizes']) && is_array($image_meta['sizes']) ? $image_meta['sizes'] : [];
 
         $image_sizes = array_map(function ($size) use ($object_version) {
+            // A single size entry can be corrupted (e.g. false or a scalar) when
+            // another plugin or a bad migration mangles the attachment metadata.
+            // Leave such entries untouched: reading $size['file'] on a non-array
+            // triggers a warning, and turning false into a partial array defeats
+            // WordPress core's own is_array() skip in wp_calculate_image_srcset(),
+            // producing "Undefined array key width/height" warnings downstream.
+            if (!is_array($size) || !isset($size['file'])) {
+                return $size;
+            }
             $size['file'] = $object_version . $size['file'];
             return $size;
         }, $image_sizes);

@@ -37,7 +37,7 @@ class PermanentRedirectMiddleware
     public function __invoke(CommandInterface $command, ?RequestInterface $request = null)
     {
         $next = $this->nextHandler;
-        return $next($command, $request)->then(function (ResultInterface $result) use($command) {
+        return $next($command, $request)->then(function (ResultInterface $result) use ($command) {
             $status = isset($result['@metadata']['statusCode']) ? $result['@metadata']['statusCode'] : null;
             if ($status == 301) {
                 throw new PermanentRedirectException('Encountered a permanent redirect while requesting ' . $result->search('"@metadata".effectiveUri') . '. ' . 'Are you sure you are using the correct region for ' . 'this bucket?', $command, ['result' => $result]);

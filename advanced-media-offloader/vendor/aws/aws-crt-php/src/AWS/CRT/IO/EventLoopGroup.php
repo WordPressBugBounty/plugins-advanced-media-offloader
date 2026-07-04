@@ -14,7 +14,6 @@ use WPFitter\AWS\CRT\Options as Options;
  *
  * @param array options:
  * - int num_threads - Number of worker threads in the EventLoopGroup. Defaults to 0/1 per logical core.
- * @internal
  */
 final class EventLoopGroup extends NativeResource
 {

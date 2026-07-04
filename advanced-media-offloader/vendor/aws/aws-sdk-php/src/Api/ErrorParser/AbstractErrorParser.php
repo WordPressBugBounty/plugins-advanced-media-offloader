@@ -8,7 +8,6 @@ use WPFitter\Aws\Api\Service;
 use WPFitter\Aws\Api\StructureShape;
 use WPFitter\Aws\CommandInterface;
 use WPFitter\Psr\Http\Message\ResponseInterface;
-/** @internal */
 abstract class AbstractErrorParser
 {
     use MetadataParserTrait;
@@ -24,7 +23,7 @@ abstract class AbstractErrorParser
     {
         $this->api = $api;
     }
-    protected abstract function payload(ResponseInterface $response, StructureShape $member);
+    abstract protected function payload(ResponseInterface $response, StructureShape $member);
     protected function extractPayload(StructureShape $member, ResponseInterface $response)
     {
         if ($member instanceof StructureShape) {

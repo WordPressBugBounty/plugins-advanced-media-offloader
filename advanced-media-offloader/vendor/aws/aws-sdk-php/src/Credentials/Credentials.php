@@ -6,7 +6,6 @@ use WPFitter\Aws\Identity\AwsCredentialIdentity;
 /**
  * Basic implementation of the AWS Credentials interface that allows callers to
  * pass in the AWS Access Key and AWS Secret Access Key in the constructor.
- * @internal
  */
 class Credentials extends AwsCredentialIdentity implements CredentialsInterface, \Serializable
 {
@@ -26,8 +25,8 @@ class Credentials extends AwsCredentialIdentity implements CredentialsInterface,
      */
     public function __construct($key, $secret, $token = null, $expires = null, $accountId = null)
     {
-        $this->key = \trim((string) $key);
-        $this->secret = \trim((string) $secret);
+        $this->key = trim((string) $key);
+        $this->secret = trim((string) $secret);
         $this->token = $token;
         $this->expires = $expires;
         $this->accountId = $accountId;
@@ -54,7 +53,7 @@ class Credentials extends AwsCredentialIdentity implements CredentialsInterface,
     }
     public function isExpired()
     {
-        return $this->expires !== null && \time() >= $this->expires;
+        return $this->expires !== null && time() >= $this->expires;
     }
     public function getAccountId()
     {
@@ -66,11 +65,11 @@ class Credentials extends AwsCredentialIdentity implements CredentialsInterface,
     }
     public function serialize()
     {
-        return \json_encode($this->__serialize());
+        return json_encode($this->__serialize());
     }
     public function unserialize($serialized)
     {
-        $data = \json_decode($serialized, \true);
+        $data = json_decode($serialized, \true);
         $this->__unserialize($data);
     }
     public function __serialize()
@@ -93,14 +92,14 @@ class Credentials extends AwsCredentialIdentity implements CredentialsInterface,
      */
     public function extendExpiration()
     {
-        $extension = \mt_rand(5, 10);
-        $this->expires = \time() + $extension * 60;
+        $extension = mt_rand(5, 10);
+        $this->expires = time() + $extension * 60;
         $message = <<<EOT
 Attempting credential expiration extension due to a credential service 
 availability issue. A refresh of these credentials will be attempted again 
 after {$extension} minutes.
 
 EOT;
-        \trigger_error($message, \E_USER_WARNING);
+        trigger_error($message, \E_USER_WARNING);
     }
 }

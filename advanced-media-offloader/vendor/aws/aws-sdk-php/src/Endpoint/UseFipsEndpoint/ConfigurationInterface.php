@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws\Endpoint\UseFipsEndpoint;
 
-/** @internal */
 interface ConfigurationInterface
 {
     /**

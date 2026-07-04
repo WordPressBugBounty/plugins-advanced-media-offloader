@@ -31,9 +31,9 @@ class AuthSelectionMiddleware
      * @param Service $api
      * @return Closure
      */
-    public static function wrap(AuthSchemeResolverInterface $authResolver, Service $api) : Closure
+    public static function wrap(AuthSchemeResolverInterface $authResolver, Service $api): Closure
     {
-        return function (callable $handler) use($authResolver, $api) {
+        return function (callable $handler) use ($authResolver, $api) {
             return new self($handler, $authResolver, $api);
         };
     }

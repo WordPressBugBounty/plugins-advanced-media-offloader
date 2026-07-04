@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws\S3\UseArnRegion;
 
-/** @internal */
 interface ConfigurationInterface
 {
     /**

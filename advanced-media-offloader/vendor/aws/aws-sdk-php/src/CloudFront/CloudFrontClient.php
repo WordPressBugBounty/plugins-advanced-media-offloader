@@ -252,7 +252,6 @@ use WPFitter\Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise updateResponseHeadersPolicyAsync(array $args = []) (supported in versions 2020-05-31)
  * @method \Aws\Result updateVpcOrigin(array $args = []) (supported in versions 2020-05-31)
  * @method \GuzzleHttp\Promise\Promise updateVpcOriginAsync(array $args = []) (supported in versions 2020-05-31)
- * @internal
  */
 class CloudFrontClient extends AwsClient
 {

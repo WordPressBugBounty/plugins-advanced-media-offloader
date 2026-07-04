@@ -9,7 +9,6 @@ use WPFitter\Aws\LruArrayCache;
  * Given a service's Ruleset and client-provided input parameters, provides
  * either an object reflecting the properties of a resolved endpoint,
  * or throws an error.
- * @internal
  */
 class EndpointProviderV2
 {
@@ -40,18 +39,18 @@ class EndpointProviderV2
     {
         $hashedParams = $this->hashInputParameters($inputParameters);
         $match = $this->cache->get($hashedParams);
-        if (!\is_null($match)) {
+        if (!is_null($match)) {
             return $match;
         }
         $endpoint = $this->ruleset->evaluate($inputParameters);
         if ($endpoint === \false) {
-            throw new UnresolvedEndpointException('Unable to resolve an endpoint using the provider arguments: ' . \json_encode($inputParameters));
+            throw new UnresolvedEndpointException('Unable to resolve an endpoint using the provider arguments: ' . json_encode($inputParameters));
         }
         $this->cache->set($hashedParams, $endpoint);
         return $endpoint;
     }
     private function hashInputParameters($inputParameters)
     {
-        return \md5(\serialize($inputParameters));
+        return md5(serialize($inputParameters));
     }
 }

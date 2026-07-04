@@ -3,7 +3,6 @@
 namespace WPFitter\Aws;
 
 use WPFitter\Psr\Http\Message\ResponseInterface;
-/** @internal */
 interface ResponseContainerInterface
 {
     /**

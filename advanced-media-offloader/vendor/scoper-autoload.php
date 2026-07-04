@@ -4,7 +4,7 @@
 
 $loader = (static function () {
     // Backup the autoloaded Composer files
-    $existingComposerAutoloadFiles = $GLOBALS['__composer_autoload_files'] ?? [];
+    $existingComposerAutoloadFiles = isset($GLOBALS['__composer_autoload_files']) ? $GLOBALS['__composer_autoload_files'] : [];
 
     $loader = require_once __DIR__.'/autoload.php';
     // Ensure InstalledVersions is available
@@ -29,7 +29,7 @@ if (!function_exists('humbug_phpscoper_expose_class')) {
         }
     }
 }
-humbug_phpscoper_expose_class('ComposerAutoloaderInit964a81aae405a28f555099f4bbc9a088', 'WPFitter\ComposerAutoloaderInit964a81aae405a28f555099f4bbc9a088');
+humbug_phpscoper_expose_class('ComposerAutoloaderInitf615a92c50d90a95a009ec188ff0f31a', 'WPFitter\ComposerAutoloaderInitf615a92c50d90a95a009ec188ff0f31a');
 humbug_phpscoper_expose_class('Aws\S3\Exception\S3Exception', 'WPFitter\Aws\S3\Exception\S3Exception');
 
 // Function aliases. For more information see:

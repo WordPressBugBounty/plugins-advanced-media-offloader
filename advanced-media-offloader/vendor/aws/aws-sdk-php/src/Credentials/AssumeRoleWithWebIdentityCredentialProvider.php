@@ -10,7 +10,6 @@ use WPFitter\GuzzleHttp\Promise;
 /**
  * Credential provider that provides credentials via assuming a role with a web identity
  * More Information, see: https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-sts-2011-06-15.html#assumerolewithwebidentity
- * @internal
  */
 class AssumeRoleWithWebIdentityCredentialProvider
 {
@@ -50,13 +49,13 @@ class AssumeRoleWithWebIdentityCredentialProvider
             throw new \InvalidArgumentException(self::ERROR_MSG . "'WebIdentityTokenFile'.");
         }
         $this->tokenFile = $config['WebIdentityTokenFile'];
-        if (!\preg_match("/^\\w\\:|^\\/|^\\\\/", $this->tokenFile)) {
+        if (!preg_match("/^\\w\\:|^\\/|^\\\\/", $this->tokenFile)) {
             throw new \InvalidArgumentException("'WebIdentityTokenFile' must be an absolute path.");
         }
-        $this->retries = (int) \getenv(self::ENV_RETRIES) ?: (isset($config['retries']) ? $config['retries'] : 3);
+        $this->retries = (int) getenv(self::ENV_RETRIES) ?: (isset($config['retries']) ? $config['retries'] : 3);
         $this->authenticationAttempts = 0;
         $this->tokenFileReadAttempts = 0;
-        $this->session = isset($config['SessionName']) ? $config['SessionName'] : 'aws-sdk-php-' . \round(\microtime(\true) * 1000);
+        $this->session = isset($config['SessionName']) ? $config['SessionName'] : 'aws-sdk-php-' . round(microtime(\true) * 1000);
         $region = isset($config['region']) ? $config['region'] : 'us-east-1';
         if (isset($config['client'])) {
             $this->client = $config['client'];
@@ -76,19 +75,19 @@ class AssumeRoleWithWebIdentityCredentialProvider
             $result = null;
             while ($result == null) {
                 try {
-                    $token = @\file_get_contents($this->tokenFile);
+                    $token = @file_get_contents($this->tokenFile);
                     if (\false === $token) {
-                        \clearstatcache(\true, \dirname($this->tokenFile) . "/" . \readlink($this->tokenFile));
-                        \clearstatcache(\true, \dirname($this->tokenFile) . "/" . \dirname(\readlink($this->tokenFile)));
-                        \clearstatcache(\true, $this->tokenFile);
-                        if (!@\is_readable($this->tokenFile)) {
+                        clearstatcache(\true, dirname($this->tokenFile) . "/" . readlink($this->tokenFile));
+                        clearstatcache(\true, dirname($this->tokenFile) . "/" . dirname(readlink($this->tokenFile)));
+                        clearstatcache(\true, $this->tokenFile);
+                        if (!@is_readable($this->tokenFile)) {
                             throw new CredentialsException("Unreadable tokenfile at location {$this->tokenFile}");
                         }
-                        $token = @\file_get_contents($this->tokenFile);
+                        $token = @file_get_contents($this->tokenFile);
                     }
                     if (empty($token)) {
                         if ($this->tokenFileReadAttempts < $this->retries) {
-                            \sleep((int) \pow(1.2, $this->tokenFileReadAttempts));
+                            sleep((int) pow(1.2, $this->tokenFileReadAttempts));
                             $this->tokenFileReadAttempts++;
                             continue;
                         }
@@ -103,7 +102,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
                 } catch (AwsException $e) {
                     if ($e->getAwsErrorCode() == 'InvalidIdentityToken') {
                         if ($this->authenticationAttempts < $this->retries) {
-                            \sleep((int) \pow(1.2, $this->authenticationAttempts));
+                            sleep((int) pow(1.2, $this->authenticationAttempts));
                         } else {
                             throw new CredentialsException("InvalidIdentityToken, retries exhausted");
                         }
@@ -115,7 +114,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
                 }
                 $this->authenticationAttempts++;
             }
-            (yield $this->client->createCredentials($result));
+            yield $this->client->createCredentials($result);
         });
     }
 }

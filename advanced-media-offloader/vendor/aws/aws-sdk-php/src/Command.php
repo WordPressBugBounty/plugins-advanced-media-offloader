@@ -4,7 +4,6 @@ namespace WPFitter\Aws;
 
 /**
  * AWS command object.
- * @internal
  */
 class Command implements CommandInterface
 {
@@ -46,7 +45,7 @@ class Command implements CommandInterface
     }
     public function hasParam($name)
     {
-        return \array_key_exists($name, $this->data);
+        return array_key_exists($name, $this->data);
     }
     public function getHandlerList()
     {
@@ -67,7 +66,7 @@ class Command implements CommandInterface
      */
     public function setAuthSchemes(array $authSchemes)
     {
-        \trigger_error(__METHOD__ . ' is deprecated.  Auth schemes ' . 'resolved using the service `auth` trait or via endpoint resolution ' . 'are now set in the command `@context` property.`', \E_USER_WARNING);
+        trigger_error(__METHOD__ . ' is deprecated.  Auth schemes ' . 'resolved using the service `auth` trait or via endpoint resolution ' . 'are now set in the command `@context` property.`', \E_USER_WARNING);
         $this->authSchemes = $authSchemes;
     }
     /**
@@ -82,7 +81,7 @@ class Command implements CommandInterface
      */
     public function getAuthSchemes()
     {
-        \trigger_error(__METHOD__ . ' is deprecated.  Auth schemes ' . 'resolved using the service `auth` trait or via endpoint resolution ' . 'can now be found in the command `@context` property.`', \E_USER_WARNING);
+        trigger_error(__METHOD__ . ' is deprecated.  Auth schemes ' . 'resolved using the service `auth` trait or via endpoint resolution ' . 'can now be found in the command `@context` property.`', \E_USER_WARNING);
         return $this->authSchemes ?: [];
     }
     /** @deprecated */

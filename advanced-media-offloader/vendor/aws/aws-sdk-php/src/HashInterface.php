@@ -4,7 +4,6 @@ namespace WPFitter\Aws;
 
 /**
  * Interface that allows implementing various incremental hashes.
- * @internal
  */
 interface HashInterface
 {

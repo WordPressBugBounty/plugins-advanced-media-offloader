@@ -13,7 +13,6 @@ use RuntimeException;
  * additional instances won't cost anything other than their memory.
  * Creating an instance of any NativeResource will activate the CRT binding. User code
  * should only need to create one of these if they are only accessing CRT:: static functions.
- * @internal
  */
 final class CRT
 {
@@ -21,7 +20,7 @@ final class CRT
     private static $refcount = 0;
     function __construct()
     {
-        if (\is_null(self::$impl)) {
+        if (is_null(self::$impl)) {
             try {
                 self::$impl = new Extension();
             } catch (RuntimeException $rex) {
@@ -41,7 +40,7 @@ final class CRT
      */
     public static function isLoaded()
     {
-        return !\is_null(self::$impl);
+        return !is_null(self::$impl);
     }
     /**
      * @return bool whether or not the CRT is available via one of the possible backends

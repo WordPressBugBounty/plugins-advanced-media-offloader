@@ -29,7 +29,6 @@ use WPFitter\Aws\Sts\RegionalEndpoints\ConfigurationProvider;
  * @method \GuzzleHttp\Promise\Promise getFederationTokenAsync(array $args = [])
  * @method \Aws\Result getSessionToken(array $args = [])
  * @method \GuzzleHttp\Promise\Promise getSessionTokenAsync(array $args = [])
- * @internal
  */
 class StsClient extends AwsClient
 {
@@ -94,22 +93,18 @@ class StsClient extends AwsClient
     {
         $key = 'AWS::STS::UseGlobalEndpoint';
         $result = $args['sts_regional_endpoints'] instanceof \Closure ? $args['sts_regional_endpoints']()->wait() : $args['sts_regional_endpoints'];
-        if (\is_string($result)) {
+        if (is_string($result)) {
             if ($result === 'regional') {
                 $value = \false;
-            } else {
-                if ($result === 'legacy') {
-                    $value = \true;
-                } else {
-                    return;
-                }
-            }
-        } else {
-            if ($result->getEndpointsType() === 'regional') {
-                $value = \false;
-            } else {
+            } else if ($result === 'legacy') {
                 $value = \true;
+            } else {
+                return;
             }
+        } else if ($result->getEndpointsType() === 'regional') {
+            $value = \false;
+        } else {
+            $value = \true;
         }
         $this->clientBuiltIns[$key] = $value;
     }

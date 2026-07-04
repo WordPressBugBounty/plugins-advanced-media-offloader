@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Token;
 
 /**
  * Token that comes from the SSO provider
- * @internal
  */
 class SsoToken extends Token
 {
@@ -42,10 +41,10 @@ class SsoToken extends Token
      */
     public function isExpired()
     {
-        if (isset($this->registrationExpiresAt) && \time() >= $this->registrationExpiresAt) {
+        if (isset($this->registrationExpiresAt) && time() >= $this->registrationExpiresAt) {
             return \false;
         }
-        return $this->expires !== null && \time() >= $this->expires;
+        return $this->expires !== null && time() >= $this->expires;
     }
     /**
      * @return string|null
@@ -96,7 +95,7 @@ class SsoToken extends Token
      *
      * @return SsoToken
      */
-    public static function fromTokenData($tokenData) : SsoToken
+    public static function fromTokenData($tokenData): SsoToken
     {
         return new SsoToken($tokenData['accessToken'], \strtotime($tokenData['expiresAt']), isset($tokenData['refreshToken']) ? $tokenData['refreshToken'] : null, isset($tokenData['clientId']) ? $tokenData['clientId'] : null, isset($tokenData['clientSecret']) ? $tokenData['clientSecret'] : null, isset($tokenData['registrationExpiresAt']) ? $tokenData['registrationExpiresAt'] : null, isset($tokenData['region']) ? $tokenData['region'] : null, isset($tokenData['startUrl']) ? $tokenData['startUrl'] : null);
     }

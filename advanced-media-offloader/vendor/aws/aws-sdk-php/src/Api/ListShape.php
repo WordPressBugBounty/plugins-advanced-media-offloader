@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Represents a list shape.
- * @internal
  */
 class ListShape extends Shape
 {

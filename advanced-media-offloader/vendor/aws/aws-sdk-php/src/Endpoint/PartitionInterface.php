@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Endpoint;
 
 /**
  * Represents a section of the AWS cloud.
- * @internal
  */
 interface PartitionInterface
 {

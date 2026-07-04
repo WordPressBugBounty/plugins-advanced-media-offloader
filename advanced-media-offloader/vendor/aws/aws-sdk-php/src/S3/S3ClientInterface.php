@@ -8,7 +8,6 @@ use WPFitter\Aws\ResultInterface;
 use WPFitter\Aws\S3\Exception\S3Exception;
 use WPFitter\GuzzleHttp\Promise\PromiseInterface;
 use WPFitter\Psr\Http\Message\RequestInterface;
-/** @internal */
 interface S3ClientInterface extends AwsClientInterface
 {
     /**

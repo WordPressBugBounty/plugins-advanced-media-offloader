@@ -9,7 +9,6 @@ use WPFitter\GuzzleHttp\Promise\PromiseInterface;
 /**
  * Houses logic for selecting an auth scheme modeled in a service's `auth` trait.
  * The `auth` trait can be modeled either in a service's metadata, or at the operation level.
- * @internal
  */
 class AuthSchemeResolver implements AuthSchemeResolverInterface
 {
@@ -44,7 +43,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      * @return string
      * @throws UnresolvedAuthSchemeException
      */
-    public function selectAuthScheme(array $authSchemes, array $args = []) : string
+    public function selectAuthScheme(array $authSchemes, array $args = []): string
     {
         $failureReasons = [];
         foreach ($authSchemes as $authScheme) {
@@ -58,7 +57,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
                 $failureReasons[] = $this->getIncompatibilityMessage($normalizedAuthScheme);
             }
         }
-        throw new UnresolvedAuthSchemeException('Could not resolve an authentication scheme: ' . \implode('; ', $failureReasons));
+        throw new UnresolvedAuthSchemeException('Could not resolve an authentication scheme: ' . implode('; ', $failureReasons));
     }
     /**
      * Determines compatibility based on either Identity or the availability
@@ -68,14 +67,14 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      *
      * @return bool
      */
-    private function isCompatibleAuthScheme($authScheme) : bool
+    private function isCompatibleAuthScheme($authScheme): bool
     {
         switch ($authScheme) {
             case 'v4':
             case 'anonymous':
                 return $this->hasAwsCredentialIdentity();
             case 'v4a':
-                return \extension_loaded('awscrt') && $this->hasAwsCredentialIdentity();
+                return extension_loaded('awscrt') && $this->hasAwsCredentialIdentity();
             case 'bearer':
                 return $this->hasBearerTokenIdentity();
             default:
@@ -90,7 +89,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      *
      * @return string
      */
-    private function getIncompatibilityMessage($authScheme) : string
+    private function getIncompatibilityMessage($authScheme): string
     {
         switch ($authScheme) {
             case 'v4':
@@ -108,7 +107,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
     /**
      * @return bool
      */
-    private function hasAwsCredentialIdentity() : bool
+    private function hasAwsCredentialIdentity(): bool
     {
         $fn = $this->credentialProvider;
         $result = $fn();
@@ -120,7 +119,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
     /**
      * @return bool
      */
-    private function hasBearerTokenIdentity() : bool
+    private function hasBearerTokenIdentity(): bool
     {
         if ($this->tokenProvider) {
             $fn = $this->tokenProvider;

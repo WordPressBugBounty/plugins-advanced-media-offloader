@@ -6,7 +6,6 @@
  */
 namespace WPFitter\AWS\CRT\Auth;
 
-/** @internal */
 class SignatureType
 {
     const HTTP_REQUEST_HEADERS = 0;

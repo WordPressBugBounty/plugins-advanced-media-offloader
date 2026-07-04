@@ -14,7 +14,6 @@ use InvalidArgumentException;
 /**
  * Copies objects from one S3 location to another, utilizing a multipart copy
  * when appropriate.
- * @internal
  */
 class ObjectCopier implements PromisorInterface
 {
@@ -63,21 +62,21 @@ class ObjectCopier implements PromisorInterface
      *
      * @return Coroutine
      */
-    public function promise() : PromiseInterface
+    public function promise(): PromiseInterface
     {
         return Coroutine::of(function () {
             $headObjectCommand = $this->client->getCommand('HeadObject', $this->options['params'] + $this->source);
-            if (\is_callable($this->options['before_lookup'])) {
+            if (is_callable($this->options['before_lookup'])) {
                 $this->options['before_lookup']($headObjectCommand);
             }
-            $objectStats = (yield $this->client->executeAsync($headObjectCommand));
+            $objectStats = yield $this->client->executeAsync($headObjectCommand);
             if ($objectStats['ContentLength'] > $this->options['mup_threshold']) {
                 $mup = new MultipartCopy($this->client, $this->getSourcePath(), ['source_metadata' => $objectStats, 'acl' => $this->acl] + $this->destination + $this->options);
-                (yield $mup->promise());
+                yield $mup->promise();
             } else {
                 $defaults = ['ACL' => $this->acl, 'MetadataDirective' => 'COPY', 'CopySource' => $this->getSourcePath()];
-                $params = \array_diff_key($this->options, self::$defaults) + $this->destination + $defaults + $this->options['params'];
-                (yield $this->client->executeAsync($this->client->getCommand('CopyObject', $params)));
+                $params = array_diff_key($this->options, self::$defaults) + $this->destination + $defaults + $this->options['params'];
+                yield $this->client->executeAsync($this->client->getCommand('CopyObject', $params));
             }
         });
     }
@@ -97,7 +96,7 @@ class ObjectCopier implements PromisorInterface
     private function validateLocation(array $location)
     {
         if (empty($location['Bucket']) || empty($location['Key'])) {
-            throw new \InvalidArgumentException('Locations provided to an' . ' Aws\\S3\\ObjectCopier must have a non-empty Bucket and Key');
+            throw new \InvalidArgumentException('Locations provided to an' . ' Aws\S3\ObjectCopier must have a non-empty Bucket and Key');
         }
     }
     private function getSourcePath()
@@ -111,7 +110,7 @@ class ObjectCopier implements PromisorInterface
                 throw new \InvalidArgumentException('Provided ARN was a not a valid S3 access point ARN (' . $e->getMessage() . ')', 0, $e);
             }
         }
-        $sourcePath = $path . \rawurlencode($this->source['Key']);
+        $sourcePath = $path . rawurlencode($this->source['Key']);
         if (isset($this->source['VersionId'])) {
             $sourcePath .= "?versionId={$this->source['VersionId']}";
         }

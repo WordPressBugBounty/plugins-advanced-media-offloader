@@ -3,7 +3,6 @@
 namespace WPFitter\Aws\Crypto\Cipher;
 
 use WPFitter\Aws\Exception\CryptoException;
-/** @internal */
 trait CipherBuilderTrait
 {
     /**

@@ -8,7 +8,6 @@ namespace WPFitter\Aws;
  *
  * Using the toArray() method will return the input parameters of the command
  * as an associative array.
- * @internal
  */
 interface CommandInterface extends \ArrayAccess, \Countable, \IteratorAggregate
 {

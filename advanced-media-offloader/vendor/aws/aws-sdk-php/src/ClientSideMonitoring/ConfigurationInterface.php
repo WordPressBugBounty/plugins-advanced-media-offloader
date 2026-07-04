@@ -5,7 +5,6 @@ namespace WPFitter\Aws\ClientSideMonitoring;
 /**
  * Provides access to client-side monitoring configuration options:
  * 'client_id', 'enabled', 'host', 'port'
- * @internal
  */
 interface ConfigurationInterface
 {

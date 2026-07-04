@@ -5,7 +5,6 @@ namespace WPFitter\Aws\EndpointDiscovery;
 /**
  * Provides access to endpoint discovery configuration options:
  * 'enabled', 'cache_limit'
- * @internal
  */
 interface ConfigurationInterface
 {

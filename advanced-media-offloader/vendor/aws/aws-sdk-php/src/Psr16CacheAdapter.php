@@ -3,7 +3,6 @@
 namespace WPFitter\Aws;
 
 use WPFitter\Psr\SimpleCache\CacheInterface as SimpleCacheInterface;
-/** @internal */
 class Psr16CacheAdapter implements CacheInterface
 {
     /** @var SimpleCacheInterface */

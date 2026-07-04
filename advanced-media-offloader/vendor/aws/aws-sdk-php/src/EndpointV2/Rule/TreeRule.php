@@ -3,7 +3,6 @@
 namespace WPFitter\Aws\EndpointV2\Rule;
 
 use WPFitter\Aws\EndpointV2\Ruleset\RulesetStandardLibrary;
-/** @internal */
 class TreeRule extends AbstractRule
 {
     /** @var array */

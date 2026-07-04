@@ -237,11 +237,10 @@ use WPFitter\Psr\Http\Message\RequestInterface;
  * @method \GuzzleHttp\Promise\Promise uploadPartCopyAsync(array $args = [])
  * @method \Aws\Result writeGetObjectResponse(array $args = [])
  * @method \GuzzleHttp\Promise\Promise writeGetObjectResponseAsync(array $args = [])
- * @internal
  */
 class S3Client extends AwsClient implements S3ClientInterface
 {
-    private const DIRECTORY_BUCKET_REGEX = '/^[a-zA-Z0-9_-]+--[a-z0-9]+-az\\d+--x-s3' . '(?!.*(?:-s3alias|--ol-s3|\\.mrap))$/';
+    private const DIRECTORY_BUCKET_REGEX = '/^[a-zA-Z0-9_-]+--[a-z0-9]+-az\d+--x-s3' . '(?!.*(?:-s3alias|--ol-s3|\.mrap))$/';
     use S3ClientTrait;
     /** @var array */
     private static $mandatoryAttributes = ['Bucket', 'Key'];
@@ -354,18 +353,18 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     public static function isBucketDnsCompatible($bucket)
     {
-        if (!\is_string($bucket)) {
+        if (!is_string($bucket)) {
             return \false;
         }
-        $bucketLen = \strlen($bucket);
-        return $bucketLen >= 3 && $bucketLen <= 63 && !\filter_var($bucket, \FILTER_VALIDATE_IP) && \preg_match('/^[a-z0-9]([a-z0-9\\-\\.]*[a-z0-9])?$/', $bucket);
+        $bucketLen = strlen($bucket);
+        return $bucketLen >= 3 && $bucketLen <= 63 && !filter_var($bucket, \FILTER_VALIDATE_IP) && preg_match('/^[a-z0-9]([a-z0-9\-\.]*[a-z0-9])?$/', $bucket);
     }
     public static function _apply_use_arn_region($value, array &$args, HandlerList $list)
     {
         if ($value instanceof CacheInterface) {
             $value = UseArnRegionConfigurationProvider::defaultProvider($args);
         }
-        if (\is_callable($value)) {
+        if (is_callable($value)) {
             $value = $value();
         }
         if ($value instanceof PromiseInterface) {
@@ -386,7 +385,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         $signing_name = $command['@context']['signing_service'] ?? $this->getSigningName($request->getUri()->getHost());
         $signature_version = $this->getSignatureVersionFromCommand($command);
         /** @var \Aws\Signature\SignatureInterface $signer */
-        $signer = \call_user_func($this->getSignatureProvider(), $signature_version, $signing_name, $this->getConfig('signing_region'));
+        $signer = call_user_func($this->getSignatureProvider(), $signature_version, $signing_name, $this->getConfig('signing_region'));
         if ($signature_version == 'v4-s3express') {
             $provider = $this->getConfig('s3_express_identity_provider');
             $credentials = $provider($command)->wait();
@@ -422,7 +421,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     public static function encodeKey($key)
     {
-        return \str_replace('%2F', '/', \rawurlencode($key));
+        return str_replace('%2F', '/', rawurlencode($key));
     }
     /**
      * Provides a middleware that removes the need to specify LocationConstraint on CreateBucket.
@@ -432,8 +431,8 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getLocationConstraintMiddleware()
     {
         $region = $this->getRegion();
-        return static function (callable $handler) use($region) {
-            return function (Command $command, $request = null) use($handler, $region) {
+        return static function (callable $handler) use ($region) {
+            return function (Command $command, $request = null) use ($handler, $region) {
                 if ($command->getName() === 'CreateBucket' && !self::isDirectoryBucket($command['Bucket'])) {
                     $locationConstraint = $command['CreateBucketConfiguration']['LocationConstraint'] ?? null;
                     if ($locationConstraint === 'us-east-1') {
@@ -458,7 +457,7 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getSaveAsParameter()
     {
         return static function (callable $handler) {
-            return function (Command $command, $request = null) use($handler) {
+            return function (Command $command, $request = null) use ($handler) {
                 if ($command->getName() === 'GetObject' && isset($command['SaveAs'])) {
                     $command['@http']['sink'] = $command['SaveAs'];
                     unset($command['SaveAs']);
@@ -476,7 +475,7 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getHeadObjectMiddleware()
     {
         return static function (callable $handler) {
-            return function (CommandInterface $command, ?RequestInterface $request = null) use($handler) {
+            return function (CommandInterface $command, ?RequestInterface $request = null) use ($handler) {
                 if ($command->getName() === 'HeadObject' && !isset($command['@http']['decode_content'])) {
                     $command['@http']['decode_content'] = \false;
                 }
@@ -493,26 +492,26 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getEncodingTypeMiddleware()
     {
         return static function (callable $handler) {
-            return function (Command $command, $request = null) use($handler) {
+            return function (Command $command, $request = null) use ($handler) {
                 $autoSet = \false;
                 if ($command->getName() === 'ListObjects' && empty($command['EncodingType'])) {
                     $command['EncodingType'] = 'url';
                     $autoSet = \true;
                 }
-                return $handler($command, $request)->then(function (ResultInterface $result) use($autoSet) {
+                return $handler($command, $request)->then(function (ResultInterface $result) use ($autoSet) {
                     if ($result['EncodingType'] === 'url' && $autoSet) {
                         static $topLevel = ['Delimiter', 'Marker', 'NextMarker', 'Prefix'];
                         static $nested = [['Contents', 'Key'], ['CommonPrefixes', 'Prefix']];
                         foreach ($topLevel as $key) {
                             if (isset($result[$key])) {
-                                $result[$key] = \urldecode($result[$key]);
+                                $result[$key] = urldecode($result[$key]);
                             }
                         }
                         foreach ($nested as $steps) {
                             if (isset($result[$steps[0]])) {
                                 foreach ($result[$steps[0]] as $key => $part) {
                                     if (isset($part[$steps[1]])) {
-                                        $result[$steps[0]][$key][$steps[1]] = \urldecode($part[$steps[1]]);
+                                        $result[$steps[0]][$key][$steps[1]] = urldecode($part[$steps[1]]);
                                     }
                                 }
                             }
@@ -532,7 +531,7 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getEmptyPathWithQuery()
     {
         return static function (callable $handler) {
-            return function (Command $command, RequestInterface $request) use($handler) {
+            return function (Command $command, RequestInterface $request) use ($handler) {
                 $uri = $request->getUri();
                 if (empty($uri->getPath()) && !empty($uri->getQuery())) {
                     $uri = $uri->withPath('/');
@@ -551,7 +550,7 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getDisableExpressSessionAuthMiddleware()
     {
         return function (callable $handler) {
-            return function (CommandInterface $command, ?RequestInterface $request = null) use($handler) {
+            return function (CommandInterface $command, ?RequestInterface $request = null) use ($handler) {
                 if (!empty($command['@context']['signature_version']) && $command['@context']['signature_version'] === 'v4-s3express') {
                     $command['@context']['signature_version'] = 's3v4';
                 }
@@ -568,7 +567,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     private function getSigningName($host)
     {
-        if (\strpos($host, 's3-object-lambda')) {
+        if (strpos($host, 's3-object-lambda')) {
             return 's3-object-lambda';
         }
         return $this->getConfig('signing_name');
@@ -596,7 +595,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      *
      * @internal
      */
-    private function processModel(bool $isUseEndpointV2) : void
+    private function processModel(bool $isUseEndpointV2): void
     {
         $definition = $this->getApi()->getDefinition();
         if ($isUseEndpointV2) {
@@ -604,9 +603,9 @@ class S3Client extends AwsClient implements S3ClientInterface
                 if (isset($operation['http']['requestUri'])) {
                     $requestUri = $operation['http']['requestUri'];
                     if ($requestUri === "/{Bucket}") {
-                        $requestUri = \str_replace('/{Bucket}', '/', $requestUri);
+                        $requestUri = str_replace('/{Bucket}', '/', $requestUri);
                     } else {
-                        $requestUri = \str_replace('/{Bucket}', '', $requestUri);
+                        $requestUri = str_replace('/{Bucket}', '', $requestUri);
                     }
                     $operation['http']['requestUri'] = $requestUri;
                 }
@@ -614,7 +613,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         }
         foreach ($definition['shapes'] as $key => &$value) {
             $suffix = 'Output';
-            if (\substr($key, -\strlen($suffix)) === $suffix) {
+            if (substr($key, -strlen($suffix)) === $suffix) {
                 if (isset($value['members']['Expires'])) {
                     $value['members']['Expires']['deprecated'] = \true;
                     $value['members']['ExpiresString'] = ['shape' => 'ExpiresString', 'location' => 'header', 'locationName' => 'Expires'];
@@ -640,22 +639,18 @@ class S3Client extends AwsClient implements S3ClientInterface
         }
         $key = 'AWS::S3::UseGlobalEndpoint';
         $result = $args['s3_us_east_1_regional_endpoint'] instanceof \Closure ? $args['s3_us_east_1_regional_endpoint']()->wait() : $args['s3_us_east_1_regional_endpoint'];
-        if (\is_string($result)) {
+        if (is_string($result)) {
             if ($result === 'regional') {
                 $value = \false;
-            } else {
-                if ($result === 'legacy') {
-                    $value = \true;
-                } else {
-                    return;
-                }
-            }
-        } else {
-            if ($result->isFallback() || $result->getEndpointsType() === 'legacy') {
+            } else if ($result === 'legacy') {
                 $value = \true;
             } else {
-                $value = \false;
+                return;
             }
+        } else if ($result->isFallback() || $result->getEndpointsType() === 'legacy') {
+            $value = \true;
+        } else {
+            $value = \false;
         }
         $this->clientBuiltIns[$key] = $value;
     }
@@ -666,9 +661,9 @@ class S3Client extends AwsClient implements S3ClientInterface
      * @param string $bucket
      * @return bool
      */
-    public static function isDirectoryBucket(string $bucket) : bool
+    public static function isDirectoryBucket(string $bucket): bool
     {
-        return \preg_match(self::DIRECTORY_BUCKET_REGEX, $bucket) === 1;
+        return preg_match(self::DIRECTORY_BUCKET_REGEX, $bucket) === 1;
     }
     /** @internal */
     public static function _applyRetryConfig($value, $args, HandlerList $list)
@@ -678,14 +673,14 @@ class S3Client extends AwsClient implements S3ClientInterface
             if ($config->getMode() === 'legacy') {
                 $maxRetries = $config->getMaxAttempts() - 1;
                 $decider = RetryMiddleware::createDefaultDecider($maxRetries);
-                $decider = function ($retries, $command, $request, $result, $error) use($decider, $maxRetries) {
+                $decider = function ($retries, $command, $request, $result, $error) use ($decider, $maxRetries) {
                     $maxRetries = $command['@retries'] ?? $maxRetries;
                     if ($decider($retries, $command, $request, $result, $error)) {
                         return \true;
                     }
                     if ($error instanceof AwsException && $retries < $maxRetries) {
                         if ($error->getResponse() && $error->getResponse()->getStatusCode() >= 400) {
-                            return \strpos($error->getResponse()->getBody(), 'Your socket connection to the server') !== \false;
+                            return strpos($error->getResponse()->getBody(), 'Your socket connection to the server') !== \false;
                         }
                         if ($error->getPrevious() instanceof RequestException) {
                             // All commands except CompleteMultipartUpload are
@@ -700,11 +695,11 @@ class S3Client extends AwsClient implements S3ClientInterface
                 $list->appendSign(Middleware::retry($decider, $delay), 'retry');
             } else {
                 $defaultDecider = RetryMiddlewareV2::createDefaultDecider(new QuotaManager(), $config->getMaxAttempts());
-                $list->appendSign(RetryMiddlewareV2::wrap($config, ['collect_stats' => $args['stats']['retries'], 'decider' => function ($attempts, CommandInterface $cmd, $result) use($defaultDecider, $config) {
+                $list->appendSign(RetryMiddlewareV2::wrap($config, ['collect_stats' => $args['stats']['retries'], 'decider' => function ($attempts, CommandInterface $cmd, $result) use ($defaultDecider, $config) {
                     $isRetryable = $defaultDecider($attempts, $cmd, $result);
                     if (!$isRetryable && $result instanceof AwsException && $attempts < $config->getMaxAttempts()) {
                         if (!empty($result->getResponse()) && $result->getResponse()->getStatusCode() >= 400) {
-                            return \strpos($result->getResponse()->getBody(), 'Your socket connection to the server') !== \false;
+                            return strpos($result->getResponse()->getBody(), 'Your socket connection to the server') !== \false;
                         }
                         if ($result->getPrevious() instanceof RequestException && $cmd->getName() !== 'CompleteMultipartUpload') {
                             $isRetryable = \true;
@@ -787,7 +782,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         // Ensure `Expires` type remains timestamp
         foreach ($api['shapes'] as $key => &$value) {
             $suffix = 'Output';
-            if (\substr($key, -\strlen($suffix)) === $suffix) {
+            if (substr($key, -strlen($suffix)) === $suffix) {
                 if (isset($value['members']['Expires'])) {
                     $value['members']['Expires']['deprecated'] = \true;
                     $value['members']['ExpiresString'] = ['shape' => 'ExpiresString', 'location' => 'header', 'locationName' => 'Expires'];
@@ -806,7 +801,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     public static function addDocExamples($examples)
     {
-        $getObjectExample = ['input' => ['Bucket' => 'arn:aws:s3:us-east-1:123456789012:accesspoint:myaccesspoint', 'Key' => 'my-key'], 'output' => ['Body' => 'class GuzzleHttp\\Psr7\\Stream#208 (7) {...}', 'ContentLength' => '11', 'ContentType' => 'application/octet-stream'], 'comments' => ['input' => '', 'output' => 'Simplified example output'], 'description' => 'The following example retrieves an object by referencing the bucket via an S3 accesss point ARN. Result output is simplified for the example.', 'id' => '', 'title' => 'To get an object via an S3 access point ARN'];
+        $getObjectExample = ['input' => ['Bucket' => 'arn:aws:s3:us-east-1:123456789012:accesspoint:myaccesspoint', 'Key' => 'my-key'], 'output' => ['Body' => 'class GuzzleHttp\Psr7\Stream#208 (7) {...}', 'ContentLength' => '11', 'ContentType' => 'application/octet-stream'], 'comments' => ['input' => '', 'output' => 'Simplified example output'], 'description' => 'The following example retrieves an object by referencing the bucket via an S3 accesss point ARN. Result output is simplified for the example.', 'id' => '', 'title' => 'To get an object via an S3 access point ARN'];
         if (isset($examples['GetObject'])) {
             $examples['GetObject'][] = $getObjectExample;
         } else {

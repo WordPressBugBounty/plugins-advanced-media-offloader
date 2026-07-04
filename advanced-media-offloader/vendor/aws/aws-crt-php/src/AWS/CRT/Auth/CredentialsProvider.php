@@ -9,7 +9,6 @@ namespace WPFitter\AWS\CRT\Auth;
 use WPFitter\AWS\CRT\NativeResource as NativeResource;
 /**
  * Base class for credentials providers
- * @internal
  */
 abstract class CredentialsProvider extends NativeResource
 {

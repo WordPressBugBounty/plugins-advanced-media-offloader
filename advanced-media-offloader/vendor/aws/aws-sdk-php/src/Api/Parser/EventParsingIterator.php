@@ -100,7 +100,7 @@ class EventParsingIterator implements Iterator
             return $this->parseInitialResponseEvent($eventPayload);
         }
         $eventShape = $this->shape->getMember($eventType);
-        return [$eventType => \array_merge($this->parseEventHeaders($event['headers'], $eventShape), $this->parseEventPayload($eventPayload, $eventShape))];
+        return [$eventType => array_merge($this->parseEventHeaders($event['headers'], $eventShape), $this->parseEventPayload($eventPayload, $eventShape))];
     }
     /**
      * @param $headers
@@ -108,7 +108,7 @@ class EventParsingIterator implements Iterator
      *
      * @return array
      */
-    private function parseEventHeaders($headers, $eventShape) : array
+    private function parseEventHeaders($headers, $eventShape): array
     {
         $parsedHeaders = [];
         foreach ($eventShape->getMembers() as $memberName => $memberProps) {
@@ -124,7 +124,7 @@ class EventParsingIterator implements Iterator
      *
      * @return array
      */
-    private function parseEventPayload($payload, $eventShape) : array
+    private function parseEventPayload($payload, $eventShape): array
     {
         $parsedPayload = [];
         foreach ($eventShape->getMembers() as $memberName => $memberProps) {
@@ -151,8 +151,8 @@ class EventParsingIterator implements Iterator
     {
         throw new EventStreamDataException($event['headers'][':error-code'], $event['headers'][':error-message']);
     }
-    private function parseInitialResponseEvent($payload) : array
+    private function parseInitialResponseEvent($payload): array
     {
-        return ['initial-response' => \json_decode($payload, \true)];
+        return ['initial-response' => json_decode($payload, \true)];
     }
 }

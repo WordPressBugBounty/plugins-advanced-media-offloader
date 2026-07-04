@@ -21,7 +21,6 @@ foreach (\glob($dir . '/*.json') as $file) {
     $total += runSuite($file);
 }
 echo "\nTotal time: {$total}\n";
-/** @internal */
 function runSuite($file)
 {
     $contents = \file_get_contents($file);
@@ -34,7 +33,6 @@ function runSuite($file)
     }
     return $total;
 }
-/** @internal */
 function runCase($given, $expression, $name)
 {
     $best = 99999;

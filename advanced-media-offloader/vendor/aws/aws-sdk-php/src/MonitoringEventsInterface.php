@@ -4,7 +4,6 @@ namespace WPFitter\Aws;
 
 /**
  * Interface for adding and retrieving client-side monitoring events
- * @internal
  */
 interface MonitoringEventsInterface
 {

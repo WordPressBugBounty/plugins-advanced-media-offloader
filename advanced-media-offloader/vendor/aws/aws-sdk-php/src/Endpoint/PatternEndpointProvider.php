@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Endpoint;
 
 /**
  * Provides endpoints based on an endpoint pattern configuration array.
- * @internal
  */
 class PatternEndpointProvider
 {
@@ -32,7 +31,7 @@ class PatternEndpointProvider
     }
     private function expand(array $config, $scheme, $service, $region)
     {
-        $config['endpoint'] = $scheme . '://' . \strtr($config['endpoint'], ['{service}' => $service, '{region}' => $region]);
+        $config['endpoint'] = $scheme . '://' . strtr($config['endpoint'], ['{service}' => $service, '{region}' => $region]);
         return $config;
     }
 }

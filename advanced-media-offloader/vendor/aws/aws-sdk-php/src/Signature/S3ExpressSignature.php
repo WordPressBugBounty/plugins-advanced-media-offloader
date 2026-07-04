@@ -5,7 +5,6 @@ namespace WPFitter\Aws\Signature;
 use WPFitter\Aws\Credentials\Credentials;
 use WPFitter\Aws\Credentials\CredentialsInterface;
 use WPFitter\Psr\Http\Message\RequestInterface;
-/** @internal */
 class S3ExpressSignature extends S3SignatureV4
 {
     public function signRequest(RequestInterface $request, CredentialsInterface $credentials, $signingService = 's3express')

@@ -9,7 +9,6 @@ use WPFitter\GuzzleHttp\Promise\PromiseInterface;
 /**
  * Credential provider that provides credentials via assuming a role
  * More Information, see: http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-sts-2011-06-15.html#assumerole
- * @internal
  */
 class AssumeRoleCredentialProvider
 {

@@ -5,7 +5,6 @@ namespace WPFitter\Aws\S3\Crypto;
 use WPFitter\Aws\Crypto\MaterialsProvider;
 use WPFitter\Aws\Crypto\MetadataEnvelope;
 use WPFitter\Aws\Crypto\MetadataStrategyInterface;
-/** @internal */
 trait CryptoParamsTrait
 {
     protected function getMaterialsProvider(array $args)
@@ -32,7 +31,7 @@ trait CryptoParamsTrait
             if ($args['@MetadataStrategy'] instanceof MetadataStrategyInterface) {
                 return $args['@MetadataStrategy'];
             }
-            if (\is_string($args['@MetadataStrategy'])) {
+            if (is_string($args['@MetadataStrategy'])) {
                 switch ($args['@MetadataStrategy']) {
                     case HeadersMetadataStrategy::class:
                         return new HeadersMetadataStrategy();

@@ -3,7 +3,6 @@
 namespace WPFitter\Aws\EndpointV2\Rule;
 
 use WPFitter\Aws\Exception\UnresolvedEndpointException;
-/** @internal */
 class RuleCreator
 {
     public static function create($type, $definition)

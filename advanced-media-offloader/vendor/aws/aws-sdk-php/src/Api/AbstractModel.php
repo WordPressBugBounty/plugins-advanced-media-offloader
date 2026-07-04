@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Base class that is used by most API shapes
- * @internal
  */
 abstract class AbstractModel implements \ArrayAccess
 {

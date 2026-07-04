@@ -10,7 +10,6 @@ use WPFitter\Aws\CommandInterface;
 use WPFitter\Psr\Http\Message\ResponseInterface;
 /**
  * Parses XML errors.
- * @internal
  */
 class XmlErrorParser extends AbstractErrorParser
 {
@@ -76,7 +75,7 @@ class XmlErrorParser extends AbstractErrorParser
         $xmlBody = $this->parseXml($response->getBody(), $response);
         $prefix = $this->registerNamespacePrefix($xmlBody);
         $errorBody = $xmlBody->xpath("//{$prefix}Error");
-        if (\is_array($errorBody) && !empty($errorBody[0])) {
+        if (is_array($errorBody) && !empty($errorBody[0])) {
             return $this->parser->parse($member, $errorBody[0]);
         }
     }

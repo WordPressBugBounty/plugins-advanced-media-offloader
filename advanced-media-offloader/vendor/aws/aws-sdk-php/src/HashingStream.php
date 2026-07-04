@@ -6,7 +6,6 @@ use WPFitter\GuzzleHttp\Psr7\StreamDecoratorTrait;
 use WPFitter\Psr\Http\Message\StreamInterface;
 /**
  * Stream decorator that calculates a rolling hash of the stream as it is read.
- * @internal
  */
 class HashingStream implements StreamInterface
 {
@@ -29,19 +28,19 @@ class HashingStream implements StreamInterface
         $this->hash = $hash;
         $this->callback = $onComplete;
     }
-    public function read($length) : string
+    public function read($length): string
     {
         $data = $this->stream->read($length);
         $this->hash->update($data);
         if ($this->eof()) {
             $result = $this->hash->complete();
             if ($this->callback) {
-                \call_user_func($this->callback, $result);
+                call_user_func($this->callback, $result);
             }
         }
         return $data;
     }
-    public function seek($offset, $whence = \SEEK_SET) : void
+    public function seek($offset, $whence = \SEEK_SET): void
     {
         // Seeking arbitrarily is not supported.
         if ($offset !== 0) {

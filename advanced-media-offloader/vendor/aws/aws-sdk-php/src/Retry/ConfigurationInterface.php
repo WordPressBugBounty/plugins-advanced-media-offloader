@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Retry;
 
 /**
  * Provides access to retry configuration
- * @internal
  */
 interface ConfigurationInterface
 {

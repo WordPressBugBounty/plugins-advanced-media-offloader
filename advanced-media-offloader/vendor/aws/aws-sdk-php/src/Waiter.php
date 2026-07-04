@@ -17,7 +17,6 @@ use WPFitter\GuzzleHttp\Promise\RejectedPromise;
  * on whether you call wait() on the promise.
  * The configuration for the waiter must include information about the operation
  * and the conditions for wait completion.
- * @internal
  */
 class Waiter implements PromisorInterface
 {
@@ -61,14 +60,14 @@ class Waiter implements PromisorInterface
                 throw new \InvalidArgumentException('The provided waiter configuration was incomplete.');
             }
         }
-        if ($this->config['before'] && !\is_callable($this->config['before'])) {
+        if ($this->config['before'] && !is_callable($this->config['before'])) {
             throw new \InvalidArgumentException('The provided "before" callback is not callable.');
         }
     }
     /**
      * @return Coroutine
      */
-    public function promise() : PromiseInterface
+    public function promise(): PromiseInterface
     {
         return Coroutine::of(function () {
             $name = $this->config['operation'];
@@ -80,23 +79,23 @@ class Waiter implements PromisorInterface
                     if ($this->config['before']) {
                         $this->config['before']($command, $attempt);
                     }
-                    $result = (yield $this->client->executeAsync($command));
+                    $result = yield $this->client->executeAsync($command);
                 } catch (AwsException $e) {
                     $result = $e;
                 }
                 // Determine the waiter's state and what to do next.
                 $state = $this->determineState($result);
                 if ($state === 'success') {
-                    (yield $command);
+                    yield $command;
                 } elseif ($state === 'failed') {
                     $msg = "The {$this->name} waiter entered a failure state.";
                     if ($result instanceof \Exception) {
                         $msg .= ' Reason: ' . $result->getMessage();
                     }
-                    (yield new RejectedPromise(new \RuntimeException($msg)));
+                    yield new RejectedPromise(new \RuntimeException($msg));
                 } elseif ($state === 'retry' && $attempt >= $this->config['maxAttempts']) {
                     $state = 'failed';
-                    (yield new RejectedPromise(new \RuntimeException("The {$this->name} waiter failed after attempt #{$attempt}.")));
+                    yield new RejectedPromise(new \RuntimeException("The {$this->name} waiter failed after attempt #{$attempt}."));
                 }
             }
         });
@@ -113,7 +112,7 @@ class Waiter implements PromisorInterface
         $args = $this->args;
         // Determine the delay.
         $delay = $attempt === 1 ? $this->config['initDelay'] : $this->config['delay'];
-        if (\is_callable($delay)) {
+        if (is_callable($delay)) {
             $delay = $delay($attempt);
         }
         // Set the delay. (Note: handlers except delay in milliseconds.)
@@ -135,7 +134,7 @@ class Waiter implements PromisorInterface
     private function determineState($result)
     {
         foreach ($this->config['acceptors'] as $acceptor) {
-            $matcher = 'matches' . \ucfirst($acceptor['matcher']);
+            $matcher = 'matches' . ucfirst($acceptor['matcher']);
             if ($this->{$matcher}($result, $acceptor)) {
                 return $acceptor['state'];
             }
@@ -183,7 +182,7 @@ class Waiter implements PromisorInterface
             return \false;
         }
         $actuals = $result->search($acceptor['argument']) ?: [];
-        return \in_array($acceptor['expected'], $actuals);
+        return in_array($acceptor['expected'], $actuals);
     }
     /**
      * @param Result $result   Result or exception.
@@ -196,7 +195,7 @@ class Waiter implements PromisorInterface
         if ($result instanceof ResultInterface) {
             return $acceptor['expected'] == $result['@metadata']['statusCode'];
         }
-        if ($result instanceof AwsException && ($response = $result->getResponse())) {
+        if ($result instanceof AwsException && $response = $result->getResponse()) {
             return $acceptor['expected'] == $response->getStatusCode();
         }
         return \false;
@@ -211,7 +210,7 @@ class Waiter implements PromisorInterface
     {
         // If expected is true then the $result should be an instance of
         // AwsException, otherwise it should not.
-        if (isset($acceptor['expected']) && \is_bool($acceptor['expected'])) {
+        if (isset($acceptor['expected']) && is_bool($acceptor['expected'])) {
             return $acceptor['expected'] === $result instanceof AwsException;
         }
         if ($result instanceof AwsException) {

@@ -5,7 +5,6 @@ namespace WPFitter\Aws\Auth;
 use WPFitter\Aws\Identity\IdentityInterface;
 /**
  * An AuthSchemeResolver object determines which auth scheme will be used for request signing.
- * @internal
  */
 interface AuthSchemeResolverInterface
 {
@@ -17,5 +16,5 @@ interface AuthSchemeResolverInterface
      *
      * @return string
      */
-    public function selectAuthScheme(array $authSchemes, array $args) : ?string;
+    public function selectAuthScheme(array $authSchemes, array $args): ?string;
 }

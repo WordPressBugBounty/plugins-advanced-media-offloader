@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Sts\RegionalEndpoints;
 
 /**
  * Provides access to STS regional endpoints configuration options: endpoints_type
- * @internal
  */
 interface ConfigurationInterface
 {

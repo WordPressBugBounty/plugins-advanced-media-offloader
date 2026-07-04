@@ -36,8 +36,15 @@ class CloudAttachmentUploader
             return true;
         }
 
-        if ($this->uploadToCloud($attachment_id)) {
-            $this->updateAttachmentMetadata($attachment_id);
+        // uploadToCloud() returns the exact subdir it uploaded to (or false on
+        // failure). That subdir is forwarded to updateAttachmentMetadata() so
+        // advmo_path is recorded from the same value used for the upload,
+        // instead of being re-derived (which can diverge for object versioning,
+        // whose value is time-based). An empty-string subdir is a valid success
+        // value, so the guard must be a strict !== false comparison.
+        $subdir = $this->uploadToCloud($attachment_id);
+        if ($subdir !== false) {
+            $this->updateAttachmentMetadata($attachment_id, $subdir);
             return true;
         }
 
@@ -439,7 +446,15 @@ class CloudAttachmentUploader
         return true;
     }
 
-    private function uploadToCloud(int $attachment_id): bool
+    /**
+     * Upload an attachment's files to cloud storage.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return string|false The subdir the files were uploaded to (may be an
+     *                      empty string when versioning/year-month is off), or
+     *                      false on failure.
+     */
+    private function uploadToCloud(int $attachment_id): string|false
     {
         /**
          * Fires before the attachment is uploaded to the cloud.
@@ -555,7 +570,10 @@ class CloudAttachmentUploader
          */
         do_action('advmo_after_upload_to_cloud', $attachment_id);
 
-        return true;
+        // Return the subdir actually used for the upload so the caller can
+        // record advmo_path from it rather than re-deriving (and risking a
+        // divergent object-versioning value).
+        return $subdir;
     }
 
     /**
@@ -667,9 +685,9 @@ class CloudAttachmentUploader
         update_post_meta($attachment_id, 'advmo_offloaded', false);
     }
 
-    private function updateAttachmentMetadata(int $attachment_id): void
+    private function updateAttachmentMetadata(int $attachment_id, string $subdir): void
     {
-        update_post_meta($attachment_id, 'advmo_path', $this->get_attachment_subdir($attachment_id));
+        update_post_meta($attachment_id, 'advmo_path', $subdir);
         update_post_meta($attachment_id, 'advmo_offloaded', true);
         update_post_meta($attachment_id, 'advmo_offloaded_at', time());
         update_post_meta($attachment_id, 'advmo_provider', $this->cloudProvider->getProviderName());

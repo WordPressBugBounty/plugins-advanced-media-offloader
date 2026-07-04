@@ -13,7 +13,6 @@ use WPFitter\Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise registerClientAsync(array $args = [])
  * @method \Aws\Result startDeviceAuthorization(array $args = [])
  * @method \GuzzleHttp\Promise\Promise startDeviceAuthorizationAsync(array $args = [])
- * @internal
  */
 class SSOOIDCClient extends AwsClient
 {

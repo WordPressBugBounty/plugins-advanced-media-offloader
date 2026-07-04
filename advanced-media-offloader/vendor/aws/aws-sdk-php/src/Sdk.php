@@ -811,7 +811,6 @@ namespace WPFitter\Aws;
  * @method \Aws\MultiRegionClient createMultiRegionmgn(array $args = [])
  * @method \Aws\signer\signerClient createsigner(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionsigner(array $args = [])
- * @internal
  */
 class Sdk
 {
@@ -837,11 +836,11 @@ class Sdk
     public function __call($name, array $args)
     {
         $args = isset($args[0]) ? $args[0] : [];
-        if (\strpos($name, 'createMultiRegion') === 0) {
-            return $this->createMultiRegionClient(\substr($name, 17), $args);
+        if (strpos($name, 'createMultiRegion') === 0) {
+            return $this->createMultiRegionClient(substr($name, 17), $args);
         }
-        if (\strpos($name, 'create') === 0) {
-            return $this->createClient(\substr($name, 6), $args);
+        if (strpos($name, 'create') === 0) {
+            return $this->createClient(substr($name, 6), $args);
         }
         throw new \BadMethodCallException("Unknown method: {$name}.");
     }
@@ -871,7 +870,7 @@ class Sdk
         $service = manifest($name);
         $namespace = $service['namespace'];
         $klass = "Aws\\{$namespace}\\{$namespace}MultiRegionClient";
-        $klass = \class_exists($klass) ? $klass : MultiRegionClient::class;
+        $klass = class_exists($klass) ? $klass : MultiRegionClient::class;
         return new $klass($this->mergeArgs($namespace, $service, $args));
     }
     /**

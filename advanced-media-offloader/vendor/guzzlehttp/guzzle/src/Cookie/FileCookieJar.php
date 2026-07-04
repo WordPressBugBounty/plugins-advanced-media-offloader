@@ -5,7 +5,6 @@ namespace WPFitter\GuzzleHttp\Cookie;
 use WPFitter\GuzzleHttp\Utils;
 /**
  * Persists non-session cookies using a JSON formatted file
- * @internal
  */
 class FileCookieJar extends CookieJar
 {
@@ -49,7 +48,7 @@ class FileCookieJar extends CookieJar
      *
      * @throws \RuntimeException if the file cannot be found or created
      */
-    public function save(string $filename) : void
+    public function save(string $filename): void
     {
         $json = [];
         /** @var SetCookie $cookie */
@@ -72,7 +71,7 @@ class FileCookieJar extends CookieJar
      *
      * @throws \RuntimeException if the file cannot be loaded.
      */
-    public function load(string $filename) : void
+    public function load(string $filename): void
     {
         $json = \file_get_contents($filename);
         if (\false === $json) {

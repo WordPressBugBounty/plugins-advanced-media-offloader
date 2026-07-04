@@ -27,5 +27,5 @@ interface S3ResultMutator
      *
      * @return ResultInterface
      */
-    public function __invoke(ResultInterface $result, CommandInterface $command, ResponseInterface $response) : ResultInterface;
+    public function __invoke(ResultInterface $result, CommandInterface $command, ResponseInterface $response): ResultInterface;
 }

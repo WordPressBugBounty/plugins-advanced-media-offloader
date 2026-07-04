@@ -6,7 +6,6 @@
  */
 namespace WPFitter\AWS\CRT\HTTP;
 
-/** @internal */
 class Response extends Message
 {
     private $status_code;

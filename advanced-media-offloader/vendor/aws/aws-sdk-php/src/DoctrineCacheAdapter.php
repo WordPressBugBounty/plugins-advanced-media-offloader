@@ -3,7 +3,6 @@
 namespace WPFitter\Aws;
 
 use WPFitter\Doctrine\Common\Cache\Cache;
-/** @internal */
 class DoctrineCacheAdapter implements CacheInterface, Cache
 {
     /** @var Cache */

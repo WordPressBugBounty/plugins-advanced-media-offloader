@@ -6,7 +6,6 @@ use WPFitter\Aws\HasMonitoringEventsTrait;
 use WPFitter\Aws\MonitoringEventsInterface;
 use WPFitter\Aws\ResponseContainerInterface;
 use WPFitter\Psr\Http\Message\ResponseInterface;
-/** @internal */
 class ParserException extends \RuntimeException implements MonitoringEventsInterface, ResponseContainerInterface
 {
     use HasMonitoringEventsTrait;

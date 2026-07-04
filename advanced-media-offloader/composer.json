@@ -25,7 +25,7 @@
 		"scope-release": [
 			"rm -rf vendor",
 			"composer install --no-dev --optimize-autoloader --prefer-dist",
-			"~/.composer/vendor/bin/php-scoper add-prefix",
+			"\"$(composer global config home)/vendor/bin/php-scoper\" add-prefix --force",
 			"rm -rf vendor",
 			"mv build/vendor vendor",
 			"rm -rf build",
@@ -34,7 +34,7 @@
 		"scope-dev": [
 			"rm -rf vendor",
 			"composer install",
-			"~/.composer/vendor/bin/php-scoper add-prefix",
+			"\"$(composer global config home)/vendor/bin/php-scoper\" add-prefix --force",
 			"rm -rf vendor",
 			"mv build/vendor vendor",
 			"rm -rf build",

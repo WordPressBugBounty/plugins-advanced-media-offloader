@@ -2,7 +2,6 @@
 
 namespace WPFitter\Aws\Crypto;
 
-/** @internal */
 interface MetadataStrategyInterface
 {
     /**

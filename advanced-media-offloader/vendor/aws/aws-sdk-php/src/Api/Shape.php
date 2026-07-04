@@ -4,7 +4,6 @@ namespace WPFitter\Aws\Api;
 
 /**
  * Base class representing a modeled shape.
- * @internal
  */
 class Shape extends AbstractModel
 {
@@ -24,7 +23,7 @@ class Shape extends AbstractModel
             return $shapeMap->resolve($definition);
         }
         if (!isset($map[$definition['type']])) {
-            throw new \RuntimeException('Invalid type: ' . \print_r($definition, \true));
+            throw new \RuntimeException('Invalid type: ' . print_r($definition, \true));
         }
         $type = $map[$definition['type']];
         return new $type($definition, $shapeMap);

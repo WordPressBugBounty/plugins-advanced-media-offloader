@@ -3,7 +3,6 @@
 namespace WPFitter\Aws\S3\Crypto;
 
 use WPFitter\Aws\Crypto\MaterialsProviderInterfaceV2;
-/** @internal */
 trait CryptoParamsTraitV2
 {
     use CryptoParamsTrait;

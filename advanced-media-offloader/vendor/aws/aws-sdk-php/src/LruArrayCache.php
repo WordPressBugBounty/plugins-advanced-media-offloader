@@ -11,7 +11,6 @@ namespace WPFitter\Aws;
  * least recently used are at the beginning. When a value is added to the
  * cache, if the number of cached items exceeds the allowed number, the first
  * N number of items are removed from the array.
- * @internal
  */
 class LruArrayCache implements CacheInterface, \Countable
 {
@@ -33,7 +32,7 @@ class LruArrayCache implements CacheInterface, \Countable
         }
         $entry = $this->items[$key];
         // Ensure the item is not expired.
-        if (!$entry[1] || \time() < $entry[1]) {
+        if (!$entry[1] || time() < $entry[1]) {
             // LRU: remove the item and push it to the end of the array.
             unset($this->items[$key]);
             $this->items[$key] = $entry;
@@ -45,17 +44,17 @@ class LruArrayCache implements CacheInterface, \Countable
     public function set($key, $value, $ttl = 0)
     {
         // Only call time() if the TTL is not 0/false/null
-        $ttl = $ttl ? \time() + $ttl : 0;
+        $ttl = $ttl ? time() + $ttl : 0;
         $this->items[$key] = [$value, $ttl];
         // Determine if there are more items in the cache than allowed.
-        $diff = \count($this->items) - $this->maxItems;
+        $diff = count($this->items) - $this->maxItems;
         // Clear out least recently used items.
         if ($diff > 0) {
             // Reset to the beginning of the array and begin unsetting.
-            \reset($this->items);
+            reset($this->items);
             for ($i = 0; $i < $diff; $i++) {
-                unset($this->items[\key($this->items)]);
-                \next($this->items);
+                unset($this->items[key($this->items)]);
+                next($this->items);
             }
         }
     }
@@ -69,6 +68,6 @@ class LruArrayCache implements CacheInterface, \Countable
     #[\ReturnTypeWillChange]
     public function count()
     {
-        return \count($this->items);
+        return count($this->items);
     }
 }

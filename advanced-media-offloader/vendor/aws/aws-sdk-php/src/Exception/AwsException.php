@@ -14,7 +14,6 @@ use WPFitter\Psr\Http\Message\ResponseInterface;
 use WPFitter\Psr\Http\Message\RequestInterface;
 /**
  * Represents an AWS exception that is thrown when a command fails.
- * @internal
  */
 class AwsException extends \RuntimeException implements MonitoringEventsInterface, ResponseContainerInterface, \ArrayAccess
 {
@@ -68,7 +67,7 @@ class AwsException extends \RuntimeException implements MonitoringEventsInterfac
         // might not even get shown, causing developers to attempt to catch
         // the inner exception instead of the actual exception because they
         // can't see the outer exception's __toString output.
-        return \sprintf("exception '%s' with message '%s'\n\n%s", \get_class($this), $this->getMessage(), parent::__toString());
+        return sprintf("exception '%s' with message '%s'\n\n%s", get_class($this), $this->getMessage(), parent::__toString());
     }
     /**
      * Get the command that was executed.
