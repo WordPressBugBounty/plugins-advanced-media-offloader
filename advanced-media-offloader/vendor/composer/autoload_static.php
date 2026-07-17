@@ -82,6 +82,7 @@ class ComposerStaticInitf615a92c50d90a95a009ec188ff0f31a
         'Advanced_Media_Offloader\\Admin\\Observers\\AdminFooterTexts' => __DIR__ . '/../..' . '/includes/Admin/Observers/AdminFooterTexts.php',
         'Advanced_Media_Offloader\\Admin\\Observers\\AdminHeader' => __DIR__ . '/../..' . '/includes/Admin/Observers/AdminHeader.php',
         'Advanced_Media_Offloader\\Admin\\Observers\\CurrentScreen' => __DIR__ . '/../..' . '/includes/Admin/Observers/CurrentScreen.php',
+        'Advanced_Media_Offloader\\Admin\\Observers\\WelcomeNotice' => __DIR__ . '/../..' . '/includes/Admin/Observers/WelcomeNotice.php',
         'Advanced_Media_Offloader\\BulkOffloadHandler' => __DIR__ . '/../..' . '/includes/BulkOffloadHandler.php',
         'Advanced_Media_Offloader\\CLI\\OffloadCommand' => __DIR__ . '/../..' . '/includes/CLI/OffloadCommand.php',
         'Advanced_Media_Offloader\\Core\\Container' => __DIR__ . '/../..' . '/includes/Core/Container.php',

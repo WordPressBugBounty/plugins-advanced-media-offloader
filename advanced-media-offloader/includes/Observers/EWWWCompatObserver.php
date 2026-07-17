@@ -154,9 +154,30 @@ class EWWWCompatObserver implements ObserverInterface
      * so we skip -- afterAdvmoUpload() handles that case.
      *
      * Also handles manual/bulk optimization of already-offloaded images.
+     *
+     * @param int         $attachment_id
+     * @param array|false $meta EWWW passes wp_get_attachment_metadata(), which is
+     *                          false when the attachment was deleted while the
+     *                          job sat in EWWW's background queue. No array type
+     *                          hint here: a TypeError thrown inside EWWW's
+     *                          background worker prevents the job from ever being
+     *                          marked complete, permanently blocking its queue.
      */
-    public function afterEWWWOptimize(int $attachment_id, array $meta): void
+    public function afterEWWWOptimize(int $attachment_id, $meta): void
     {
+        // Attachment deleted between enqueue and dispatch: nothing to offload,
+        // and writing the pre-offload marker below would create orphaned meta.
+        if (get_post_type($attachment_id) !== 'attachment') {
+            return;
+        }
+
+        if (!is_array($meta)) {
+            $meta = wp_get_attachment_metadata($attachment_id);
+            if (!is_array($meta)) {
+                $meta = [];
+            }
+        }
+
         if (!$this->is_offloaded($attachment_id)) {
             // EWWW finished before AMO offloaded this attachment (EWWW optimizes
             // at priority 15, the offload runs at 99). The cloud copy doesn't

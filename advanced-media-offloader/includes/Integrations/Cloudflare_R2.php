@@ -23,7 +23,7 @@ class Cloudflare_R2 extends S3_Provider
 	{
 		$endpoint = advmo_get_provider_credential('cloudflare_r2', 'endpoint');
 		if (!empty($endpoint)) {
-			$endpoint = advmo_normalize_url($endpoint);
+			$endpoint = advmo_sanitize_r2_endpoint($endpoint);
 		}
 
 		return new S3Client([

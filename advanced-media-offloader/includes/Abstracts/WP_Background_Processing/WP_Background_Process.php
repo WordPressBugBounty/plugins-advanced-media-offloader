@@ -370,7 +370,9 @@ abstract class WP_Background_Process extends WP_Async_Request
         }
 
         if ($this->is_queue_empty()) {
-            // No data to process.
+            // No data to process — drop any leftover healthcheck cron.
+            $this->clear_scheduled_event();
+
             return $this->maybe_wp_die();
         }
 
@@ -777,11 +779,10 @@ abstract class WP_Background_Process extends WP_Async_Request
      */
     protected function clear_scheduled_event()
     {
-        $timestamp = wp_next_scheduled($this->cron_hook_identifier);
-
-        if ($timestamp) {
-            wp_unschedule_event($timestamp, $this->cron_hook_identifier);
-        }
+        // Prefer clear_scheduled_hook so every occurrence is removed; a lone
+        // wp_unschedule_event can leave the healthcheck behind after races
+        // between complete() and a late dispatch/healthcheck.
+        wp_clear_scheduled_hook($this->cron_hook_identifier);
     }
 
     /**

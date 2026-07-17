@@ -378,7 +378,10 @@ class GeneralSettings
 				}
 
 				// Sanitize based on field type
-				if (in_array($field_name, ['endpoint', 'domain'])) {
+				if ($field_name === 'endpoint' && $provider_key === 'cloudflare_r2') {
+					// Cloudflare shows the endpoint with the bucket appended — strip any path.
+					$sanitized[$provider_key][$field_name] = advmo_sanitize_r2_endpoint($field_value);
+				} elseif (in_array($field_name, ['endpoint', 'domain'])) {
 					// URLs - normalize and validate
 					$sanitized[$provider_key][$field_name] = advmo_normalize_url($field_value);
 				} elseif (in_array($field_name, ['key', 'secret'])) {

@@ -861,7 +861,7 @@ class Sdk
         $service = manifest($name);
         $namespace = $service['namespace'];
         // Instantiate the client class.
-        $client = "Aws\\{$namespace}\\{$namespace}Client";
+        $client = "WPFitter\\Aws\\{$namespace}\\{$namespace}Client";
         return new $client($this->mergeArgs($namespace, $service, $args));
     }
     public function createMultiRegionClient($name, array $args = [])
@@ -869,7 +869,7 @@ class Sdk
         // Get information about the service from the manifest file.
         $service = manifest($name);
         $namespace = $service['namespace'];
-        $klass = "Aws\\{$namespace}\\{$namespace}MultiRegionClient";
+        $klass = "WPFitter\\Aws\\{$namespace}\\{$namespace}MultiRegionClient";
         $klass = class_exists($klass) ? $klass : MultiRegionClient::class;
         return new $klass($this->mergeArgs($namespace, $service, $args));
     }

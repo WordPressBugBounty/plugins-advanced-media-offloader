@@ -33,7 +33,7 @@ class MultiRegionClient implements AwsClientInterface
         unset($args['region']['default']);
         return $args + ['client_factory' => ['type' => 'config', 'valid' => ['callable'], 'doc' => 'A callable that takes an array of client' . ' configuration arguments and returns a regionalized' . ' client.', 'required' => \true, 'internal' => \true, 'default' => function (array $args) {
             $namespace = manifest($args['service'])['namespace'];
-            $klass = "Aws\\{$namespace}\\{$namespace}Client";
+            $klass = "WPFitter\\Aws\\{$namespace}\\{$namespace}Client";
             $region = isset($args['region']) ? $args['region'] : null;
             return function (array $args) use ($klass, $region) {
                 if ($region && empty($args['region'])) {

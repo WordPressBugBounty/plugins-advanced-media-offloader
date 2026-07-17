@@ -14,6 +14,7 @@ return array(
     'Advanced_Media_Offloader\\Admin\\Observers\\AdminFooterTexts' => $baseDir . '/includes/Admin/Observers/AdminFooterTexts.php',
     'Advanced_Media_Offloader\\Admin\\Observers\\AdminHeader' => $baseDir . '/includes/Admin/Observers/AdminHeader.php',
     'Advanced_Media_Offloader\\Admin\\Observers\\CurrentScreen' => $baseDir . '/includes/Admin/Observers/CurrentScreen.php',
+    'Advanced_Media_Offloader\\Admin\\Observers\\WelcomeNotice' => $baseDir . '/includes/Admin/Observers/WelcomeNotice.php',
     'Advanced_Media_Offloader\\BulkOffloadHandler' => $baseDir . '/includes/BulkOffloadHandler.php',
     'Advanced_Media_Offloader\\CLI\\OffloadCommand' => $baseDir . '/includes/CLI/OffloadCommand.php',
     'Advanced_Media_Offloader\\Core\\Container' => $baseDir . '/includes/Core/Container.php',

@@ -3,7 +3,7 @@
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
  * Description:       Save server space & speed up your site by automatically offloading media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2 and more.
- * Version:           4.4.3
+ * Version:           4.4.4
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter
@@ -160,6 +160,7 @@ if (!class_exists('ADVMO')) {
 				$this->container->get('settings_page'); // Initialize settings
 				$this->container->get('media_overview_page'); // Initialize media overview
 				new \Advanced_Media_Offloader\Admin\Observers\CurrentScreen();
+				\Advanced_Media_Offloader\Admin\Observers\WelcomeNotice::getInstance();
 
 				# Add link to the settings page in the plugins list
 				add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'plugin_action_links']);
@@ -224,6 +225,9 @@ if (!class_exists('ADVMO')) {
 			if (null === get_option('advmo_first_activated_version', null)) {
 				update_option('advmo_first_activated_version', ADVMO_VERSION, true);
 			}
+
+			// Show the welcome notice until it is dismissed or settings are visited.
+			update_option(\Advanced_Media_Offloader\Admin\Observers\WelcomeNotice::OPTION_KEY, 1, true);
 		}
 
 		/**
@@ -234,7 +238,8 @@ if (!class_exists('ADVMO')) {
 		public function plugin_deactivated()
 		{
 			// Clear any scheduled tasks
-			wp_clear_scheduled_hook('advmo_bulk_offload_cron');
+			wp_clear_scheduled_hook('advmo_bulk_offload_media_process_cron');
+			wp_clear_scheduled_hook('advmo_bulk_offload_cron'); // legacy hook name
 			wp_clear_scheduled_hook('advmo_check_stalled_processes');
 			// Clear bulk offload related options
 			delete_option('advmo_bulk_offload_cancelled');

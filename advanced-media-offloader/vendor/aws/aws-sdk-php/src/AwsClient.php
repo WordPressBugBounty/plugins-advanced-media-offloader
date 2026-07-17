@@ -354,7 +354,7 @@ class AwsClient implements AwsClientInterface
             return ['', AwsException::class];
         }
         $service = substr($klass, strrpos($klass, '\\') + 1, -6);
-        return [strtolower($service), "Aws\\{$service}\\Exception\\{$service}Exception"];
+        return [strtolower($service), "WPFitter\\Aws\\{$service}\\Exception\\{$service}Exception"];
     }
     private function addEndpointParameterMiddleware($args)
     {

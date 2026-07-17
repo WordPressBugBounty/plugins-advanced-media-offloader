@@ -5,7 +5,7 @@ Tags: s3, media library, cloudflare, offload, storage
 Requires at least: 5.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 4.4.3
+Stable tag: 4.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,13 +72,15 @@ add_filter('advmo_should_offload_attachment', function($should_offload, $attachm
 
 1. Upload the plugin files to `/wp-content/plugins/advanced-media-offloader/` or install directly through WordPress
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Go to "Media Offloader" in the admin menu to configure settings
-4. Add your cloud provider credentials to `wp-config.php` (see configuration examples below)
-5. Test your connection and start offloading media
+3. Go to "Media Offloader" in the admin menu, choose your cloud provider, and enter its credentials on the settings page
+4. Click "Test Connection" to verify your credentials, then save your settings
+5. Offload your existing media from the "Media Overview" tab — new uploads are offloaded automatically
 
 == Configuration ==
 
-For security, cloud provider credentials are stored in your `wp-config.php` file rather than the database.
+The quickest way to configure the plugin is the settings page: choose your provider, enter its credentials, and test the connection — no code required.
+
+**Advanced (optional):** you can instead define your credentials as constants in `wp-config.php` using the examples below. Constants take priority over credentials saved in the admin and lock the corresponding fields. This keeps secrets out of the database — useful for version-controlled or multi-environment setups.
 
 **Note:** Domain and endpoint URLs will automatically be prefixed with `https://` if you don't include it, but we recommend always including the full URL for clarity.
 
@@ -199,6 +201,13 @@ add_filter('advmo_object_acl', '__return_false');
 `
 
 == Changelog ==
+= 4.4.4 =
+* Fixed: Conflict with other plugins or themes that also use the AWS PHP SDK. The plugin's SDK is now fully isolated and no longer shares the unprefixed `Aws\S3\Exception\S3Exception` class name.
+* Fixed: With EWWW Image Optimizer in background mode, deleting a media item while its optimization job was still queued caused a fatal error that permanently blocked EWWW's queue — new uploads no longer got their WebP versions generated or offloaded. Deleted attachments are now skipped cleanly and the queue keeps processing.
+* Fixed: The bulk offload stall-check cron (`advmo_check_stalled_processes`) no longer runs every 15 minutes when idle. It is now scheduled only while a bulk offload job is active and cleared when the job completes, is cancelled, or recovers from a stall.
+* Fixed: The bulk offload background healthcheck cron (`advmo_bulk_offload_media_process_cron`) could remain scheduled after a successful bulk offload. It is now cleared reliably when the job finishes or the queue is empty.
+* Improved: Small fixes and improvements
+
 = 4.4.3 =
 * Fixed: With Object Versioning enabled, newly offloaded images could appear broken on your site. The files were uploaded correctly, but the saved location sometimes didn't match — so images failed to load. The correct location is now always saved, so your images display properly.
 * Fixed: Offloading an existing image that is stored directly in the uploads folder could add an extra `/./` to its URL — for example `https://cdn.example.com/./image.png` — so the image failed to load on some CDNs. The URL is now correct.
@@ -412,6 +421,9 @@ add_filter('advmo_object_acl', '__return_false');
 - Initial release.
 
 == Upgrade Notice ==
+= 4.4.4 =
+Fixes AWS SDK conflicts with other plugins, an EWWW background-mode queue blocker when deleting media, and leftover bulk-offload cron events that could keep running after jobs finished.
+
 = 4.4.3 =
 Fixes broken images that could occur when Object Versioning is enabled, by always saving the correct file location.
 

@@ -49,18 +49,38 @@ class BulkOffloadHandler
             $this->process_all    = new BulkMediaOffloader($cloud_provider);
             add_action($this->process_all->get_identifier() . '_cancelled', array($this, 'process_is_cancelled'));
 
-            // Check for stalled processes every 15 minutes
+            // Stall check runs only while a bulk offload job is active.
             add_filter('cron_schedules', [$this, 'add_cron_interval']);
             add_action('advmo_check_stalled_processes', [$this, 'check_stalled_processes']);
 
-            if (!wp_next_scheduled('advmo_check_stalled_processes')) {
-                wp_schedule_event(time(), 'advmo_fifteen_min', 'advmo_check_stalled_processes');
+            // Drop leftover always-on schedules from older plugin versions when idle.
+            $bulk_data = advmo_get_bulk_offload_data();
+            $active_statuses = ['processing', 'starting'];
+            if (! in_array($bulk_data['status'] ?? '', $active_statuses, true)) {
+                $this->clear_stalled_check();
             }
         } catch (\Exception $e) {
             error_log('ADVMO - Error: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Schedule the stalled-process healthcheck for an active bulk offload job.
+     */
+    public function schedule_stalled_check()
+    {
+        if (! wp_next_scheduled('advmo_check_stalled_processes')) {
+            wp_schedule_event(time(), 'advmo_fifteen_min', 'advmo_check_stalled_processes');
+        }
+    }
+
+    /**
+     * Clear the stalled-process healthcheck when no bulk job is in play.
+     */
+    public function clear_stalled_check()
+    {
+        wp_clear_scheduled_hook('advmo_check_stalled_processes');
+    }
 
     public function add_cron_interval($schedules)
     {
@@ -87,6 +107,7 @@ class BulkOffloadHandler
             $last_update = (int) get_option('advmo_bulk_offload_last_update', 0);
         }
         $current_time = time();
+        $recovered = false;
 
         // If process locked but hasn't updated in 10 minutes
         if ($process_lock && ($current_time - $last_update) > 600) {
@@ -113,6 +134,7 @@ class BulkOffloadHandler
 
             // Schedule a cleanup of any orphaned queue items
             wp_schedule_single_event(time() + 60, 'advmo_cleanup_orphaned_queue');
+            $recovered = true;
         }
 
         // Also check for very old processes (over 1 hour) regardless of lock status
@@ -128,7 +150,12 @@ class BulkOffloadHandler
                     'status' => 'timeout_cleanup',
                     'last_cleanup' => $current_time
                 ]);
+                $recovered = true;
             }
+        }
+
+        if ($recovered) {
+            $this->clear_stalled_check();
         }
     }
 
@@ -253,6 +280,10 @@ class BulkOffloadHandler
         }
 
         $this->process_all->save()->dispatch();
+
+        if (! empty($names)) {
+            $this->schedule_stalled_check();
+        }
     }
 
     protected function get_unoffloaded_attachments($batch_size = 50)
@@ -433,6 +464,7 @@ class BulkOffloadHandler
             'status' => 'cancelled'
         ]);
         delete_option("advmo_bulk_offload_cancelled");
+        $this->clear_stalled_check();
     }
 
     /**

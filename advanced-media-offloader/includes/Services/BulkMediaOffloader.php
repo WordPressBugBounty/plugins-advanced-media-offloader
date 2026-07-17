@@ -2,6 +2,7 @@
 
 namespace Advanced_Media_Offloader\Services;
 
+use Advanced_Media_Offloader\BulkOffloadHandler;
 use Advanced_Media_Offloader\Services\CloudAttachmentUploader;
 use Advanced_Media_Offloader\Abstracts\S3_Provider;
 use Advanced_Media_Offloader\Abstracts\WP_Background_Processing\WP_Background_Process;
@@ -56,6 +57,8 @@ class BulkMediaOffloader extends WP_Background_Process
 
         // Clear any stale cancel flag on normal completion.
         delete_option('advmo_bulk_offload_cancelled');
+
+        BulkOffloadHandler::get_instance()->clear_stalled_check();
     }
 
     public function update_processed_count($result_status)

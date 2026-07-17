@@ -64,6 +64,38 @@ if (!function_exists('advmo_normalize_url')) {
 }
 
 /**
+ * Sanitize a Cloudflare R2 endpoint URL by removing any path.
+ *
+ * Cloudflare's dashboard shows the S3 API endpoint with the bucket name appended
+ * (https://<account-id>.r2.cloudflarestorage.com/<bucket>), but the S3 client
+ * needs the bare endpoint — it appends the bucket itself.
+ *
+ * @param string $endpoint The endpoint URL to sanitize.
+ * @return string The endpoint without any path, or empty string if invalid.
+ */
+if (!function_exists('advmo_sanitize_r2_endpoint')) {
+	function advmo_sanitize_r2_endpoint(string $endpoint): string
+	{
+		$endpoint = advmo_normalize_url($endpoint);
+		if (empty($endpoint)) {
+			return '';
+		}
+
+		$parts = wp_parse_url($endpoint);
+		if (empty($parts['host']) || empty($parts['scheme'])) {
+			return untrailingslashit($endpoint);
+		}
+
+		$sanitized = $parts['scheme'] . '://' . $parts['host'];
+		if (!empty($parts['port'])) {
+			$sanitized .= ':' . $parts['port'];
+		}
+
+		return $sanitized;
+	}
+}
+
+/**
  * Helper: Get public URL for an attachment
  */
 if (!function_exists('advmo_get_public_url')) {

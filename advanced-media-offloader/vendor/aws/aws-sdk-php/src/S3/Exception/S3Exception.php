@@ -9,7 +9,3 @@ use WPFitter\Aws\Exception\AwsException;
 class S3Exception extends AwsException
 {
 }
-/**
- * Represents an error interacting with the Amazon Simple Storage Service.
- */
-\class_alias('WPFitter\Aws\S3\Exception\S3Exception', 'Aws\S3\Exception\S3Exception', \false);

@@ -30,7 +30,6 @@ if (!function_exists('humbug_phpscoper_expose_class')) {
     }
 }
 humbug_phpscoper_expose_class('ComposerAutoloaderInitf615a92c50d90a95a009ec188ff0f31a', 'WPFitter\ComposerAutoloaderInitf615a92c50d90a95a009ec188ff0f31a');
-humbug_phpscoper_expose_class('Aws\S3\Exception\S3Exception', 'WPFitter\Aws\S3\Exception\S3Exception');
 
 // Function aliases. For more information see:
 // https://github.com/humbug/php-scoper/blob/master/docs/further-reading.md#function-aliases
