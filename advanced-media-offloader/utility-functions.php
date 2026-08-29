@@ -121,7 +121,8 @@ if (!function_exists('advmo_is_settings_page')) {
 		// Define our plugin pages
 		$plugin_pages = [
 			'general' => 'advmo',
-			'media-overview' => 'advmo_media_overview'
+			'media-overview' => 'advmo_media_overview',
+			'support' => 'advmo_support'
 		];
 
 		// If a specific page is requested

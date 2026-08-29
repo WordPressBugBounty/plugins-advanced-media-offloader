@@ -131,17 +131,24 @@ class UniqueFilenameObserver implements ObserverInterface
         $filename = $originalFilename;
         $counter = 1;
 
-        // Keep checking until we find a unique filename
-        while ($this->cloudProvider->objectExists($cloudPath . $filename)) {
-            $filename = $name . '-' . $counter . $ext;
-            $counter++;
+        try {
+            // Keep checking until we find a unique filename.
+            while ($this->cloudProvider->objectExists($cloudPath . $filename)) {
+                $filename = $name . '-' . $counter . $ext;
+                $counter++;
 
-            // Safety check to prevent infinite loops
-            if ($counter > 10) {
-                // Fallback to timestamp-based uniqueness
-                $filename = $name . '-' . time() . $ext;
-                break;
+                // Safety check to prevent infinite loops.
+                if ($counter > 10) {
+                    $filename = $name . '-' . time() . $ext;
+                    break;
+                }
             }
+        } catch (\Throwable $e) {
+            // A provider outage is not proof that the original cloud key is
+            // free. Use a request-unique suffix instead of risking overwrite.
+            error_log('ADVMO: Cloud filename verification failed: ' . $e->getMessage());
+            $unique = substr(str_replace('-', '', wp_generate_uuid4()), 0, 12);
+            $filename = $name . '-advmo-' . $unique . $ext;
         }
 
         return $filename;

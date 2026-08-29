@@ -12,9 +12,11 @@ declare(strict_types=1);
  * @param string $page The page slug.
  * @return string The full admin URL.
  */
-function advmo_get_admin_page_url(string $page): string
-{
-    return get_admin_url(null, "admin.php?page={$page}");
+if (!function_exists('advmo_get_admin_page_url')) {
+    function advmo_get_admin_page_url(string $page): string
+    {
+        return get_admin_url(null, "admin.php?page={$page}");
+    }
 }
 
 /**
@@ -29,6 +31,10 @@ $menu_items = [
         'title' => __('Media Overview', 'advanced-media-offloader'),
         'url' => advmo_get_admin_page_url('advmo_media_overview'),
     ],
+    'support' => [
+        'title' => __('Need Support?', 'advanced-media-offloader'),
+        'url' => advmo_get_admin_page_url('advmo_support'),
+    ],
 ];
 
 /**
@@ -40,11 +46,12 @@ $menu_items = [
  */
 function advmo_generate_menu_item(array $item, string $page): string
 {
-    $class = advmo_is_settings_page($page) ? 'active' : '';
+    $is_active = advmo_is_settings_page($page);
     return sprintf(
-        '<a href="%s" class="%s">%s</a>',
+        '<a href="%s" class="%s"%s>%s</a>',
         esc_url($item['url']),
-        esc_attr($class),
+        esc_attr($is_active ? 'active' : ''),
+        $is_active ? ' aria-current="page"' : '',
         esc_html($item['title'])
     );
 }

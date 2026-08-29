@@ -1,0 +1,165 @@
+== Advanced Media Offloader — Changelog Archive ==
+
+Recent releases are documented in readme.txt. This file preserves the changelog
+for older versions.
+
+= 4.1.1 =
+* New: Added Backblaze B2 support - affordable S3-compatible cloud storage with predictable pricing
+* Improved: Automatic URL normalization - Domain and endpoint URLs are now automatically prefixed with `https://` if missing, eliminating common configuration errors
+
+= 4.1.0 =
+* New: Added `advmo_cloud_providers` filter to allow adding, removing, or customizing the list of available cloud providers
+* New: Added Unique Filename Protection - UniqueFilenameObserver automatically prevents file overwrites when full cloud migration is enabled
+* New: Added domain filters for developers to programmatically modify CDN/custom domains for each provider (`advmo_aws_domain`, `advmo_cloudflare_r2_domain`, `advmo_dos_domain`, `advmo_minio_domain`, `advmo_wasabi_domain`)
+* New: Added `advmo_should_upload_original_image` filter to control whether original images should be uploaded to cloud (default: true)
+* Fix: Original images are now correctly uploaded to and deleted from cloud storage alongside scaled versions
+* Fix: Background processes that could get stuck now have proper recovery mechanisms
+* Fix: Disabled `use_aws_shared_config_files` option across all S3-compatible providers to prevent potential conflicts and security issues
+
+= 4.0.3 =
+* Fixed memory exhaustion and fatal errors when handling offloaded SVG files.
+
+= 4.0.2 =
+* Improved SVG support and fixed issues with Elementor SVG icons after offloading.
+
+= 4.0.1 =
+* feat: add advmo_should_offload_attachment filter to conditionally skip offloading
+
+= 4.0.0 =
+* Added: WP CLI command `wp advmo offload` for bulk operations and automation
+* Added: Individual "Offload Now" button in attachment edit screen for on-demand offloading
+* Added: Retry functionality for failed offloads with dedicated "Retry Offload" button
+* Fixed: Admin notices from other plugins now properly disabled on Media Overview page
+* Improved: Enhanced admin interface consistency across all plugin pages
+
+= 3.3.5 =
+* Fixed: Minor improvements and bug fixes
+
+= 3.3.4 =
+* Fixed: Minor improvements and bug fixes
+* Updated: WordPress compatibility improvements
+
+= 3.3.3 =
+* Fixed: Use original file's directory for sized image deletion, resolving an issue where thumbnails in older uploads weren't being deleted properly
+* Fixed: Corrected a bug in the mirror delete functionality ensuring cloud files are properly removed when local files are deleted
+* Added: HTTPS protocol requirement notices for domain and endpoint URLs for improved security
+* Refactored: Standardized plugin settings approach for better code maintainability
+* Optimized: Improved bulk processing with direct SQL queries for better performance
+* Fixed: Added proper nonce verification and capability checks to all AJAX endpoints for enhanced security
+* Fixed: Preserved checkbox values during settings sanitization to prevent settings from being inadvertently reset
+
+= 3.3.2 =
+* Improved accessibility and consistency in admin interface
+* Added RTL stylesheet and conditional loading for better localization support
+* Fixed minor bugs and made improvements.
+
+= 3.3.1 =
+* Fixed minor bugs and made improvements.
+
+= 3.3.0 =
+* Added service container and dependency injection architecture
+* Improved connection testing with better error handling
+* Fixed bulk offload process to prevent stuck operations
+* Enhanced UI with clearer cloud provider selection
+* Improved documentation with detailed provider setup instructions
+
+= 3.2.0 =
+* Added support for Wasabi cloud storage
+* Enhanced plugin performance and stability
+* Fix minor bugs
+
+= 3.1.0 =
+* Fixed and optimized connection test button functionality
+* Fixed minor bugs and made improvements.
+
+= 3.0.0 =
+* Introduced a new user interface (UI) and improved user experience (UX) for the settings page.
+* Added functionality to offload and sync edited images with cloud storage.
+* Improved bulk offloading to cloud storage by fixing various bugs.
+* Implemented error logging for bulk offload operations.
+* Added ability to download a CSV file with detailed logs for attachments that encountered errors during offloading.
+* Enhanced overall security of the plugin.
+* Fixed various issues related to bulk offload JavaScript functionality.
+* Improved error handling and notifications for media attachments in the library.
+* Refactored attachment deletion methods for better performance and reliability.
+
+= 2.1.0 =
+* Implemented php-scoper to isolate AWS PHP SDK namespaces, preventing conflicts with other plugins using different versions of the same packages.
+* Fixed minor bugs and made improvements.
+
+= 2.0.3 =
+* Fixed minor bugs and made improvements.
+
+= 2.0.2 =
+* Display offloaded version of images in post content when already offloaded to improve loading times and reduce bandwidth usage.
+* Fixed the srcset attribute not displaying for images when object versioning is enabled.
+
+= 2.0.1 =
+* Fixed minor bugs and made improvements.
+
+= 2.0.0 =
+* Refactored the Advanced Media Offloader codebase.
+* Added new action hooks for custom actions before and after critical operations.
+* Fixed compatibility issue with the Performance Lab WordPress plugin.
+* Fixed a bug in bulk offloading media files.
+* Added support for MinIO path-style endpoint configuration using the ADVMO_MINIO_PATH_STYLE_ENDPOINT constant.
+* Fixed minor bugs and made improvements.
+
+= 1.6.0 =
+* Refactored the code base to improve maintainability and readability, resulting in enhanced performance across the plugin.
+* Resolved an issue where the bulk offload process would become unresponsive
+* Added a button to cancel the bulk offload process, providing users with greater control during file transfers.
+
+= 1.5.2 =
+* Fix a minor bug related to the path of existing media files when deleting local files.
+
+= 1.5.1 =
+* Fix minor bugs to improve bulk offload process
+
+= 1.5.0 =
+* Added support for Amazon S3 cloud storage
+* Enhanced plugin performance and stability
+* Fix minor bugs
+
+= 1.4.5 =
+* Fix minor bugs with Min.io
+
+= 1.4.4 =
+* New Feature: Custom Path Prefix for Cloud Storage
+* Fix minor bugs
+
+= 1.4.3 =
+* Add Version to Bucket Path: Automatically add unique timestamps to your media file paths to ensure the latest versions are always delivered
+* Add Mirror Delete: Automatically delete local files after successful upload to Cloud Storage.
+* Improve Settings UI: Enhanced the user interface of the settings page.
+
+= 1.4.2 =
+* Added 'Sync Local and Cloud Deletions' feature to automatically remove media from cloud storage when deleted locally.
+* Enhanced WooCommerce compatibility: Added support for WooCommerce-specific image sizes and optimized handling of product images.
+
+= 1.4.1 =
+* Fix minor bugs related to Bulk offloading the existing media files
+
+= 1.4.0 =
+* Added bulk offload feature for media files (50 per batch in free version)
+* Fixed subdir path issue for non-image files
+* UI Improvements
+* Fixed minor bugs
+
+= 1.3.0 =
+* UI Improvements
+* Fixed minor bugs
+
+= 1.2.0 =
+* Added MinIO as a new cloud storage provider
+* Introduced an option to choose if local files should be deleted after offloading to cloud storage
+* Implemented UI improvements for the plugin settings page
+* Added Offload status to Attachment details section in Media Library
+* Fixed minor bugs
+
+= 1.1.0 =
+* Improved the code base to fix some issues
+* Added support for DigitalOcean Spaces
+
+= 1.0.0 =
+* Initial release.

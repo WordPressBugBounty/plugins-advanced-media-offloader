@@ -84,31 +84,219 @@ class GeneralSettings
 
 	private function add_settings_section()
 	{
+		$step_one_done = $this->step_one_state() === 'done';
+		$save_button = sprintf(
+			'<button type="submit" name="submit" id="submit" class="button button-primary">%s</button>',
+			esc_html__('Save Changes', 'advanced-media-offloader')
+		);
+
+		// Keep the pending bulk-offload action visible above the settings panels.
+		// The stable slot also lets AJAX responses add or clear the notice without
+		// reloading the page.
+		add_settings_section(
+			'advmo_next_action',
+			'',
+			[$this, 'render_next_action_slot'],
+			'advmo',
+			[
+				'before_section' => '',
+				'after_section'  => '',
+			]
+		);
+
 		add_settings_section(
 			'cloud_provider',
-			__('Cloud Provider', 'advanced-media-offloader'),
+			__('Cloud storage', 'advanced-media-offloader'),
 			function () {
-				echo '<p>' . esc_attr__('Select a cloud storage provider and provide the necessary credentials.', 'advanced-media-offloader') . '</p></div>';
+				echo $this->step_one_summary();
+				echo $this->step_one_status_badge();
+				echo '</summary>';
+				echo '<div class="advmo-section-body">';
+				echo '<p class="advmo-section-intro">' . esc_html__('Choose a cloud storage provider and enter its connection credentials.', 'advanced-media-offloader') . '</p>';
 			},
 			'advmo',
 			[
-				'before_section' => '<div class="advmo-section advmo-cloud-provider-settings"><div class="advmo-section-header">',
-				'after_section' => '</div>',
+				'before_section' => '<details class="advmo-section advmo-cloud-provider-settings"' . ($step_one_done ? '' : ' open') . '><summary class="advmo-section-header">',
+				'after_section' => '</div></details>',
 			]
 		);
 
 		add_settings_section(
 			'general_settings',
-			__('General Settings', 'advanced-media-offloader'),
+			__('File handling', 'advanced-media-offloader'),
 			function () {
-				echo '<p>' . esc_attr__('Configure the core options for managing and offloading your media files to cloud storage.', 'advanced-media-offloader') . '</p></div>';
+				echo $this->step_two_summary();
+				echo '</summary>';
+				echo '<div class="advmo-section-body">';
+				echo '<p class="advmo-section-intro">' . esc_html__('Choose what happens to new uploads and local files after they are copied to cloud storage.', 'advanced-media-offloader') . '</p>';
 			},
 			'advmo',
 			[
-				'before_section' => '<div class="advmo-section advmo-general-settigns"><div class="advmo-section-header">',
-				'after_section' => '</div>',
+				'before_section' => '<details class="advmo-section advmo-general-settings"' . ($step_one_done ? ' open' : '') . '><summary class="advmo-section-header">',
+				'after_section' => '<div class="advmo-general-actions">' . $save_button . '</div></div></details>',
 			]
 		);
+	}
+
+	/**
+	 * Honest status for the cloud storage connection: done only when
+	 * the saved provider's last connection test succeeded. A configured but
+	 * untested provider is reported distinctly from a failing one.
+	 *
+	 * @return string One of 'todo', 'untested', 'failed' or 'done'.
+	 */
+	private function step_one_state(): string
+	{
+		$provider_key = $this->get_cloud_provider_key();
+
+		if ($provider_key === '') {
+			return 'todo';
+		}
+
+		$status = get_option('advmo_last_connection_status', []);
+		$has_result = is_array($status)
+			&& isset($status['success'])
+			&& (empty($status['provider']) || $status['provider'] === $provider_key);
+
+		if (!$has_result) {
+			return 'untested';
+		}
+
+		return !empty($status['success']) ? 'done' : 'failed';
+	}
+
+	private function step_one_status_badge(): string
+	{
+		switch ($this->step_one_state()) {
+			case 'done':
+				return $this->step_badge('done', __('Done', 'advanced-media-offloader'));
+
+			case 'failed':
+				return $this->step_badge('attention', __('Needs attention', 'advanced-media-offloader'));
+
+			// Configured but never tested is not the same as failing, so it
+			// gets its own wording rather than an alarming one.
+			case 'untested':
+				return $this->step_badge('attention', __('Not tested yet', 'advanced-media-offloader'));
+
+			default:
+				return $this->step_badge('todo', __('To do', 'advanced-media-offloader'));
+		}
+	}
+
+	private function step_badge(string $state, string $label): string
+	{
+		return sprintf(
+			'<span class="advmo-step-status advmo-step-status--%s">%s</span>',
+			esc_attr($state),
+			esc_html($label)
+		);
+	}
+
+	/**
+	 * The line shown in a step's header while it is closed, so collapsing a
+	 * step hides its controls rather than what it is set to. Only rendered
+	 * when there is something to report — an empty summary would just add
+	 * noise to the header.
+	 */
+	private function step_summary(array $parts): string
+	{
+		$parts = array_filter($parts, 'strlen');
+
+		if (empty($parts)) {
+			return '';
+		}
+
+		return sprintf(
+			'<span class="advmo-step-summary">%s</span>',
+			esc_html(implode(' · ', $parts))
+		);
+	}
+
+	private function step_one_summary(): string
+	{
+		$provider_key = $this->get_cloud_provider_key();
+
+		if ($provider_key === '') {
+			return '';
+		}
+
+		// Read the name from the registered provider list rather than building
+		// a provider object: this runs on every page render.
+		$name = $this->cloud_providers[$provider_key]['name'] ?? $provider_key;
+
+		return $this->step_summary([
+			$name,
+			advmo_get_provider_credential($provider_key, 'bucket'),
+		]);
+	}
+
+	private function step_two_summary(): string
+	{
+		$options = get_option('advmo_settings', []);
+
+		$retention_labels = [
+			0 => __('Retain Local Files', 'advanced-media-offloader'),
+			1 => __('Smart Local Cleanup', 'advanced-media-offloader'),
+			2 => __('Full Cloud Migration', 'advanced-media-offloader'),
+		];
+		$retention = isset($options['retention_policy']) ? (int) $options['retention_policy'] : 0;
+
+		$auto_offload = !isset($options['auto_offload_uploads']) || (int) $options['auto_offload_uploads'] === 1;
+
+		return $this->step_summary([
+			$retention_labels[$retention] ?? '',
+			// Only worth saying when it is off, since on is the default and the
+			// expected behaviour.
+			$auto_offload ? '' : __('auto-offload off', 'advanced-media-offloader'),
+		]);
+	}
+
+	private function unoffloaded_media_count(): int
+	{
+		return $this->get_cloud_provider_key() === ''
+			? 0
+			: advmo_get_unoffloaded_media_items_count();
+	}
+
+	private function next_action_html(): string
+	{
+		if ($this->step_one_state() !== 'done') {
+			return '';
+		}
+
+		$count = $this->unoffloaded_media_count();
+		if ($count < 1) {
+			return '';
+		}
+
+		$count_label = number_format_i18n($count);
+		$overview_url = admin_url('admin.php?page=advmo_media_overview');
+
+		$html = '<div class="advmo-next-action notice notice-info inline">';
+		$html .= '<div class="advmo-next-action-message">';
+		$html .= '<span class="dashicons dashicons-cloud" aria-hidden="true"></span>';
+		$html .= '<p><strong>' . sprintf(
+			esc_html(_n('%s media file is ready to offload.', '%s media files are ready to offload.', $count, 'advanced-media-offloader')),
+			esc_html($count_label)
+		) . '</strong> ';
+		$html .= esc_html__('Move existing Media Library files to cloud storage when you are ready.', 'advanced-media-offloader');
+		$html .= '</p></div>';
+		$html .= '<a class="button button-primary advmo-next-action-button" href="' . esc_url($overview_url) . '">';
+		$html .= sprintf(
+			esc_html(_n('Offload %s file', 'Offload %s files', $count, 'advanced-media-offloader')),
+			esc_html($count_label)
+		);
+		$html .= '</a></div>';
+
+		return $html;
+	}
+
+	public function render_next_action_slot(): void
+	{
+		echo '<div class="advmo-next-action-slot" aria-live="polite">';
+		echo $this->next_action_html();
+		echo '</div>';
 	}
 
 	private function add_provider_field()
@@ -259,25 +447,83 @@ class GeneralSettings
 		$options = get_option('advmo_settings');
 		$retention_policy = isset($options['retention_policy']) ? intval($options['retention_policy']) : 0;
 
+		// The timing belongs to the whole group: deletion only ever runs on a
+		// file that has just been copied to the cloud successfully
+		// (CloudAttachmentUploader::deleteLocalFile), and nothing revisits
+		// files offloaded earlier. Saying it once here lets each option
+		// simply answer "what happens to the local file", instead of
+		// repeating "after offloading" three times.
+		echo '<p class="description advmo-radio-group-intro" id="advmo-retention-policy-desc">'
+			. esc_html__('This applies to each file right after it has been copied to cloud storage successfully — nothing is deleted before the cloud copy exists. Changing this does not go back and delete files that were already offloaded.', 'advanced-media-offloader')
+			. '</p>';
+
+		$choices = [
+			[
+				'id'          => 'retention_policy',
+				'value'       => 0,
+				'title'       => __('Retain Local Files', 'advanced-media-offloader'),
+				'badge'       => '',
+				'description' => __('Nothing is deleted — the file stays on your server and in the cloud. Frees no disk space, and is a safe starting point until you have checked that your media loads from cloud storage.', 'advanced-media-offloader'),
+			],
+			[
+				'id'          => 'retention_policy_cloud',
+				'value'       => 1,
+				'title'       => __('Smart Local Cleanup', 'advanced-media-offloader'),
+				'badge'       => __('Recommended', 'advanced-media-offloader'),
+				'description' => __('Deletes the thumbnail sizes WordPress generated and keeps the original file. Frees up most of the space, while your originals stay on the server as a local backup.', 'advanced-media-offloader'),
+			],
+			[
+				'id'          => 'retention_policy_all',
+				'value'       => 2,
+				'title'       => __('Full Cloud Migration', 'advanced-media-offloader'),
+				'badge'       => '',
+				'description' => __('Deletes every local copy, including the original. Frees up the most space, and your media then exists only in cloud storage — keep your own backup.', 'advanced-media-offloader'),
+			],
+		];
+
 		echo '<div class="advmo-radio-group">';
 
-		echo '<div class="advmo-radio-option">';
-		echo '<input type="radio" id="retention_policy" name="advmo_settings[retention_policy]" value="0" ' . checked(0, $retention_policy, false) . '/>';
-		echo '<label for="retention_policy">' . esc_html__('Retain Local Files', 'advanced-media-offloader') . '</label>';
-		echo '<p class="description">' . esc_html__('Keep all files on your local server after offloading to the cloud. This option provides redundancy but uses more local storage.', 'advanced-media-offloader') . '</p>';
-		echo '</div>';
+		foreach ($choices as $choice) {
+			$desc_id = $choice['id'] . '_description';
 
-		echo '<div class="advmo-radio-option">';
-		echo '<input type="radio" id="retention_policy_cloud" name="advmo_settings[retention_policy]" value="1" ' . checked(1, $retention_policy, false) . '/>';
-		echo '<label for="retention_policy_cloud">' . esc_html__('Smart Local Cleanup', 'advanced-media-offloader') . '</label>';
-		echo '<p class="description">' . esc_html__('Remove local copies after cloud offloading, but keep the original file as a backup. Balances storage efficiency with data safety.', 'advanced-media-offloader') . '</p>';
-		echo '</div>';
+			$badge = $choice['badge'] === ''
+				? ''
+				: ' <span class="advmo-badge-recommended">' . esc_html($choice['badge']) . '</span>';
 
-		echo '<div class="advmo-radio-option">';
-		echo '<input type="radio" id="retention_policy_all" name="advmo_settings[retention_policy]" value="2" ' . checked(2, $retention_policy, false) . '/>';
-		echo '<label for="retention_policy_all">' . esc_html__('Full Cloud Migration', 'advanced-media-offloader') . '</label>';
-		echo '<p class="description">' . esc_html__('Remove all local files, including originals, after successful cloud offloading. Maximizes local storage savings but relies entirely on cloud storage.', 'advanced-media-offloader') . '</p>';
-		echo '</div>';
+			// Spoken name, kept to the option's visible title. The label wraps
+			// the description too (so the whole card is clickable), and without
+			// this the entire paragraph would become part of the radio's name
+			// and be read out on every arrow key. Built from the same strings
+			// as the visible text, so the two cannot drift apart.
+			$aria_label = $choice['badge'] === ''
+				? $choice['title']
+				: sprintf(
+					/* translators: 1: name of a retention option, 2: badge shown next to it, e.g. "Recommended" */
+					_x('%1$s (%2$s)', 'retention option name with badge', 'advanced-media-offloader'),
+					$choice['title'],
+					$choice['badge']
+				);
+
+			// The whole card is the <label>, so clicking anywhere in it —
+			// title, description or padding — selects the option. That is
+			// native browser behaviour: no JavaScript, and keyboard and
+			// screen reader support stay intact.
+			printf(
+				'<label class="advmo-radio-option" for="%1$s">'
+					. '<input type="radio" id="%1$s" name="advmo_settings[retention_policy]" value="%2$d" aria-label="%3$s" aria-describedby="%4$s advmo-retention-policy-desc"%5$s />'
+					. '<span class="advmo-radio-option-title">%6$s%7$s</span>'
+					. '<span class="description" id="%4$s">%8$s</span>'
+					. '</label>',
+				esc_attr($choice['id']),
+				(int) $choice['value'],
+				esc_attr($aria_label),
+				esc_attr($desc_id),
+				checked($choice['value'], $retention_policy, false),
+				esc_html($choice['title']),
+				$badge,
+				esc_html($choice['description'])
+			);
+		}
 
 		echo '</div>';
 	}
@@ -426,6 +672,10 @@ class GeneralSettings
 
 		$provider = sanitize_text_field(isset($options['cloud_provider']) ? $options['cloud_provider'] : '');
 
+		if ($provider === '') {
+			throw new \Exception(__('Please select a cloud provider first.', 'advanced-media-offloader'));
+		}
+
 		if (!array_key_exists($provider, $this->cloud_providers)) {
 			throw new \Exception(__('Invalid Cloud Provider!', 'advanced-media-offloader'));
 		}
@@ -555,7 +805,7 @@ class GeneralSettings
 		advmo_get_view('admin/general_settings');
 	}
 
-	public function enqueue_scripts()
+	public function enqueue_scripts($hook_suffix = '')
 	{
 		if (!advmo_is_settings_page()) {
 			return;
@@ -570,15 +820,31 @@ class GeneralSettings
 				'save_credentials_nonce' => wp_create_nonce('advmo_save_credentials'),
 				'get_provider_credentials_nonce' => wp_create_nonce('advmo_get_provider_credentials'),
 				'i18n' => [
-					'test_connection' => __('Test Connection', 'advanced-media-offloader'),
-					'recheck' => __('Re-Check', 'advanced-media-offloader'),
-					'connected' => __('Connected.', 'advanced-media-offloader'),
-					'last_check' => __('Last check:', 'advanced-media-offloader')
+					'testing' => __('Testing connection…', 'advanced-media-offloader'),
+					'copied' => __('Copied!', 'advanced-media-offloader'),
+					'copy_failed' => __('Press Ctrl/Cmd + C to copy', 'advanced-media-offloader'),
+					'connected' => __('Connected', 'advanced-media-offloader'),
+					'connection_failed' => __('Connection failed', 'advanced-media-offloader'),
+					'test_failed_network' => __('Could not run the test. Check your internet connection and try again.', 'advanced-media-offloader'),
+					'failed_load_credentials' => __('Failed to load credentials fields.', 'advanced-media-offloader'),
+					'error_loading_credentials' => __('An error occurred while loading credentials fields. Please try again.', 'advanced-media-offloader'),
+					'failed_save_provider' => __('Failed to save the selected provider. Please try again.', 'advanced-media-offloader'),
+					'failed_save_credentials' => __('Failed to save credentials.', 'advanced-media-offloader'),
+					'failed_save_general' => __('Failed to save general settings.', 'advanced-media-offloader'),
+					'error_saving' => __('An error occurred while saving settings. Please try again.', 'advanced-media-offloader')
 				]
 			]);
 		}
 
-		if (advmo_is_settings_page('media-overview')) {
+		if (advmo_is_settings_page('support')) {
+			wp_enqueue_script('advmo_support', ADVMO_URL . 'assets/js/advmo_support.js', [], ADVMO_VERSION, true);
+		}
+
+		if (
+			advmo_is_settings_page('media-overview')
+			&& is_string($hook_suffix)
+			&& str_ends_with($hook_suffix, '_page_advmo_media_overview')
+		) {
 			wp_enqueue_script('advmo_bulkoffload', ADVMO_URL . 'assets/js/advmo_bulkoffload.js', [], ADVMO_VERSION, true);
 			wp_localize_script('advmo_bulkoffload', 'advmo_ajax_object', [
 				'ajax_url' => admin_url('admin-ajax.php'),
@@ -597,10 +863,7 @@ class GeneralSettings
 
 	public function check_connection_ajax()
 	{
-		$current_time = current_time('d/m/Y - h:i A');
-		$response_data = [
-			'last_check' => $current_time
-		];
+		$response_data = [];
 
 		// Verify nonce
 		if (!$this->verify_security_nonce('security_nonce', 'advmo_test_connection')) {
@@ -608,11 +871,17 @@ class GeneralSettings
 			wp_send_json_error($response_data);
 		}
 
+		// Check user capabilities
+		if (!current_user_can('manage_options')) {
+			$response_data['message'] = __('You do not have permission to perform this action.', 'advanced-media-offloader');
+			wp_send_json_error($response_data);
+		}
+
 		// Retrieve plugin settings
 		$cloud_provider_key = $this->get_cloud_provider_key();
 
 		if (empty($cloud_provider_key)) {
-			$response_data['message'] = __('Invalid Cloud Provider!', 'advanced-media-offloader');
+			$response_data['message'] = __('Please select a cloud provider and save your settings first.', 'advanced-media-offloader');
 			wp_send_json_error($response_data);
 		}
 
@@ -623,29 +892,88 @@ class GeneralSettings
 			}
 
 			$connection_result = $cloud_provider->checkConnection();
+			$is_connected = ($connection_result === true);
 
-			// Always update last check time regardless of result
-			update_option('advmo_last_connection_check', $current_time);
+			$error_message = '';
+			$error_hint = '';
+			$error_code = '';
+			if (!$is_connected) {
+				$error_message = $connection_result->get_error_message();
+				$error_data = (array) $connection_result->get_error_data();
+				$error_hint = isset($error_data['hint']) ? (string) $error_data['hint'] : '';
+				$error_code = isset($error_data['code']) ? (string) $error_data['code'] : '';
+			}
 
-			if ($connection_result) {
+			// The stored status records the check time regardless of result
+			$stored_status = $this->store_connection_status($cloud_provider_key, $is_connected, $error_message, $error_hint, $error_code);
+
+			// The card in the response is produced by the same renderer the
+			// settings page uses, so the two presentations can never drift.
+			$response_data['status_html'] = $cloud_provider->renderConnectionStatusCard($stored_status);
+			$response_data['setup_status'] = $this->get_setup_status_fragments();
+
+			if ($is_connected) {
 				$response_data['message'] = __('Connection successful!', 'advanced-media-offloader');
 				wp_send_json_success($response_data);
 			} else {
-				$response_data['message'] = __('Connection failed!', 'advanced-media-offloader');
+				$response_data['message'] = $error_message;
 				wp_send_json_error($response_data, 401);
 			}
 		} catch (\Exception $e) {
-			// Log error and update check time
 			error_log('Advanced Media Offloader Connection Error: ' . $e->getMessage());
-			update_option('advmo_last_connection_check', $current_time);
 
 			$response_data['message'] = sprintf(
 				/* translators: %s: error message */
 				__('Failed to establish a connection: %s', 'advanced-media-offloader'),
 				esc_html($e->getMessage())
 			);
+			$stored_status = $this->store_connection_status($cloud_provider_key, false, $response_data['message']);
+			if (isset($cloud_provider) && $cloud_provider instanceof \Advanced_Media_Offloader\Abstracts\S3_Provider) {
+				$response_data['status_html'] = $cloud_provider->renderConnectionStatusCard($stored_status);
+			}
+			$response_data['setup_status'] = $this->get_setup_status_fragments();
 			wp_send_json_error($response_data, 500);
 		}
+	}
+
+	/**
+	 * The parts of the guided setup UI that depend on live state.
+	 *
+	 * These are rendered server-side on page load, so any AJAX action that
+	 * changes the state must send them back — otherwise the step badges keep
+	 * showing what was true when the page was opened (e.g. "Needs attention"
+	 * next to a green connection card).
+	 *
+	 * @return array{step_one_badge: string, step_one_summary: string, step_two_summary: string, next_action: string}
+	 */
+	private function get_setup_status_fragments(): array
+	{
+		return [
+			'step_one_badge'   => $this->step_one_status_badge(),
+			'step_one_summary' => $this->step_one_summary(),
+			'step_two_summary' => $this->step_two_summary(),
+			'next_action'      => $this->next_action_html(),
+		];
+	}
+
+	/**
+	 * Persist the result of the last connection test so the settings page can
+	 * render it without a live network call.
+	 */
+	private function store_connection_status(string $provider_key, bool $success, string $message = '', string $hint = '', string $code = ''): array
+	{
+		$status = [
+			'provider' => $provider_key,
+			'success'  => $success,
+			'message'  => $message,
+			'hint'     => $hint,
+			'code'     => $code,
+			'time'     => time(),
+		];
+
+		update_option('advmo_last_connection_status', $status, false);
+
+		return $status;
 	}
 
 	/**
@@ -679,7 +1007,10 @@ class GeneralSettings
 
 			// Success
 			wp_send_json_success([
-				'message' => __('Settings saved successfully!', 'advanced-media-offloader')
+				'message' => __('Settings saved successfully!', 'advanced-media-offloader'),
+				// Switching provider changes which step is done, and no test
+				// runs on this path, so refresh the step badges here too.
+				'setup_status' => $this->get_setup_status_fragments()
 			]);
 		} catch (\Exception $e) {
 			// Catch any validation errors and return them directly

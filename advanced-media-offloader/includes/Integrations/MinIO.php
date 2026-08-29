@@ -147,4 +147,17 @@ class MinIO extends S3_Provider
 
         echo $this->getCredentialsFieldHTML($credentialFields, 'minio', $this->getProviderDescription());
     }
+
+    /**
+     * Self-hosted S3-compatible storage has its own common failure causes:
+     * self-signed certificates and endpoints that need path-style URLs.
+     */
+    protected function connectionErrorHints(): array
+    {
+        return [
+            'ssl' => __('Self-hosted storage often uses a self-signed certificate, which fails this check — use a valid certificate on the endpoint.', 'advanced-media-offloader'),
+            'http_403' => __('Possible causes: a wrong bucket name, wrong keys, or a policy that blocks this key. If your endpoint needs path-style URLs, enable "Use Path-Style Endpoint".', 'advanced-media-offloader'),
+            'http_404' => __('Check the bucket name. If your endpoint needs path-style URLs, also enable "Use Path-Style Endpoint" — without it the bucket name is resolved as a subdomain.', 'advanced-media-offloader'),
+        ];
+    }
 }

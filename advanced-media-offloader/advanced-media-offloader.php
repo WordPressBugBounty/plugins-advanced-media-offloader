@@ -3,7 +3,7 @@
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
  * Description:       Save server space & speed up your site by automatically offloading media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2 and more.
- * Version:           4.4.4
+ * Version:           4.5.0
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter
@@ -139,6 +139,10 @@ if (!class_exists('ADVMO')) {
 				return \Advanced_Media_Offloader\Admin\MediaOverview::getInstance();
 			});
 
+			$this->container->register('support_page', function ($c) {
+				return \Advanced_Media_Offloader\Admin\SupportPage::getInstance();
+			});
+
 			$this->container->register('bulk_offload_handler', function ($c) {
 				return \Advanced_Media_Offloader\BulkOffloadHandler::get_instance();
 			});
@@ -146,6 +150,12 @@ if (!class_exists('ADVMO')) {
 
 		private function setup_hooks()
 		{
+			// This guard covers metadata left by earlier offloads, so it must run
+			// even when no cloud provider is currently selected.
+			if (class_exists(\Advanced_Media_Offloader\Observers\MissingImageSubsizesObserver::class)) {
+				(new \Advanced_Media_Offloader\Observers\MissingImageSubsizesObserver())->register();
+			}
+
 			# check if AWS SDK is loaded
 			if (!class_exists(WPFitter\Aws\S3\S3Client::class)) {
 				// Show admin notice if AWS SDK is missing.
@@ -159,6 +169,7 @@ if (!class_exists('ADVMO')) {
 			if (is_admin()) {
 				$this->container->get('settings_page'); // Initialize settings
 				$this->container->get('media_overview_page'); // Initialize media overview
+				$this->container->get('support_page'); // Initialize the support page
 				new \Advanced_Media_Offloader\Admin\Observers\CurrentScreen();
 				\Advanced_Media_Offloader\Admin\Observers\WelcomeNotice::getInstance();
 
@@ -241,11 +252,14 @@ if (!class_exists('ADVMO')) {
 			wp_clear_scheduled_hook('advmo_bulk_offload_media_process_cron');
 			wp_clear_scheduled_hook('advmo_bulk_offload_cron'); // legacy hook name
 			wp_clear_scheduled_hook('advmo_check_stalled_processes');
+			wp_clear_scheduled_hook('advmo_retry_pending_local_cleanup');
+			delete_option('advmo_pending_cleanup_cursor');
 			// Clear bulk offload related options
 			delete_option('advmo_bulk_offload_cancelled');
 			delete_option('advmo_bulk_offload_last_update');
 			delete_option('advmo_bulk_offload_data');
 			delete_option('advmo_last_connection_check');
+			delete_option('advmo_last_connection_status');
 			// Clear any custom cron schedules
 			if ($this->container && $this->container->has('bulk_offload_handler')) {
 				try {

@@ -15,30 +15,15 @@
 	padding: 20px 10px;
 }
 
-/* Checkbox style for RTL */
-#advmo input[type="checkbox"] {
+/* Checkbox style for RTL. Scoped away from .advmo-checkbox-option, whose
+   control is absolutely positioned and needs no margin. */
+#advmo input[type="checkbox"]:not(.advmo-checkbox-option input) {
 	margin-left: 10px;
 	margin-right: 0;
 }
 
-/* Radio options for RTL */
-.advmo-radio-option .description {
-	margin-right: 24px;
-	margin-left: 0;
-}
-
-.advmo-checkbox-option {
-	padding-right: 24px;
-	padding-left: 0;
-	position: relative;
-}
-
-.advmo-checkbox-option input[type="checkbox"] {
-	position: absolute;
-	right: 0;
-	left: auto;
-	top: 5px;
-}
+/* Radio and checkbox options need no RTL override: both use logical
+   properties, so their control gutters and text alignment already flip. */
 
 .advmo-field input[type="text"] {
 	direction: ltr;

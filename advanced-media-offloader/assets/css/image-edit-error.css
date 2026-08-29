@@ -1,0 +1,10 @@
+/* Keep the failed image-edit message above the active Media Library view. */
+.media-modal .media-frame-content > .advmo-image-edit-error {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    z-index: 1000;
+    box-sizing: border-box;
+    margin: 0;
+}

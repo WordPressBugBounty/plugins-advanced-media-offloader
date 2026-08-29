@@ -5,7 +5,7 @@ Tags: offload, amazon s3, cloudflare r2, cloud storage, cdn
 Requires at least: 5.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 4.4.4
+Stable tag: 4.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,7 +39,7 @@ Not sure which provider to choose? Check our [cloud storage pricing comparison](
 = How it works =
 
 1. **Install and activate** the plugin, then open **Media Offloader** in your WordPress admin.
-2. **Connect your cloud storage** — pick a provider, enter its credentials, save your settings, then click **Test Connection**.
+2. **Connect your cloud storage** — pick a provider, enter its credentials, then click **Save & Test Connection**.
 3. **Offload** — new uploads go to the cloud automatically. Move existing files with one click from the Media Overview page.
 
 That's it. Most sites are fully set up in about five minutes.
@@ -54,7 +54,7 @@ That's it. Most sites are fully set up in about five minutes.
 * **Mirror Delete** — optionally remove files from cloud storage when you delete them in WordPress.
 * **Custom path prefix** — control exactly where your files live inside your bucket.
 * **File versioning** — add unique timestamps to media paths to prevent stale CDN caches.
-* **Thumbnail regeneration support** — compatible with WP-CLI `wp media regenerate` and the Regenerate Thumbnails plugin; regenerated thumbnails offload automatically. (Not available with the Full Cloud Migration policy.)
+* **Thumbnail regeneration support** — compatible with WP-CLI `wp media regenerate` and the Regenerate Thumbnails plugin; regenerated thumbnails offload automatically. Full Cloud Migration temporarily restores the cloud source, regenerates it, and safely removes the local working files afterward.
 
 = Works with your favorite plugins =
 
@@ -94,7 +94,7 @@ Setup takes about five minutes and requires no code changes.
 1. Install the plugin from **Plugins → Add New** (search for "Advanced Media Offloader"), or upload the plugin files to `/wp-content/plugins/advanced-media-offloader/`.
 2. Activate the plugin through the "Plugins" menu in WordPress.
 3. Go to **Media Offloader** in the admin menu, choose your cloud provider, and enter its credentials.
-4. Save your settings, then click **Test Connection** to verify your credentials.
+4. Click **Save & Test Connection** to save and verify your credentials.
 5. New uploads are now offloaded automatically. Offload your existing media from the **Media Overview** tab.
 
 = Advanced (optional): define credentials in wp-config.php =
@@ -238,11 +238,33 @@ Check the Media Overview page — it shows offload errors and lets you download 
 
 == Screenshots ==
 
-1. Settings page — connect Amazon S3, Cloudflare R2, or any S3-compatible cloud storage in minutes and verify it with one-click Test Connection.
-2. Media Overview — see how much of your Media Library is offloaded and bulk offload existing files to cloud storage.
-3. Attachment details — per-file offload status with Offload Now and Retry buttons right in the Media Library.
+1. Settings page — connect Amazon S3, Cloudflare R2, or any S3-compatible cloud storage in minutes with Save & Test Connection.
+2. File handling — choose how much local storage to keep, with clear guidance for every retention policy.
+3. Media Overview — see how much of your Media Library is offloaded and bulk offload existing files to cloud storage.
+4. Attachment details — confirm each file's cloud storage status directly in the Media Library.
+5. Support page — check the most common setup issues before asking for help.
 
 == Changelog ==
+
+= 4.5.0 =
+* Added: A clearer settings experience with two focused, collapsible sections: Cloud storage and File handling. Media waiting to be offloaded now appears in a visible banner above the settings, with a direct link to Media Overview.
+* Added: A "Need Support?" page with the checks that solve most problems, links to the support forum and our contact page, and a one-click system report to paste into your message. The report contains no keys, passwords or bucket names, so it is safe to post in public.
+* Added: Save & Test Connection now saves your credentials, runs the connection test, and shows the result in one action.
+* Added: Every provider now links to its own guide for creating credentials, and a ready-to-copy `wp-config.php` snippet sits under the credential fields for anyone who prefers to keep credentials out of the database.
+* Improved: Connection errors now say what went wrong and what to check — a secret key that does not match its access key, a bucket in another region, a server clock that is out of sync, an endpoint that cannot be reached — instead of a single "Connection failed!".
+* Improved: The connection result stays on screen instead of disappearing after a few seconds, and is remembered between visits, so the settings page no longer contacts your storage provider every time it loads.
+* Improved: Settings sections can be collapsed to keep the page short. A closed section still shows a useful summary, such as the selected provider and bucket or the retention policy.
+* Improved: The retention policy options now say exactly what is deleted, what is kept, and when it happens. Smart Local Cleanup is now the recommended option, and the whole option box can be clicked, not only its title.
+* Improved: Cloud credentials and file-handling settings now have separate save actions, so saving a retention or offload setting no longer runs another connection test.
+* Fixed: The settings and Media Overview pages were hard to use on phones and tablets. Table rows spilled outside their card, and the tab menu could not be tapped at all.
+* Fixed: The show/hide button in the Secret Access Key field was not centred in the field, and its icon could appear cut off.
+* Fixed: Checkboxes and radio buttons were larger than intended on small screens, and the two did not match each other.
+* Fixed: Pressing Save before choosing a cloud provider reported "Invalid Cloud Provider!". It now asks you to choose one.
+* Fixed: Full Cloud Migration could trigger repeated missing-file warnings when WordPress checked image sub-sizes after the local original had been removed.
+* Improved: Regenerated thumbnails now stay synchronized with cloud storage.
+* Added: Full Cloud Migration can now regenerate cloud-only images safely.
+* Fixed: Image edits, Restore Original backups, and optimizer-generated formats are preserved.
+* Fixed: Failed or interrupted operations keep local files and can recover safely.
 
 = 4.4.4 =
 * Fixed: Conflict with other plugins or themes that also use the AWS PHP SDK. The plugin's SDK is now fully isolated and no longer shares the unprefixed `Aws\S3\Exception\S3Exception` class name.
@@ -306,6 +328,8 @@ Earlier releases are documented in `changelog.txt` included with the plugin.
 
 == Upgrade Notice ==
 
+= 4.5.0 =
+Adds a clearer two-section settings page, one-click Save & Test Connection, a Need Support? page, and connection errors that explain what to check. It also keeps regenerated thumbnails synchronized with cloud storage, regenerates cloud-only images safely under Full Cloud Migration, preserves image edits and optimizer formats, and keeps local files safe when an operation fails.
+
 = 4.4.4 =
 Fixes AWS SDK conflicts with other plugins, an EWWW background-mode queue blocker when deleting media, and leftover bulk-offload cron events that could keep running after jobs finished.
-

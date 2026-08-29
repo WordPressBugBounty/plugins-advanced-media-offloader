@@ -21,7 +21,6 @@ if (!current_user_can('manage_options')) {
 		<form method="post" action="options.php">
 			<?php settings_fields('advmo'); ?>
 			<?php do_settings_sections('advmo'); ?>
-			<?php submit_button(); ?>
 		</form>
 	</div>
 </div>

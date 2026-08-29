@@ -84,6 +84,11 @@ class AmazonS3 extends S3_Provider
             ],
         ];
 
-        echo $this->getCredentialsFieldHTML($credentialFields, 'aws');
+        echo $this->getCredentialsFieldHTML($credentialFields, 'aws', sprintf(
+            /* translators: %1$s / %2$s: opening and closing link tags */
+            __('New to Amazon S3? See %1$show to create AWS access keys%2$s, then paste the credentials below.', 'advanced-media-offloader'),
+            '<a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html" target="_blank" rel="noopener noreferrer">',
+            '</a>'
+        ));
     }
 }

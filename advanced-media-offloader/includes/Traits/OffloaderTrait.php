@@ -148,6 +148,51 @@ trait OffloaderTrait
         return !empty($errors);
     }
 
+    /**
+     * Add one attachment error without allowing retry loops to grow the value
+     * forever. Repeated errors are moved to the end instead of duplicated.
+     */
+    private function appendAttachmentError(int $attachment_id, string $message, int $limit = 50): void
+    {
+        $errors = get_post_meta($attachment_id, 'advmo_error_log', true);
+        if (!is_array($errors)) {
+            $errors = is_string($errors) && $errors !== '' ? [$errors] : [];
+        }
+
+        $errors = array_values(array_filter(
+            $errors,
+            static fn($error): bool => is_string($error) && $error !== $message
+        ));
+        $errors[] = $message;
+        $errors = array_slice($errors, -max(1, $limit));
+
+        update_post_meta($attachment_id, 'advmo_error_log', $errors);
+    }
+
+    /** Remove one recovered operation error without hiding unrelated failures. */
+    private function removeAttachmentError(int $attachment_id, string $message): void
+    {
+        $errors = get_post_meta($attachment_id, 'advmo_error_log', true);
+        if (!is_array($errors)) {
+            if (is_string($errors) && $errors === $message) {
+                delete_post_meta($attachment_id, 'advmo_error_log');
+            }
+            return;
+        }
+
+        $errors = array_values(array_filter(
+            $errors,
+            static fn($error): bool => !is_string($error) || $error !== $message
+        ));
+
+        if (empty($errors)) {
+            delete_post_meta($attachment_id, 'advmo_error_log');
+            return;
+        }
+
+        update_post_meta($attachment_id, 'advmo_error_log', $errors);
+    }
+
     private function shouldDeleteLocal()
     {
         $settings = get_option('advmo_settings');
@@ -169,20 +214,15 @@ trait OffloaderTrait
     }
 
     /**
-     * Determine whether the current request is a WordPress image-editor
-     * operation: an edit save (wp_save_image()) or a restore to original
-     * (wp_restore_image()).
+     * Get the active WordPress image-editor operation.
      *
-     * The wp_update_attachment_metadata filter fires for both thumbnail
-     * regeneration and image-editor operations. This lets the regeneration
-     * handler defer those operations to AttachmentUpdateObserver so the two do
-     * not both process (and, under Full Cloud Migration, race on) the same
-     * files. On restore the originals are already in the cloud, so a
-     * regeneration pass would only do pointless work and log noise.
+     * wp_update_attachment_metadata is shared by image edits, restore-original,
+     * and ordinary thumbnail regeneration. The call stack is the only context
+     * WordPress provides to distinguish the two editor operations.
      *
-     * @return bool
+     * @return string|null "image_edit", "image_restore", or null.
      */
-    private function isImageEditorOperation(): bool
+    private function getImageEditorOperation(): ?string
     {
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
@@ -190,12 +230,20 @@ trait OffloaderTrait
             if (!isset($frame['function'])) {
                 continue;
             }
-            if ('wp_save_image' === $frame['function'] || 'wp_restore_image' === $frame['function']) {
-                return true;
+            if ('wp_save_image' === $frame['function']) {
+                return 'image_edit';
+            }
+            if ('wp_restore_image' === $frame['function']) {
+                return 'image_restore';
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private function isImageEditorOperation(): bool
+    {
+        return $this->getImageEditorOperation() !== null;
     }
 
     /**
@@ -244,6 +292,62 @@ trait OffloaderTrait
             }
         }
         
+        return $files;
+    }
+
+    /**
+     * Get files retained by the WordPress image editor for later restores.
+     *
+     * The boolean value tells Smart Local Cleanup whether the file is a
+     * full-size image that must remain local. Thumbnail backups are removable
+     * after their standard and optimizer sidecar files are safely in cloud
+     * storage. Full Cloud Migration may remove every returned file.
+     *
+     * @return array<string,bool> Basename => keep during Smart Local Cleanup.
+     */
+    private function getImageEditBackupFiles(int $attachment_id): array
+    {
+        $files = [];
+        $backup_sizes = get_post_meta($attachment_id, '_wp_attachment_backup_sizes', true);
+
+        if (is_array($backup_sizes)) {
+            foreach ($backup_sizes as $backup_key => $backup_data) {
+                if (!is_array($backup_data)) {
+                    continue;
+                }
+
+                $keep_for_smart_cleanup = is_string($backup_key)
+                    && str_starts_with($backup_key, 'full-');
+
+                foreach ($this->getFilesFromSizeData($backup_data) as $file) {
+                    $files[$file] = ($files[$file] ?? false) || $keep_for_smart_cleanup;
+                }
+            }
+        }
+
+        // The webp-uploads plugin stores backup full-image sources separately
+        // from WordPress's flat backup-size map. They are full-size variants,
+        // so Smart Local Cleanup keeps them alongside the main backup image.
+        $backup_sources = get_post_meta($attachment_id, '_wp_attachment_backup_sources', true);
+        if (is_array($backup_sources)) {
+            foreach ($backup_sources as $sources_set) {
+                if (!is_array($sources_set)) {
+                    continue;
+                }
+
+                $entries = isset($sources_set['file']) ? [$sources_set] : $sources_set;
+                foreach ($entries as $source) {
+                    if (!is_array($source)) {
+                        continue;
+                    }
+
+                    foreach ($this->getFilesFromSizeData($source) as $file) {
+                        $files[$file] = true;
+                    }
+                }
+            }
+        }
+
         return $files;
     }
 }

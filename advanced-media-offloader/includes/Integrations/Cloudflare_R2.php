@@ -90,6 +90,26 @@ class Cloudflare_R2 extends S3_Provider
 			],
 		];
 
-		echo $this->getCredentialsFieldHTML($credentialFields, 'cloudflare_r2');
+		echo $this->getCredentialsFieldHTML($credentialFields, 'cloudflare_r2', sprintf(
+			/* translators: %1$s / %2$s: opening and closing link tags */
+			__('New to Cloudflare R2? See %1$show to create an R2 API token%2$s, then paste the credentials below.', 'advanced-media-offloader'),
+			'<a href="https://developers.cloudflare.com/r2/api/tokens/" target="_blank" rel="noopener noreferrer">',
+			'</a>'
+		));
+	}
+
+	/**
+	 * R2 API tokens are scoped to specific buckets and R2 hides whether other
+	 * buckets exist, so a wrong bucket name comes back as access denied (403),
+	 * never as "not found". The hint must put the bucket name first.
+	 */
+	protected function connectionErrorHints(): array
+	{
+		$access_denied_hint = __('Check the bucket name first. If the name is correct, check your API token and its permissions.', 'advanced-media-offloader');
+
+		return [
+			'AccessDenied' => $access_denied_hint,
+			'http_403'     => $access_denied_hint,
+		];
 	}
 }

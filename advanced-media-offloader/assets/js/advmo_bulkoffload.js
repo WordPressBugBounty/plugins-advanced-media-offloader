@@ -20,19 +20,33 @@
 	};
 
 	const init = () => {
+		const requiredElements = [
+			elements.startButton,
+			elements.cancelButton,
+			elements.progressContainer,
+			elements.progressBar,
+			elements.progressBarContainer,
+			elements.progressTitle,
+			elements.progressText,
+			elements.processedCount,
+			elements.totalCount,
+		];
+		if (
+			requiredElements.some((element) => !element) ||
+			!elements.progressContainer.parentNode ||
+			typeof advmo_ajax_object === "undefined"
+		) {
+			return;
+		}
+
 		elements.messageContainer.id = "advmo-message-container";
 		elements.progressContainer.parentNode.insertBefore(
 			elements.messageContainer,
 			elements.progressContainer,
 		);
 
-		if (elements.startButton) {
-			elements.startButton.addEventListener("click", startBulkOffload);
-		}
-
-		if (elements.cancelButton) {
-			elements.cancelButton.addEventListener("click", cancelBulkOffload);
-		}
+		elements.startButton.addEventListener("click", startBulkOffload);
+		elements.cancelButton.addEventListener("click", cancelBulkOffload);
 
 		if (elements.progressContainer.dataset.status === "processing") {
 			if (elements.startButton) {

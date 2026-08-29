@@ -108,19 +108,8 @@
 	line-height: 1.6;
 }
 
-/* Responsive design */
-@media screen and (max-width: 782px) {
-	#advmo .form-table th,
-	#advmo .form-table td {
-		display: block;
-		width: 100%;
-		padding: 10px 0;
-	}
-
-	#advmo .form-table th {
-		padding-bottom: 0;
-	}
-}
+/* Responsive layout for the settings tables lives in one place, further
+   down, next to the other form-table rules. */
 
 /* Custom styles for credential fields */
 #advmo .advmo-credentials-field {
@@ -247,17 +236,25 @@
 	overflow: hidden;
 }
 
+/* The first step should not inherit both the form gap and the full gap used
+   between later cards, especially on narrow screens. */
+#advmo form > details.advmo-section:first-of-type {
+	margin-top: var(--advmo-spacing-md);
+}
+
+/* Base panel header, shared by collapsible steps and plain sections such
+   as those on Media Overview and the support page. */
 #advmo .advmo-section-header {
 	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg);
-	border-bottom: 1px solid var(--advmo-color-border-light);
 	background: var(--advmo-color-bg-subtle);
+	border-bottom: 1px solid var(--advmo-color-border-light);
 }
 
 #advmo .advmo-section-header h2 {
 	font-size: 14px;
 	font-weight: 600;
 	color: var(--advmo-color-text-primary);
-	margin: 0 0 var(--advmo-spacing-xs) 0;
+	margin: 0 0 var(--advmo-spacing-xs);
 	letter-spacing: -0.01em;
 }
 
@@ -265,6 +262,174 @@
 	font-size: 13px;
 	color: var(--advmo-color-text-secondary);
 	margin: 0;
+	line-height: 1.5;
+}
+
+/* Collapsible variant only. These rules are scoped to <summary> on purpose:
+   applied to every header they would put a chevron on panels that do not
+   collapse, and turn their title and description into flex siblings sitting
+   side by side. */
+#advmo details.advmo-section > summary.advmo-section-header {
+	display: flex;
+	align-items: center;
+	gap: var(--advmo-spacing-sm);
+	cursor: pointer;
+	list-style: none;
+	border-bottom: none;
+	transition: background-color var(--advmo-transition-fast);
+}
+
+#advmo details.advmo-section > summary.advmo-section-header::-webkit-details-marker {
+	display: none;
+}
+
+#advmo details.advmo-section > summary.advmo-section-header:hover {
+	background: #f0f0f1;
+}
+
+#advmo details.advmo-section[open] > summary.advmo-section-header {
+	border-bottom: 1px solid var(--advmo-color-border-light);
+}
+
+#advmo details.advmo-section > summary.advmo-section-header h2 {
+	flex: 1;
+	margin: 0;
+}
+
+/* Chevron: points down when closed, flips when the step is open. */
+#advmo details.advmo-section > summary.advmo-section-header::after {
+	content: "\f347";
+	font-family: dashicons;
+	font-size: 18px;
+	line-height: 1;
+	color: var(--advmo-color-text-muted);
+	transition: transform var(--advmo-transition-fast);
+}
+
+#advmo details.advmo-section[open] > summary.advmo-section-header::after {
+	transform: rotate(180deg);
+}
+
+/* Keyboard focus lands on the summary, so it needs a visible ring. */
+#advmo details.advmo-section > summary.advmo-section-header:focus-visible {
+	outline: 2px solid var(--advmo-color-accent);
+	outline-offset: -2px;
+}
+
+/* The open/close animation itself lives in advmo_settings.js. It was CSS
+   here (::details-content plus interpolate-size), but interpolate-size is
+   what makes an `auto` height animatable and only Chromium implements it,
+   so the panels moved instantly in Firefox. Animating the height from
+   script behaves the same in every browser. */
+
+@media (prefers-reduced-motion: reduce) {
+	#advmo details.advmo-section > summary.advmo-section-header::after {
+		transition: none;
+	}
+}
+
+/* What a step is set to, shown in its header while it is closed, so folding
+   a step away hides its controls rather than its settings. */
+.advmo-step-summary {
+	flex: 0 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-size: 12px;
+	color: var(--advmo-color-text-secondary);
+}
+
+/* Redundant once the settings themselves are on screen. */
+#advmo details.advmo-section[open] > summary .advmo-step-summary {
+	display: none;
+}
+
+@media screen and (max-width: 782px) {
+	#advmo details.advmo-section > summary.advmo-section-header {
+		flex-wrap: wrap;
+	}
+
+	#advmo details.advmo-section > summary.advmo-section-header h2 {
+		order: 1;
+	}
+
+	#advmo details.advmo-section > summary .advmo-step-status {
+		order: 2;
+	}
+
+	#advmo details.advmo-section > summary.advmo-section-header::after {
+		order: 3;
+	}
+
+	/* Use a second line instead of hiding the saved value. A full-width row
+	   has enough room for useful context even when the title wraps. */
+	#advmo details.advmo-section > summary .advmo-step-summary {
+		order: 4;
+		flex: 0 0 100%;
+		padding-inline-end: 26px;
+	}
+}
+
+/* ==========================================================================
+   Next action callout and section-scoped save action
+   ========================================================================== */
+.advmo-next-action-slot:empty {
+	display: none;
+}
+
+#advmo .advmo-next-action {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--advmo-spacing-md);
+	margin: 0;
+	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg);
+}
+
+.advmo-next-action-message {
+	display: flex;
+	align-items: center;
+	gap: var(--advmo-spacing-sm);
+	min-width: 0;
+}
+
+.advmo-next-action-message .dashicons {
+	flex: none;
+	color: var(--advmo-color-accent);
+}
+
+#advmo .advmo-next-action-message p {
+	margin: 0;
+}
+
+#advmo .advmo-next-action-button {
+	flex: none;
+}
+
+.advmo-general-actions {
+	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg) var(--advmo-spacing-lg);
+	border-top: 1px solid var(--advmo-color-border-light);
+}
+
+@media screen and (max-width: 782px) {
+	#advmo .advmo-next-action {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	#advmo .advmo-next-action-button,
+	#advmo .advmo-general-actions .button-primary {
+		width: 100%;
+		text-align: center;
+	}
+}
+
+#advmo .advmo-section-intro {
+	font-size: 13px;
+	color: var(--advmo-color-text-secondary);
+	margin: 0;
+	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg) 0;
 	line-height: 1.5;
 }
 
@@ -330,11 +495,34 @@
 	outline-offset: 2px;
 }
 
-/* Responsive adjustments for form table */
+/* Responsive form table.
+   The label column stacks above its field. Every part of the table becomes
+   a block, including <tbody> and <tr>: leaving those as table elements
+   makes the browser re-impose a table layout around the block cells, which
+   is what produced the mismatched column widths.
+   box-sizing matters as much as the padding here — these cells are
+   width:100% and content-box by default, so any horizontal padding was
+   added on top of the full width and pushed the row past the card edge.
+   The `tbody tr th` selector is deliberate: the desktop padding-left is set
+   at that specificity, so a lighter selector here would silently lose. */
 @media screen and (max-width: 782px) {
-	#advmo .form-table th,
+	#advmo .form-table,
+	#advmo .form-table tbody,
+	#advmo .form-table tr,
+	#advmo .form-table tbody tr th,
 	#advmo .form-table td {
-		padding: var(--advmo-spacing-md);
+		display: block;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	#advmo .form-table tbody tr th {
+		padding: var(--advmo-spacing-md) var(--advmo-spacing-md) 0;
+		border-bottom: none;
+	}
+
+	#advmo .form-table td {
+		padding: var(--advmo-spacing-sm) var(--advmo-spacing-md) var(--advmo-spacing-md);
 	}
 }
 
@@ -347,13 +535,33 @@
 	gap: var(--advmo-spacing-md);
 }
 
+/* Instructions for the whole group, not for one option.
+   Two things give it that meaning:
+   - Weight: darker than the muted per-option help text below it, so the
+     page reads label > instructions > option label > option help. Sharing
+     the `.description` style made it look like a stray option note.
+   - Distance: more space below it than the options have between them
+     (24px vs 16px), so it sits a level above the set rather than looking
+     attached to the first option.
+   The id prefix is required to beat core's `.form-table td p` margin reset
+   and this file's own `#advmo .description` colour. */
+#advmo .advmo-radio-group-intro {
+	margin: 0 0 var(--advmo-spacing-lg);
+	color: var(--advmo-color-text-secondary);
+}
+
+/* Each card is itself the <label> for its radio, so the whole card is the
+   click target — the size the card visually promises. Logical properties
+   keep the control gutter on the correct side in RTL. */
 .advmo-radio-option {
+	display: block;
 	position: relative;
 	padding: var(--advmo-spacing-md);
-	padding-left: calc(var(--advmo-spacing-md) + 28px);
+	padding-inline-start: calc(var(--advmo-spacing-md) + 28px);
 	background: var(--advmo-color-bg-subtle);
 	border: 1px solid var(--advmo-color-border-light);
 	border-radius: var(--advmo-radius-sm);
+	cursor: pointer;
 	transition: all var(--advmo-transition-fast);
 }
 
@@ -368,25 +576,32 @@
 	box-shadow: 0 0 0 1px var(--advmo-color-accent);
 }
 
+/* Keyboard focus is shown on the whole card, matching the click target.
+   :focus-visible keeps it from firing on mouse clicks. */
+.advmo-radio-option:has(input[type="radio"]:focus-visible) {
+	border-color: var(--advmo-color-accent);
+	box-shadow: 0 0 0 2px var(--advmo-color-accent);
+}
+
 .advmo-radio-option input[type="radio"] {
 	position: absolute;
-	left: var(--advmo-spacing-md);
+	inset-inline-start: var(--advmo-spacing-md);
 	top: calc(var(--advmo-spacing-md) + 2px);
 	margin: 0;
 	cursor: pointer;
 }
 
-.advmo-radio-option label {
+.advmo-radio-option-title {
 	font-weight: 600;
 	font-size: 13px;
 	display: block;
 	margin-bottom: var(--advmo-spacing-xs);
-	cursor: pointer;
 	color: var(--advmo-color-text-primary);
 	transition: color var(--advmo-transition-fast);
 }
 
 .advmo-radio-option .description {
+	display: block;
 	margin: 0;
 	color: var(--advmo-color-text-muted);
 	font-size: 13px;
@@ -394,19 +609,59 @@
 }
 
 /* Subtle highlight on selection - not jarring color change */
-.advmo-radio-option input[type="radio"]:checked + label {
+.advmo-radio-option input[type="radio"]:checked + .advmo-radio-option-title {
 	color: var(--advmo-color-text-primary);
 }
 
+/* No mobile padding override here on purpose: the `padding` shorthand it
+   used to carry reset padding-inline-start too, collapsing the gutter the
+   control sits in so the radio landed on top of its own title. The desktop
+   padding is correct at every width now that the controls are one size. */
+
+#advmo .advmo-radio-option input[type="radio"],
+#advmo .advmo-checkbox-option input[type="checkbox"] {
+	margin: 0;
+}
+
+#advmo .advmo-checkbox-option {
+	padding-left: 0;
+	padding-inline-start: 26px;
+}
+
+#advmo .advmo-checkbox-option input[type="checkbox"] {
+	left: auto;
+	inset-inline-start: 0;
+	top: 1px;
+}
+
+/* Below 782px core scales these controls up (radio to 25px, checkbox to
+   20px) — inconsistent with each other and oversized next to 13px labels.
+   The size is pinned back to the desktop 16px, and the tick and dot are
+   pinned with it: core scales those glyphs in the same breakpoint, so
+   resizing only the box leaves a glyph drawn for a box that no longer
+   exists, which is what clipped the checkmark. Sizing both together keeps
+   the controls identical at every width, and the gutters reserved for them
+   stay correct too, so no mobile-specific spacing is needed.
+   The tap target does not depend on this: the whole card is the radio's
+   label, and the checkbox's label is clickable. */
 @media screen and (max-width: 782px) {
-	.advmo-radio-option {
-		padding: var(--advmo-spacing-md);
-		padding-left: calc(var(--advmo-spacing-md) + 32px);
+	#advmo .advmo-radio-option input[type="radio"],
+	#advmo .advmo-checkbox-option input[type="checkbox"] {
+		width: 16px;
+		height: 16px;
+		min-width: 16px;
 	}
-	
-	.advmo-radio-option input[type="radio"] {
-		width: 20px;
-		height: 20px;
+
+	#advmo .advmo-radio-option input[type="radio"]:checked::before {
+		width: 8px;
+		height: 8px;
+		margin: 3px;
+	}
+
+	#advmo .advmo-checkbox-option input[type="checkbox"]:checked::before {
+		width: 21px;
+		height: 21px;
+		margin: -3px 0 0 -4px;
 	}
 }
 
@@ -515,10 +770,24 @@
 	padding: 0;
 }
 
+/* Below 600px WordPress switches its admin bar to position:absolute, so the
+   bar no longer reserves space and content must be pushed down instead.
+   #wpcontent above sets `padding: 0`, which removes the offset core relies
+   on — hence the padding is restored here rather than nudging the topbar
+   with `top`. Offsetting the topbar only moved it visually: the space it
+   occupied stayed where it was, so it slid underneath #wpbody, and since
+   #wpbody comes later in the document it painted over the nav and swallowed
+   every tap on it. */
 @media (max-width: 600px) {
-	.advmo-topbar {
-		position: relative;
-		top: 46px;
+	#wpcontent {
+		padding-top: 46px;
+	}
+
+	/* Core also gives #wpbody a 46px mobile offset. The custom top bar sits
+	   before #wpbody, so keeping both offsets creates a second empty admin-bar
+	   row between the tabs and the page content. */
+	#wpbody {
+		padding-top: 0;
 	}
 }
 
@@ -604,6 +873,50 @@
 	border-bottom-color: var(--advmo-color-accent);
 }
 
+@media screen and (max-width: 782px) {
+	.advmo-topbar .advmo-menu {
+		padding: 0 var(--advmo-spacing-md);
+	}
+
+	/* Tabs scroll sideways rather than wrapping. A wrapped row breaks the
+	   single underline the tab metaphor relies on: the border sits under the
+	   nav, so only the last row lines up with it. */
+	.advmo-topbar .advmo-menu nav {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		gap: var(--advmo-spacing-md);
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.advmo-topbar .advmo-menu nav::-webkit-scrollbar {
+		display: none;
+	}
+
+	.advmo-topbar .advmo-menu nav a {
+		white-space: nowrap;
+	}
+
+	/* Give the narrow viewport back some of its width. */
+	#advmo .wrap {
+		padding: 0 var(--advmo-spacing-md);
+	}
+}
+
+@media screen and (max-width: 360px) {
+	.advmo-topbar .advmo-menu {
+		padding-inline: var(--advmo-spacing-sm);
+	}
+
+	.advmo-topbar .advmo-menu nav {
+		gap: var(--advmo-spacing-sm);
+	}
+
+	.advmo-topbar .advmo-menu nav a {
+		font-size: 12px;
+	}
+}
+
 .advmo-code-snippet {
 	direction: ltr;
 	text-align: left;
@@ -618,45 +931,10 @@
 	margin-top: 0;
 }
 
-/* Info notices - subtle, non-competing with form fields */
-.advmo-credentials-info {
-	padding: var(--advmo-spacing-md);
-	margin-bottom: var(--advmo-spacing-lg);
-	background: #f0f6fc;
-	border: 1px solid #c5d9ed;
-	border-radius: var(--advmo-radius-sm);
-	border-left: none;
-}
-
-.advmo-credentials-info p {
-	margin: 0;
-	font-size: 13px;
-	line-height: 1.6;
-	color: var(--advmo-color-text-secondary);
-}
-
-.advmo-credentials-info strong {
-	color: var(--advmo-color-text-primary);
-}
-
-.advmo-credentials-info code {
-	background: rgba(0, 0, 0, 0.06);
-	padding: 2px 6px;
-	border-radius: 3px;
-	font-size: 12px;
-}
-
-/* Provider description notice */
-.advmo-provider-description {
-	margin-bottom: var(--advmo-spacing-lg) !important;
-	padding: var(--advmo-spacing-md) !important;
-	background: #f0f6fc !important;
-	border: 1px solid #c5d9ed !important;
-	border-radius: var(--advmo-radius-sm) !important;
-}
-
-.advmo-provider-description p {
-	margin: 0 !important;
+/* "How to get these credentials" — helper text for the fields below, so it
+   is styled as text rather than as a panel competing with the form. */
+#advmo .advmo-credentials-help {
+	margin: 0 0 var(--advmo-spacing-lg);
 	font-size: 13px;
 	line-height: 1.6;
 	color: var(--advmo-color-text-secondary);
@@ -720,44 +998,61 @@
 	max-width: 400px;
 }
 
-.advmo-password-field-wrapper .advmo-password-input {
+#advmo .advmo-password-field-wrapper .advmo-password-input {
 	flex: 1;
-	padding-right: 36px !important;
+	padding-inline-end: 40px;
 }
 
-.advmo-toggle-password {
+/* Reveal toggle. Sized and centred with an id-prefixed selector because
+   core's `.button` rules (min-height, line-height: 2.15) otherwise win and
+   stretch it to the full height of the field. The icon needs its own
+   line-height: it inherits the button's, which is far taller than the
+   18px glyph box and pushes the glyph off centre. */
+#advmo .advmo-toggle-password {
 	position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 0 !important;
-    background: transparent !important;
-    border: none;
-    cursor: pointer !important;
-    color: #50575e !important;
-    transition: all 0.2s ease;
-    height: 28px;
-    width: 28px;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px !important;
+	inset-inline-end: 5px;
+	top: 50%;
+	transform: translateY(-50%);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	min-height: 0;
+	padding: 0;
+	border: none;
+	border-radius: var(--advmo-radius-sm);
+	background: transparent;
+	box-shadow: none;
+	color: var(--advmo-color-text-secondary);
+	line-height: 1;
+	cursor: pointer;
+	transition: color var(--advmo-transition-fast), background-color var(--advmo-transition-fast);
 }
 
-.advmo-toggle-password:hover {
-	color: #2271b1 !important;
+#advmo .advmo-toggle-password:hover {
+	color: var(--advmo-color-accent);
+	background: rgba(0, 0, 0, 0.05);
 }
 
-.advmo-toggle-password:focus {
-	outline: 1px solid #2271b1 !important;
+/* Only show the ring for keyboard users; a mouse click already gives
+   feedback through the hover state and the icon change. */
+#advmo .advmo-toggle-password:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+#advmo .advmo-toggle-password:focus-visible {
+	outline: 2px solid var(--advmo-color-accent);
 	outline-offset: 1px;
-	border-radius: 2px !important;
 }
 
-.advmo-toggle-password .dashicons {
-	width: 16px;
-	height: 16px;
-	font-size: 16px;
+#advmo .advmo-toggle-password .dashicons {
+	display: block;
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	line-height: 1;
 }
 
 /* Disabled field styles */
@@ -784,19 +1079,16 @@
 }
 
 /* ==========================================================================
-   Connection Status Badge - Clear success/warning states
+   Connection Status Card - result of the connection test
    ========================================================================== */
-.advmo-connection-status {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--advmo-spacing-sm);
-	padding: var(--advmo-spacing-md);
-	border-radius: var(--advmo-radius-sm);
+.advmo-connection-card {
+	max-width: 640px;
+	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg);
 	margin: var(--advmo-spacing-lg) 0 var(--advmo-spacing-md) 0;
-	font-size: 13px;
-	font-weight: 500;
 	border: 1px solid;
-	transition: all var(--advmo-transition-normal);
+	border-inline-start-width: 4px;
+	border-radius: var(--advmo-radius-sm);
+	font-size: 13px;
 	animation: advmoSlideIn 0.3s ease-out;
 }
 
@@ -811,19 +1103,44 @@
 	}
 }
 
-.advmo-connection-status.connected {
+.advmo-connection-card.is-success {
 	background-color: #ecfdf3;
 	border-color: #a3e6cd;
+	border-inline-start-color: #059669;
+}
+
+.advmo-connection-card.is-error {
+	background-color: #fef2f2;
+	border-color: #fecaca;
+	border-inline-start-color: #dc2626;
+}
+
+.advmo-connection-card.is-testing {
+	background-color: #f0f6fc;
+	border-color: #c3d4e7;
+	border-inline-start-color: #0073aa;
+}
+
+.advmo-connection-card-title {
+	display: flex;
+	align-items: center;
+	gap: var(--advmo-spacing-sm);
+	font-size: 14px;
+}
+
+.advmo-connection-card.is-success .advmo-connection-card-title {
 	color: #065f46;
 }
 
-.advmo-connection-status.disconnected {
-	background-color: #fffbeb;
-	border-color: #fde68a;
-	color: #92400e;
+.advmo-connection-card.is-error .advmo-connection-card-title {
+	color: #991b1b;
 }
 
-.advmo-connection-status .dashicons {
+.advmo-connection-card.is-testing .advmo-connection-card-title {
+	color: #0a4b78;
+}
+
+.advmo-connection-card-title .dashicons {
 	width: 18px;
 	height: 18px;
 	font-size: 18px;
@@ -832,23 +1149,163 @@
 	justify-content: center;
 }
 
-.advmo-connection-status.connected .dashicons {
+.advmo-connection-card.is-success .advmo-connection-card-title .dashicons {
 	color: #059669;
 }
 
-.advmo-connection-status.disconnected .dashicons {
-	color: #d97706;
+.advmo-connection-card.is-error .advmo-connection-card-title .dashicons {
+	color: #dc2626;
 }
 
-.advmo-status-text {
+.advmo-connection-card.is-testing .advmo-connection-card-title .dashicons {
+	color: #0073aa;
+}
+
+.advmo-connection-card p {
+	margin: var(--advmo-spacing-xs) 0 0;
+	color: #1d2327;
+}
+
+.advmo-connection-card-hint {
+	opacity: 0.9;
+}
+
+.advmo-connection-card-meta {
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+.advmo-spin {
+	animation: advmoSpin 1s linear infinite;
+}
+
+/* ==========================================================================
+   Setup steps - status badges in section headers
+   ========================================================================== */
+/* Sits in the summary's flex row, between the title and the chevron. */
+.advmo-step-status {
+	flex: none;
+	display: inline-block;
+	padding: 2px 10px;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.advmo-step-status--todo {
+	background: #f0f0f1;
+	border-color: #dcdcde;
+	color: #50575e;
+}
+
+.advmo-step-status--attention {
+	background: #fffbeb;
+	border-color: #fde68a;
+	color: #92400e;
+}
+
+.advmo-step-status--done {
+	background: #ecfdf3;
+	border-color: #a3e6cd;
+	color: #065f46;
+}
+
+/* Prominent actions used on the support page. */
+#advmo .advmo-cta {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--advmo-spacing-xs);
+	height: auto;
+	padding: 9px 18px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	border-radius: var(--advmo-radius-sm);
+	transition: all var(--advmo-transition-fast);
+}
+
+#advmo .advmo-cta .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@media screen and (max-width: 782px) {
+	#advmo .advmo-cta {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+/* ==========================================================================
+   Setup guidance - recommended tag, deletion warnings, wp-config snippet
+   ========================================================================== */
+.advmo-badge-recommended {
+	display: inline-block;
+	margin-inline-start: 6px;
+	padding: 1px 8px;
+	border: 1px solid #a3e6cd;
+	border-radius: 999px;
+	background: #ecfdf3;
+	color: #065f46;
+	font-size: 11px;
 	font-weight: 600;
 }
 
-.advmo-status-time {
+/* The wp-config route: an advanced alternative, so it stays a quiet
+   disclosure rather than a panel. */
+.advmo-wpconfig-details {
+	margin: 0 0 var(--advmo-spacing-lg);
+	font-size: 13px;
+}
+
+.advmo-wpconfig-details summary {
+	cursor: pointer;
+	width: fit-content;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-wpconfig-details summary:hover {
+	color: var(--advmo-color-accent);
+}
+
+.advmo-wpconfig-body {
+	margin-top: var(--advmo-spacing-sm);
+	padding: var(--advmo-spacing-md);
+	background: var(--advmo-color-bg-subtle);
+	border: 1px solid var(--advmo-color-border-light);
+	border-radius: var(--advmo-radius-sm);
+}
+
+.advmo-wpconfig-body > .description:first-child {
+	margin-top: 0;
+}
+
+.advmo-wpconfig-snippet {
+	margin: var(--advmo-spacing-sm) 0;
+	padding: 10px 12px;
+	background: #fff;
+	border: 1px solid var(--advmo-color-border-light);
+	border-radius: 4px;
+	overflow-x: auto;
+}
+
+/* Core styles <code> as an inline chip with its own padding and background.
+   Inside a <pre> that padding lands at the start of the inline box — i.e. on
+   the first line only — which reads as a stray indent on line one. */
+.advmo-wpconfig-snippet code {
+	display: block;
+	padding: 0;
+	margin: 0;
+	background: none;
+	font-size: inherit;
 	color: inherit;
-	opacity: 0.75;
-	font-size: 12px;
-	margin-left: var(--advmo-spacing-sm);
 }
 
 /* ==========================================================================
@@ -937,28 +1394,20 @@
 		max-width: 100%;
 	}
 	
-	.advmo-connection-status {
-		display: flex;
-		flex-wrap: wrap;
-		width: 100%;
-	}
-	
-	.advmo-status-time {
-		flex-basis: 100%;
-		margin-left: 26px;
-		margin-top: var(--advmo-spacing-xs);
-	}
-	
 	.advmo-credentials-actions {
 		gap: var(--advmo-spacing-sm);
 		width: 100%;
 	}
-	
-	.advmo-save-credentials,
-	.advmo_js_test_connection {
-		flex: 1;
+
+	/* Full width, one per row. These previously shared the row with
+	   `flex: 1`, whose zero basis ignores the label: "Save & Test
+	   Connection" was squeezed to ~148px while still set to nowrap, so the
+	   text spilled out of both ends of the button. */
+	#advmo .advmo-credentials-actions .advmo-save-credentials,
+	#advmo .advmo-credentials-actions .advmo_js_test_connection {
+		flex: 1 1 100%;
 		justify-content: center;
-		min-width: 130px;
+		text-align: center;
 	}
 }
 
@@ -1110,4 +1559,162 @@ button.advmo-save-credentials.loading::after {
 /* Ensure sections have position relative for overlay */
 .advmo-section {
 	position: relative;
+}
+
+/* ==========================================================================
+   Need Support? page
+   ========================================================================== */
+.advmo-support {
+	max-width: 900px;
+	margin: 0 auto;
+}
+
+.advmo-support-intro {
+	margin: var(--advmo-spacing-xl) 0 var(--advmo-spacing-lg);
+}
+
+.advmo-support-intro h1 {
+	margin: 0 0 var(--advmo-spacing-xs);
+	font-size: 22px;
+	font-weight: 600;
+	color: var(--advmo-color-text-primary);
+}
+
+.advmo-support-intro p {
+	margin: 0;
+	max-width: 70ch;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-support-checklist {
+	margin: 0;
+	padding: var(--advmo-spacing-md) var(--advmo-spacing-lg) var(--advmo-spacing-md) calc(var(--advmo-spacing-lg) + 20px);
+	font-size: 13px;
+	line-height: 1.7;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-support-checklist li + li {
+	margin-top: var(--advmo-spacing-sm);
+}
+
+.advmo-support-checklist strong {
+	color: var(--advmo-color-text-primary);
+}
+
+/* Two equal channels — neither is hidden behind the other. */
+.advmo-support-channels {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: var(--advmo-spacing-lg);
+	margin-top: var(--advmo-spacing-xl);
+}
+
+.advmo-support-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: var(--advmo-spacing-lg);
+	background: #fff;
+	border: 1px solid var(--advmo-color-border);
+	border-radius: var(--advmo-radius-md);
+	box-shadow: var(--advmo-shadow-sm);
+}
+
+.advmo-support-card > .dashicons {
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
+	color: var(--advmo-color-accent);
+}
+
+.advmo-support-card h2 {
+	margin: var(--advmo-spacing-sm) 0 var(--advmo-spacing-xs);
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--advmo-color-text-primary);
+}
+
+.advmo-support-card p {
+	flex: 1;
+	margin: 0 0 var(--advmo-spacing-md);
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-support-report {
+	padding: 0 var(--advmo-spacing-lg) var(--advmo-spacing-md);
+}
+
+.advmo-support-report .advmo-wpconfig-snippet {
+	margin-top: var(--advmo-spacing-sm);
+	background: var(--advmo-color-bg-subtle);
+	white-space: pre-wrap;
+}
+
+.advmo-support-tip {
+	margin: 0;
+	padding: 0 var(--advmo-spacing-lg) var(--advmo-spacing-md);
+	font-size: 13px;
+	color: var(--advmo-color-text-muted);
+}
+
+/* Support-us banner. Sits at the end of the page, so it reads as a thank
+   you rather than a toll gate in front of the help. Kept quiet on purpose:
+   a tinted panel, not a coloured alert. */
+.advmo-support-give {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--advmo-spacing-md);
+	margin: var(--advmo-spacing-xl) 0;
+	padding: var(--advmo-spacing-lg);
+	background: #f0f6fc;
+	border: 1px solid #c3d4e7;
+	border-radius: var(--advmo-radius-md);
+}
+
+.advmo-support-give > .dashicons {
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
+	color: #d63638;
+}
+
+.advmo-support-give-text {
+	flex: 1 1 260px;
+}
+
+.advmo-support-give-text h2 {
+	margin: 0 0 var(--advmo-spacing-xs);
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--advmo-color-text-primary);
+}
+
+.advmo-support-give-text p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--advmo-color-text-secondary);
+}
+
+.advmo-support-give-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--advmo-spacing-sm);
+}
+
+@media screen and (max-width: 782px) {
+	#advmo .advmo-support-give-actions {
+		width: 100%;
+	}
+
+	#advmo .advmo-support-give-actions .advmo-cta {
+		flex: 1 1 100%;
+		justify-content: center;
+	}
 }
