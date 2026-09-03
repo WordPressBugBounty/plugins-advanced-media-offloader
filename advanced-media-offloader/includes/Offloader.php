@@ -48,7 +48,7 @@ class Offloader
 		$this->attach(new ImageSrcsetObserver($this->cloudProvider));
 		$this->attach(new ImageSrcsetMetaObserver($this->cloudProvider));
 		$this->attach(new AttachmentUrlObserver($this->cloudProvider));
-		$this->attach(new GetAttachedFileObserver());
+		$this->attach(new GetAttachedFileObserver($this->cloudProvider));
 		$this->attach(new OffloadStatusObserver($this->cloudProvider));
 		$this->attach(new AttachmentOffloadButtonObserver($this->cloudProvider));
 		$this->attach(new AttachmentDeleteObserver($this->cloudProvider));

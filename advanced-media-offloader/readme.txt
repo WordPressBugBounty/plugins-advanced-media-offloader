@@ -3,9 +3,9 @@ Contributors: masoudin, wpfitter, bahreynipour, teledark
 Donate link: https://buymeacoffee.com/wpfitter?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=readme-donate
 Tags: offload, amazon s3, cloudflare r2, cloud storage, cdn
 Requires at least: 5.6
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 4.5.0
+Stable tag: 4.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -246,6 +246,13 @@ Check the Media Overview page — it shows offload errors and lets you download 
 
 == Changelog ==
 
+= 4.5.1 =
+* Fixed: Sites that load another Composer-managed copy of Guzzle before Advanced Media Offloader no longer miss the plugin's isolated Guzzle functions or fail while creating a cloud client.
+* Fixed: Cloud storage validation for `wp advmo offload` now starts only when that command runs, so command discovery and other WP-CLI operations remain safe when the plugin is not configured.
+* Fixed: Imagify and EWWW Image Optimizer can load alongside Advanced Media Offloader without duplicate third-party function declarations.
+* Fixed: Existing WebP and AVIF files created by Imagify and other supported image optimizers are now included when an image is offloaded for the first time, including bulk and WP-CLI offloads. If a sidecar upload fails, the attachment is not marked as offloaded and local files are kept safely.
+* Fixed: Cloud-only SVG files now use a stable local cache path that preserves the original filename and `.svg` extension, preventing failures in WordPress and page builders that require a real local file.
+
 = 4.5.0 =
 * Added: A clearer settings experience with two focused, collapsible sections: Cloud storage and File handling. Media waiting to be offloaded now appears in a visible banner above the settings, with a direct link to Media Overview.
 * Added: A "Need Support?" page with the checks that solve most problems, links to the support forum and our contact page, and a one-click system report to paste into your message. The report contains no keys, passwords or bucket names, so it is safe to post in public.
@@ -327,6 +334,9 @@ Check the Media Overview page — it shows offload errors and lets you download 
 Earlier releases are documented in `changelog.txt` included with the plugin.
 
 == Upgrade Notice ==
+
+= 4.5.1 =
+Fixes isolated Guzzle loading on Composer-managed sites, keeps WP-CLI command loading safe before cloud setup, includes existing optimizer WebP/AVIF files on first offload, prevents Imagify/EWWW function conflicts, and restores reliable cloud-only SVG handling.
 
 = 4.5.0 =
 Adds a clearer two-section settings page, one-click Save & Test Connection, a Need Support? page, and connection errors that explain what to check. It also keeps regenerated thumbnails synchronized with cloud storage, regenerates cloud-only images safely under Full Cloud Migration, preserves image edits and optimizer formats, and keeps local files safe when an operation fails.

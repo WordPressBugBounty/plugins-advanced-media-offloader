@@ -21,16 +21,18 @@ class OffloadCommand
     private $uploader;
 
     /**
-     * Constructor.
+     * Initialize the uploader when this command is actually executed.
+     *
+     * @return void
      */
-    public function __construct()
+    private function initializeUploader()
     {
-        try {
-            $cloud_provider_key = advmo_get_cloud_provider_key();
-            if (empty($cloud_provider_key)) {
-                \WP_CLI::error('No cloud provider configured. Please configure your cloud storage settings first.');
-            }
+        $cloud_provider_key = advmo_get_cloud_provider_key();
+        if (empty($cloud_provider_key)) {
+            \WP_CLI::error('No cloud provider configured. Please configure your cloud storage settings first.');
+        }
 
+        try {
             $cloud_provider = CloudProviderFactory::create($cloud_provider_key);
             $this->uploader = new CloudAttachmentUploader($cloud_provider);
         } catch (\Exception $e) {
@@ -131,6 +133,8 @@ class OffloadCommand
      */
     public function __invoke($args, $assoc_args)
     {
+        $this->initializeUploader();
+
         $limit = isset($assoc_args['limit']) ? (int) $assoc_args['limit'] : 0;
         $skip_failed = isset($assoc_args['skip-failed']);
 

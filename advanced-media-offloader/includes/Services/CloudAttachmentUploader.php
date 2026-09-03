@@ -1037,6 +1037,29 @@ class CloudAttachmentUploader
             return false;
         }
 
+        // Include optimizer-generated files that already existed before the
+        // attachment's first offload. Image-edit and regeneration paths invoke
+        // the same verified filter, but bulk and WP-CLI initial offloads used to
+        // skip it, leaving existing Imagify/EWWW WebP or AVIF files behind.
+        if (wp_attachment_is_image($attachment_id)) {
+            $sidecarsUploaded = (bool) apply_filters(
+                'advmo_upload_image_operation_sidecars',
+                true,
+                $attachment_id,
+                $subdir,
+                is_array($metadata) ? $metadata : [],
+                'initial_upload'
+            );
+            if (!$sidecarsUploaded) {
+                $this->logError(
+                    $attachment_id,
+                    'Failed to upload all optimizer sidecar files for the initial offload.',
+                    false
+                );
+                return false;
+            }
+        }
+
         // Return the subdir actually used for the upload so the caller can
         // record advmo_path from it rather than re-deriving (and risking a
         // divergent object-versioning value).

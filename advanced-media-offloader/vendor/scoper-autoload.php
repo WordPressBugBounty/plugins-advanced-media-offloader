@@ -33,13 +33,7 @@ humbug_phpscoper_expose_class('ComposerAutoloaderInitf615a92c50d90a95a009ec188ff
 
 // Function aliases. For more information see:
 // https://github.com/humbug/php-scoper/blob/master/docs/further-reading.md#function-aliases
-if (!function_exists('ewww_image_optimizer_add_attachment_to_queue')) { function ewww_image_optimizer_add_attachment_to_queue() { return \WPFitter\ewww_image_optimizer_add_attachment_to_queue(...func_get_args()); } }
-if (!function_exists('ewww_image_optimizer_quick_mimetype')) { function ewww_image_optimizer_quick_mimetype() { return \WPFitter\ewww_image_optimizer_quick_mimetype(...func_get_args()); } }
-if (!function_exists('ewww_image_optimizer_relativize_path')) { function ewww_image_optimizer_relativize_path() { return \WPFitter\ewww_image_optimizer_relativize_path(...func_get_args()); } }
 if (!function_exists('getallheaders')) { function getallheaders() { return \WPFitter\getallheaders(...func_get_args()); } }
-if (!function_exists('imagify_get_optimization_process')) { function imagify_get_optimization_process() { return \WPFitter\imagify_get_optimization_process(...func_get_args()); } }
-if (!function_exists('imagify_nextgen_images_formats')) { function imagify_nextgen_images_formats() { return \WPFitter\imagify_nextgen_images_formats(...func_get_args()); } }
-if (!function_exists('imagify_path_to_nextgen')) { function imagify_path_to_nextgen() { return \WPFitter\imagify_path_to_nextgen(...func_get_args()); } }
 if (!function_exists('mb_check_encoding')) { function mb_check_encoding() { return \WPFitter\mb_check_encoding(...func_get_args()); } }
 if (!function_exists('mb_chr')) { function mb_chr() { return \WPFitter\mb_chr(...func_get_args()); } }
 if (!function_exists('mb_convert_case')) { function mb_convert_case() { return \WPFitter\mb_convert_case(...func_get_args()); } }
