@@ -50,7 +50,11 @@ class AttachmentOffloadButtonObserver implements ObserverInterface
     {
         // Add the button if the attachment is not already offloaded
         // This includes both new attachments and those with failed offload attempts
-        if (!$this->is_offloaded($post->ID)) {
+        if (
+            current_user_can('upload_files')
+            && current_user_can('edit_post', $post->ID)
+            && !$this->is_offloaded($post->ID)
+        ) {
             $buttonText = $this->has_errors($post->ID) ?
                 __('Retry Offload', 'advanced-media-offloader') :
                 __('Offload Now', 'advanced-media-offloader');
@@ -153,6 +157,7 @@ class AttachmentOffloadButtonObserver implements ObserverInterface
         } catch (\Exception $e) {
             wp_send_json_error([
                 'message' => sprintf(
+                    /* translators: %s: offload error message. */
                     __('Error: %s', 'advanced-media-offloader'),
                     $e->getMessage()
                 )
@@ -176,6 +181,16 @@ class AttachmentOffloadButtonObserver implements ObserverInterface
         }
 
         $attachment_id = intval($_POST['attachment_id']);
+
+        // Check the attachment and the user's permission to edit it.
+        if (
+            $attachment_id <= 0
+            || get_post_type($attachment_id) !== 'attachment'
+            || !current_user_can('edit_post', $attachment_id)
+        ) {
+            return false;
+        }
+
         $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
         return wp_verify_nonce($nonce, 'advmo_offload_single_' . $attachment_id);

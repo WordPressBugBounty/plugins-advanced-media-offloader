@@ -5,7 +5,7 @@ Tags: offload, amazon s3, cloudflare r2, cloud storage, cdn
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 4.5.1
+Stable tag: 4.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -246,6 +246,11 @@ Check the Media Overview page — it shows offload errors and lets you download 
 
 == Changelog ==
 
+= 4.5.2 =
+* Security: Restricted individual media offloading to users who can edit the selected attachment.
+* Improved: The production package now passes Plugin Check without errors.
+* Fixed: Resolved thumbnail regeneration errors now clear after a successful retry, while unrelated errors stay visible.
+
 = 4.5.1 =
 * Fixed: Sites that load another Composer-managed copy of Guzzle before Advanced Media Offloader no longer miss the plugin's isolated Guzzle functions or fail while creating a cloud client.
 * Fixed: Cloud storage validation for `wp advmo offload` now starts only when that command runs, so command discovery and other WP-CLI operations remain safe when the plugin is not configured.
@@ -334,6 +339,9 @@ Check the Media Overview page — it shows offload errors and lets you download 
 Earlier releases are documented in `changelog.txt` included with the plugin.
 
 == Upgrade Notice ==
+
+= 4.5.2 =
+Security fix: Restricts individual media offloading to users who can edit the selected attachment.
 
 = 4.5.1 =
 Fixes isolated Guzzle loading on Composer-managed sites, keeps WP-CLI command loading safe before cloud setup, includes existing optimizer WebP/AVIF files on first offload, prevents Imagify/EWWW function conflicts, and restores reliable cloud-only SVG handling.

@@ -114,9 +114,9 @@ class UniqueFilenameObserver implements ObserverInterface
 
         // Generate a new version timestamp
         if (!advmo_is_media_organized_by_year_month()) {
-            $new_version = date("YmdHis");
+            $new_version = gmdate("YmdHis");
         } else {
-            $new_version = date("dHis");
+            $new_version = gmdate("dHis");
         }
 
         return trailingslashit($new_version);

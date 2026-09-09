@@ -317,7 +317,7 @@ trait OffloaderTrait
                 }
 
                 $keep_for_smart_cleanup = is_string($backup_key)
-                    && str_starts_with($backup_key, 'full-');
+                    && 0 === strpos($backup_key, 'full-');
 
                 foreach ($this->getFilesFromSizeData($backup_data) as $file) {
                     $files[$file] = ($files[$file] ?? false) || $keep_for_smart_cleanup;

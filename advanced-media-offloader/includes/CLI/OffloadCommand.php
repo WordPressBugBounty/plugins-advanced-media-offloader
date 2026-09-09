@@ -336,7 +336,7 @@ class OffloadCommand
             }
         }
 
-        return $wpdb->get_col($query);
+        return $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values are prepared when present; other query parts are trusted WordPress table names and literals.
     }
 
     /**

@@ -318,7 +318,7 @@ class GetAttachedFileObserver implements ObserverInterface
         $uploadsBase = trailingslashit($this->normalizePath($uploadDirectory['basedir']));
         $candidate = $this->normalizePath($path);
 
-        return str_starts_with($candidate, $uploadsBase);
+        return 0 === strpos($candidate, $uploadsBase);
     }
 
     private function isUsableCacheFile(string $file): bool
@@ -370,7 +370,7 @@ class GetAttachedFileObserver implements ObserverInterface
         }
 
         $temporaryBase = trailingslashit($this->normalizePath($realTemporaryDirectory));
-        if (str_starts_with($this->normalizePath($realFile), $temporaryBase) && is_file($realFile)) {
+        if (0 === strpos($this->normalizePath($realFile), $temporaryBase) && is_file($realFile)) {
             wp_delete_file($realFile);
         }
     }
@@ -383,7 +383,7 @@ class GetAttachedFileObserver implements ObserverInterface
 
         $root = trailingslashit($this->normalizePath($this->getCacheRoot()));
         $candidate = $this->normalizePath($directory);
-        if ($root === '/' || !str_starts_with($candidate, $root)) {
+        if ($root === '/' || 0 !== strpos($candidate, $root)) {
             return;
         }
 
@@ -398,7 +398,7 @@ class GetAttachedFileObserver implements ObserverInterface
 
             foreach ($iterator as $item) {
                 if ($item->isDir() && !$item->isLink()) {
-                    @rmdir($item->getPathname());
+                    @rmdir($item->getPathname()); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Removes only empty plugin-created temporary directories.
                 } else {
                     wp_delete_file($item->getPathname());
                 }
@@ -408,6 +408,6 @@ class GetAttachedFileObserver implements ObserverInterface
             return;
         }
 
-        @rmdir($directory);
+        @rmdir($directory); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Removes only an empty plugin-created temporary directory.
     }
 }

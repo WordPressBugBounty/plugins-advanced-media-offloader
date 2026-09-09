@@ -117,8 +117,8 @@ class BulkOffloadHandler
 
             error_log(sprintf(
                 'ADVMO: Detected stalled bulk offload process. Lock time: %s, Last update: %s, Processed: %d/%d',
-                date('Y-m-d H:i:s', $process_lock),
-                date('Y-m-d H:i:s', $last_update),
+                gmdate('Y-m-d H:i:s', $process_lock),
+                gmdate('Y-m-d H:i:s', $last_update),
                 $bulk_data['processed'] ?? 0,
                 $bulk_data['total'] ?? 0
             ));
@@ -270,7 +270,7 @@ class BulkOffloadHandler
 
         $ready = $this->ensure_process_ready();
         if (is_wp_error($ready)) {
-            throw new \Exception($ready->get_error_message());
+            throw new \Exception($ready->get_error_message()); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; output handlers escape the message.
         }
 
         $names = $this->get_unoffloaded_attachments();
@@ -309,7 +309,7 @@ class BulkOffloadHandler
             $batch_size * 2
         );
 
-        $normal_attachments = $wpdb->get_col($query);
+        $normal_attachments = $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
 
         // Process normal attachments first, with size limitations
         foreach ($normal_attachments as $attachment_id) {
@@ -330,6 +330,7 @@ class BulkOffloadHandler
                 // Skip massive files entirely (> 10MB)
                 if ($file_size > 25) {
                     $error_msg = sprintf(
+                        /* translators: %s: maximum file size in megabytes. */
                         __('File exceeds maximum size (%s MB) for bulk processing', 'advanced-media-offloader'),
                         '25'
                     );
@@ -371,7 +372,7 @@ class BulkOffloadHandler
                 $remaining_slots * 2
             );
 
-            $error_attachments = $wpdb->get_col($error_query);
+            $error_attachments = $wpdb->get_col($error_query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
 
             // Process error attachments with size limitations
             foreach ($error_attachments as $attachment_id) {

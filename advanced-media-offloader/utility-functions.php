@@ -154,7 +154,7 @@ if (!function_exists('advmo_is_settings_page')) {
 if (!function_exists('advmo_get_copyright_text')) {
 	function advmo_get_copyright_text(): string
 	{
-		$year = date('Y');
+		$year = gmdate('Y');
 		$site_url = 'https://wpfitter.com/?utm_source=wp-plugin&utm_medium=plugin&utm_campaign=advanced-media-offloader';
 
 		$donate = '';
@@ -352,7 +352,7 @@ if (!function_exists('advmo_get_unoffloaded_media_items_count')) {
 			WHERE p.post_type = 'attachment' 
 			AND (pm.meta_value IS NULL OR pm.meta_value = '')";
 
-		return (int) $wpdb->get_var($query);
+		return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query contains only trusted WordPress table names and fixed literals.
 	}
 }
 
@@ -377,7 +377,7 @@ if (!function_exists('advmo_get_offloaded_media_items_count')) {
 			)
 		);
 
-		return (int) $wpdb->get_var($query);
+		return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
 	}
 }
 

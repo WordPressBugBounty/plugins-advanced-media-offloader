@@ -6,6 +6,10 @@
 
 declare(strict_types=1);
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Generate admin page URL for Advanced Media Offloader.
  *
@@ -60,7 +64,7 @@ function advmo_generate_menu_item(array $item, string $page): string
 <div class="advmo-menu">
     <nav>
         <?php foreach ($menu_items as $slug => $item) : ?>
-            <?php echo advmo_generate_menu_item($item, $slug); ?>
+            <?php echo advmo_generate_menu_item($item, $slug); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The helper escapes every dynamic value. ?>
         <?php endforeach; ?>
     </nav>
 </div>

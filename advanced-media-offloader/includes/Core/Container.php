@@ -16,7 +16,7 @@ class Container
     public function get(string $id)
     {
         if (!isset($this->services[$id])) {
-            throw new \Exception("Service '$id' not found in container");
+            throw new \Exception("Service '$id' not found in container"); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; output handlers escape the message.
         }
 
         // Return cached instance if available

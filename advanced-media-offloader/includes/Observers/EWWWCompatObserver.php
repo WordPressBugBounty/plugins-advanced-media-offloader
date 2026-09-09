@@ -644,8 +644,8 @@ class EWWWCompatObserver implements ObserverInterface
                 }
 
                 if (
-                    str_contains($call, 'regenerat')
-                    && (str_contains($call, 'thumbnail') || str_contains($call, 'media'))
+                    false !== strpos($call, 'regenerat')
+                    && (false !== strpos($call, 'thumbnail') || false !== strpos($call, 'media'))
                 ) {
                     $detected = true;
                     break;

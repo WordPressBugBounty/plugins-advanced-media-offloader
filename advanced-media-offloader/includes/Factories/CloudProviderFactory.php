@@ -55,13 +55,13 @@ class CloudProviderFactory
     public static function create(string $provider_key): S3_Provider
     {
         if (!isset(self::$cloud_providers[$provider_key])) {
-            throw new Exception("Unsupported cloud provider: {$provider_key}");
+            throw new Exception("Unsupported cloud provider: {$provider_key}"); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; output handlers escape the message.
         }
 
         $provider_class = self::$cloud_providers[$provider_key]['class'];
 
         if (!class_exists($provider_class)) {
-            throw new Exception("Cloud provider class does not exist: {$provider_class}");
+            throw new Exception("Cloud provider class does not exist: {$provider_class}"); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; output handlers escape the message.
         }
 
         return new $provider_class();

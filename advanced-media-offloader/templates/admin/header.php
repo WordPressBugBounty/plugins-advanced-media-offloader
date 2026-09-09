@@ -1,3 +1,8 @@
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+?>
 <div class="advmo-topbar">
     <div class="advmo-header">
         <h1>
@@ -35,7 +40,7 @@
                     </clipPath>
                 </defs>
             </svg>
-            <?php _e('Support', 'advanced-media-offloader'); ?>
+            <?php esc_html_e('Support', 'advanced-media-offloader'); ?>
         </a>
 		<?php if (apply_filters('advmo_show_donate_links', true)) : ?>
 		<?php
@@ -47,7 +52,7 @@
 		), 'https://buymeacoffee.com/wpfitter');
 		?>
 		<a href="<?php echo esc_url($donate_url); ?>" target="_blank" rel="noopener noreferrer" style="margin-left:12px;" title="<?php esc_attr_e('Donate to support Advanced Media Offloader', 'advanced-media-offloader'); ?>">
-			<?php _e('Donate', 'advanced-media-offloader'); ?>
+			<?php esc_html_e('Donate', 'advanced-media-offloader'); ?>
 		</a>
 		<?php endif; ?>
     </div>

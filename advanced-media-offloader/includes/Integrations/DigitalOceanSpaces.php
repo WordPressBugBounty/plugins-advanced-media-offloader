@@ -90,11 +90,12 @@ class DigitalOceanSpaces extends S3_Provider
 			],
 		];
 
-		echo $this->getCredentialsFieldHTML($credentialFields, 'dos', sprintf(
+		$provider_description = wp_kses_post(sprintf(
 			/* translators: %1$s / %2$s: opening and closing link tags */
 			__('New to DigitalOcean Spaces? See %1$show to create Spaces access keys%2$s, then paste the credentials below.', 'advanced-media-offloader'),
 			'<a href="https://docs.digitalocean.com/products/spaces/how-to/manage-access/" target="_blank" rel="noopener noreferrer">',
 			'</a>'
 		));
+		echo $this->getCredentialsFieldHTML($credentialFields, 'dos', $provider_description); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The shared form builder escapes all dynamic field values.
 	}
 }

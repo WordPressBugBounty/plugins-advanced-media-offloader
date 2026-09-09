@@ -145,7 +145,7 @@ class MinIO extends S3_Provider
             ],
         ];
 
-        echo $this->getCredentialsFieldHTML($credentialFields, 'minio', $this->getProviderDescription());
+        echo $this->getCredentialsFieldHTML($credentialFields, 'minio', $this->getProviderDescription()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The shared form builder escapes all dynamic field values.
     }
 
     /**

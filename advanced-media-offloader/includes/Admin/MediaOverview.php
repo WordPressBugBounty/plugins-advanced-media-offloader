@@ -212,7 +212,7 @@ class MediaOverview
             $meta_key
         );
 
-        return $wpdb->get_col($query);
+        return $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
     }
 
     public function handle_download_errors_csv()
@@ -257,7 +257,7 @@ class MediaOverview
                 ));
             }
 
-            fclose($output);
+            fclose($output); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- This closes the php://output response stream, not a filesystem file.
             exit;
         } catch (Exception $e) {
             status_header(500);
@@ -270,16 +270,16 @@ class MediaOverview
     {
         // WP CLI Notice
         echo '<div style="background: #f0f6fc; border: 1px solid #c3d4e7; border-radius: 4px; padding: 12px; margin-bottom: 20px;">';
-        echo '<p style="margin: 0 0 8px 0;"><strong style="color: #0073aa;">💡 ' . __('Use WP CLI for Large Operations', 'advanced-media-offloader') . '</strong></p>';
-        echo '<p style="margin: 0 0 8px 0; font-size: 13px;">' . __('For sites with hundreds or thousands of media files, our WP CLI command offers superior performance and control:', 'advanced-media-offloader') . '</p>';
+        echo '<p style="margin: 0 0 8px 0;"><strong style="color: #0073aa;">💡 ' . esc_html__('Use WP CLI for Large Operations', 'advanced-media-offloader') . '</strong></p>';
+        echo '<p style="margin: 0 0 8px 0; font-size: 13px;">' . esc_html__('For sites with hundreds or thousands of media files, our WP CLI command offers superior performance and control:', 'advanced-media-offloader') . '</p>';
         echo '<p style="margin: 0 0 8px 0;"><code style="background: #fff; padding: 2px 6px; border-radius: 3px; font-family: monospace;">wp advmo offload</code></p>';
         echo '<p style="margin: 0; font-size: 13px;">';
-        echo ' <a href="https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli/" target="_blank" style="color: #0073aa; text-decoration: none;">' . __('Learn more →', 'advanced-media-offloader') . '</a>';
+        echo ' <a href="https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli/" target="_blank" style="color: #0073aa; text-decoration: none;">' . esc_html__('Learn more →', 'advanced-media-offloader') . '</a>';
         echo '</p>';
         echo '</div>';
 
-        echo '<p class="description"><strong>' . __('Note:', 'advanced-media-offloader') . '</strong> ';
-        echo __('This web-based bulk offload supports up to 50 media attachments. For larger operations with hundreds or thousands of files, we recommend using WP CLI commands which provide better performance and reliability for large-scale operations.', 'advanced-media-offloader') . '</p><br />';
+        echo '<p class="description"><strong>' . esc_html__('Note:', 'advanced-media-offloader') . '</strong> ';
+        echo esc_html__('This web-based bulk offload supports up to 50 media attachments. For larger operations with hundreds or thousands of files, we recommend using WP CLI commands which provide better performance and reliability for large-scale operations.', 'advanced-media-offloader') . '</p><br />';
 
         $bulk_offload_data = advmo_get_bulk_offload_data();
         $count = advmo_get_unoffloaded_media_items_count();
@@ -288,7 +288,8 @@ class MediaOverview
 
         if ($count > 0 || $is_offloading) {
             if (!$is_offloading) {
-                echo '<p>' . sprintf(
+                echo '<p>' . esc_html(sprintf(
+                    /* translators: %d: number of media files stored locally. */
                     _n(
                         'You have %d file still stored on your server.',
                         'You have %d files still stored on your server.',
@@ -296,9 +297,9 @@ class MediaOverview
                         'advanced-media-offloader'
                     ),
                     $count
-                ) . '</p>';
-                echo '<p class="description">' . __('Offload them to cloud storage now to free up space and enhance your website\'s performance.', 'advanced-media-offloader') . '</p>';
-                echo '<button type="button" id="bulk-offload-button" class="button">' . __('Offload Now', 'advanced-media-offloader') . '</button>';
+                )) . '</p>';
+                echo '<p class="description">' . esc_html__('Offload them to cloud storage now to free up space and enhance your website\'s performance.', 'advanced-media-offloader') . '</p>';
+                echo '<button type="button" id="bulk-offload-button" class="button">' . esc_html__('Offload Now', 'advanced-media-offloader') . '</button>';
             }
 
             $display_style = $is_offloading ? 'block' : 'none';
@@ -315,13 +316,15 @@ class MediaOverview
             $total = $is_offloading ? ($bulk_offload_data['total'] ?? 0) : $count;
 
             echo '<div id="progress-container" style="display: ' . esc_attr($display_style) . '; margin-top: 20px;" data-status="' . esc_attr($progress_status) . '" data-total-estimate="' . esc_attr($count) . '">';
-            echo '<p id="progress-title" style="font-size: 16px; font-weight: bold;">' .
+            echo '<p id="progress-title" style="font-size: 16px; font-weight: bold;">' . wp_kses(
                 sprintf(
+                    /* translators: 1: processed media count, 2: total media count. */
                     __('Offloading media files to cloud storage (%1$s of %2$s)', 'advanced-media-offloader'),
                     '<span id="processed-count">' . esc_html($processed) . '</span>',
                     '<span id="total-count">' . esc_html($total) . '</span>'
-                ) .
-                '</p>';
+                ),
+                ['span' => ['id' => true]]
+            ) . '</p>';
             echo '    <div class="progress-bar-container" style="width: 100%; background-color: #e0e0e0; padding: 3px; border-radius: 3px;">';
             printf('        <div id="offload-progress" style="width: %.1f%%; height: 20px; background-color: #0073aa; border-radius: 2px; transition: width 0.5s;"></div>', esc_html($progress_width));
             echo '    </div>';
@@ -330,13 +333,13 @@ class MediaOverview
             $bg_cancelled = absint(get_site_option('advmo_bulk_offload_media_process_status', 0)) === 1;
 
             if (!$cancel_flag || !$bg_cancelled) {
-                echo '<button type="button" id="bulk-offload-cancel-button" class="button">' . __('Cancel', 'advanced-media-offloader') . '</button>';
+                echo '<button type="button" id="bulk-offload-cancel-button" class="button">' . esc_html__('Cancel', 'advanced-media-offloader') . '</button>';
             } else {
                 echo "<p>Canceling the bulk offload process…</p>";
             }
             echo '</div>';
         } else {
-            echo '<p>' . __('All media files are currently stored in the cloud.', 'advanced-media-offloader') . '</p>';
+            echo '<p>' . esc_html__('All media files are currently stored in the cloud.', 'advanced-media-offloader') . '</p>';
         }
     }
 }

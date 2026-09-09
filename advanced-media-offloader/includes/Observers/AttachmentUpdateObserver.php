@@ -150,7 +150,7 @@ class AttachmentUpdateObserver implements ObserverInterface
             $mimeType = function_exists('wp_get_image_mime')
                 ? wp_get_image_mime($directoryFile)
                 : (wp_check_filetype($directoryFile)['type'] ?? false);
-            if (!is_string($mimeType) || !str_starts_with($mimeType, 'image/')) {
+            if (!is_string($mimeType) || 0 !== strpos($mimeType, 'image/')) {
                 continue;
             }
 
@@ -171,7 +171,7 @@ class AttachmentUpdateObserver implements ObserverInterface
             return $newMetadata;
         }
 
-        $fileSize = wp_filesize($actualFile);
+        $fileSize = filesize($actualFile);
         $mimeType = $candidates[$actualFile];
         $newMetadata['file'] = _wp_relative_upload_path($actualFile);
         if ($fileSize !== false) {
@@ -298,7 +298,7 @@ class AttachmentUpdateObserver implements ObserverInterface
         $uploadsBase = trailingslashit($this->normalizeFilePath($uploadDir['basedir']));
         $candidate = $this->normalizeFilePath($path);
 
-        return str_starts_with($candidate, $uploadsBase);
+        return 0 === strpos($candidate, $uploadsBase);
     }
 
     /**

@@ -19,6 +19,9 @@ class CloudAttachmentUploader
     private const HYDRATED_CLEANUP_ERROR =
         'Temporary cloud downloads could not be removed. Cleanup will be retried.';
 
+    private const REGENERATION_CLOUD_CLEANUP_ERROR =
+        'Failed to delete obsolete thumbnail objects from cloud storage. Cleanup will be retried.';
+
     private S3_Provider $cloudProvider;
 
     public function __construct(S3_Provider $cloudProvider)
@@ -43,7 +46,7 @@ class CloudAttachmentUploader
 
         $base = trailingslashit(wp_normalize_path($uploads['basedir']));
         $file = wp_normalize_path($file);
-        if (!str_starts_with($file, $base)) {
+        if (0 !== strpos($file, $base)) {
             return false;
         }
 
@@ -228,7 +231,7 @@ class CloudAttachmentUploader
 
         $base = trailingslashit(wp_normalize_path($uploads['basedir']));
         $file = wp_normalize_path($file);
-        if (!str_starts_with($file, $base)) {
+        if (0 !== strpos($file, $base)) {
             return null;
         }
 
@@ -239,8 +242,8 @@ class CloudAttachmentUploader
     private function isSafeUploadsRelativePath(string $path): bool
     {
         return $path !== ''
-            && !str_contains($path, "\0")
-            && !str_starts_with($path, '/')
+            && false === strpos($path, "\0")
+            && 0 !== strpos($path, '/')
             && !preg_match('#(^|/)\.\.(/|$)#', $path);
     }
 
@@ -566,6 +569,8 @@ class CloudAttachmentUploader
             return true;
         }
 
+        $previous_errors = $this->getRegenerationErrors($attachment_id);
+
         if (empty($new_metadata)) {
             $this->logError($attachment_id, 'Thumbnail regeneration returned empty attachment metadata.', false);
             return false;
@@ -749,6 +754,8 @@ class CloudAttachmentUploader
         // Regeneration commit checks care about files WordPress will serve,
         // not unrelated EXIF or plugin metadata another filter may append.
         $pending_cleanup['metadata_fingerprint'] = $this->getRegenerationMetadataFingerprint($new_metadata);
+        // Only errors that existed before this retry may be resolved by it.
+        $pending_cleanup['errors_to_clear'] = $previous_errors;
         $pending_cleanup['cloud_delete_keys'] = $obsolete_keys;
         $pending_cleanup['regenerated_thumbnails'] = [];
         foreach (($new_metadata['sizes'] ?? []) as $size_name => $size_data) {
@@ -876,16 +883,16 @@ class CloudAttachmentUploader
         $allowed = array_fill_keys($allowedKeys, true);
         $valid = [];
         foreach ($keys as $key) {
-            if (!is_string($key) || $key === '' || str_contains($key, "\0") || str_starts_with($key, '/')) {
+            if (!is_string($key) || $key === '' || false !== strpos($key, "\0") || 0 === strpos($key, '/')) {
                 continue;
             }
             if (preg_match('#(^|/)\.\.(/|$)#', $key)) {
                 continue;
             }
-            if ($subdir !== '' && !str_starts_with($key, $subdir)) {
+            if ($subdir !== '' && 0 !== strpos($key, $subdir)) {
                 continue;
             }
-            if ($subdir === '' && str_contains($key, '/')) {
+            if ($subdir === '' && false !== strpos($key, '/')) {
                 continue;
             }
             if (!isset($allowed[$key])) {
@@ -1199,7 +1206,9 @@ class CloudAttachmentUploader
                         continue;
                     }
 
-                    $isRestorableOriginal = is_string($backupKey) && str_ends_with($backupKey, '-orig');
+                    $isRestorableOriginal = is_string($backupKey)
+                        && strlen($backupKey) >= strlen('-orig')
+                        && 0 === substr_compare($backupKey, '-orig', -strlen('-orig'));
                     foreach ($this->getFilesFromSizeData($entry) as $basename) {
                         if (isset($seen[$basename])) {
                             continue;
@@ -1718,7 +1727,7 @@ class CloudAttachmentUploader
             if (!$this->cloudProvider->deleteObjects($keys)) {
                 $this->logError(
                     $attachment_id,
-                    'Failed to delete obsolete thumbnail objects from cloud storage. Cleanup will be retried.',
+                    self::REGENERATION_CLOUD_CLEANUP_ERROR,
                     false
                 );
                 return false;
@@ -1753,7 +1762,91 @@ class CloudAttachmentUploader
             delete_post_meta($attachment_id, self::META_PENDING_LOCAL_CLEANUP);
         }
 
-        return !metadata_exists('post', $attachment_id, self::META_PENDING_LOCAL_CLEANUP);
+        $completed = !metadata_exists('post', $attachment_id, self::META_PENDING_LOCAL_CLEANUP);
+        if ($completed && is_array($state) && ($state['context'] ?? '') === 'thumbnail_regeneration') {
+            $this->clearRegenerationErrors($attachment_id, $state);
+        }
+
+        return $completed;
+    }
+
+    /** Clear recovered errors only after the matching regeneration finishes. */
+    private function clearRegenerationErrors(int $attachment_id, array $state): void
+    {
+        // Pending records from older versions do not contain an error snapshot.
+        $resolved = $state['errors_to_clear'] ?? $this->getRegenerationErrors($attachment_id);
+        if (!is_array($resolved)) {
+            return;
+        }
+        if (!empty($state['cloud_delete_keys'])) {
+            // Cloud deletion may have failed after the upload was staged.
+            $resolved[] = self::REGENERATION_CLOUD_CLEANUP_ERROR;
+        }
+
+        $stored = get_post_meta($attachment_id, 'advmo_error_log', true);
+        $errors = is_array($stored) ? $stored : [$stored];
+        $remaining = array_values(array_filter(
+            $errors,
+            static fn($error): bool => !in_array($error, $resolved, true)
+        ));
+        if (count($remaining) === count($errors)) {
+            return;
+        }
+
+        // Preserve a concurrent error writer instead of replacing its report.
+        if (empty($remaining)) {
+            delete_post_meta($attachment_id, 'advmo_error_log', $stored);
+        } else {
+            update_post_meta($attachment_id, 'advmo_error_log', $remaining, $stored);
+        }
+    }
+
+    /** Recognize this operation's existing string-based reports, including legacy values. */
+    private function getRegenerationErrors(int $attachment_id): array
+    {
+        $messages = [
+            'Thumbnail regeneration returned empty attachment metadata.',
+            'Thumbnail regeneration was stopped because an earlier local cleanup is still pending. Regeneration did not start, so its files were not changed.',
+            'Thumbnail regeneration was not synced because an earlier cleanup appeared after regeneration started. Regenerated files were kept locally.',
+            'The committed cloud path is missing for thumbnail regeneration.',
+            'Unable to determine the image path for thumbnail regeneration.',
+            'Failed to upload all optimizer sidecar files for thumbnail regeneration.',
+            'Unable to build thumbnail-regeneration cleanup state. Local files were kept.',
+            'Failed to save thumbnail-regeneration cleanup state. Local files were kept.',
+            'Canceled stale thumbnail-regeneration cleanup because WordPress did not commit the expected metadata. Local files and old cloud objects were kept.',
+            'Canceled deferred thumbnail regeneration cleanup because the optimizer did not finish within the retry window. Local files and old cloud objects were kept.',
+            'The cloud regeneration source could not be mapped to a safe uploads path.',
+            'The temporary regeneration source could not be recorded for crash-safe cleanup.',
+            self::REGENERATION_CLOUD_CLEANUP_ERROR,
+        ];
+        $patterns = [
+            "~\AFailed to upload '.+' during thumbnail_regeneration\."
+                . "(?: Please review your Cloud provider credentials or connection settings\. For more details, enable debug\.log and check the logs\.)?\z~s",
+            "~\ANewly generated file '.+' disappeared before it could be uploaded during thumbnail regeneration\.\z~s",
+            "~\ACloud storage could not verify required thumbnail_regeneration object '.+'\. Local files were kept\.\z~s",
+            "~\ARequired thumbnail_regeneration file '.+' is missing locally or could not be verified in cloud storage\.\z~s",
+            "~\AFailed to download regeneration source '.+' from cloud storage\.\z~s",
+            "~\ADownloaded regeneration source '.+' is not a valid image\.\z~s",
+        ];
+
+        $errors = get_post_meta($attachment_id, 'advmo_error_log', true);
+        return array_values(array_filter(
+            is_array($errors) ? $errors : [$errors],
+            static function ($error) use ($messages, $patterns): bool {
+                if (!is_string($error)) {
+                    return false;
+                }
+                if (in_array($error, $messages, true)) {
+                    return true;
+                }
+                foreach ($patterns as $pattern) {
+                    if (preg_match($pattern, $error) === 1) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        ));
     }
 
     /**

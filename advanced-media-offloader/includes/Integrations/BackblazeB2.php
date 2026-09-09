@@ -97,12 +97,12 @@ class BackblazeB2 extends S3_Provider
 			],
 		];
 
-		echo $this->getCredentialsFieldHTML($credentialFields, 'backblaze_b2', sprintf(
+		$provider_description = wp_kses_post(sprintf(
 			/* translators: %1$s / %2$s: opening and closing link tags */
 			__('New to Backblaze B2? See %1$show to create an application key%2$s, then paste the credentials below.', 'advanced-media-offloader'),
 			'<a href="https://www.backblaze.com/docs/cloud-storage-create-and-manage-app-keys" target="_blank" rel="noopener noreferrer">',
 			'</a>'
 		));
+		echo $this->getCredentialsFieldHTML($credentialFields, 'backblaze_b2', $provider_description); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The shared form builder escapes all dynamic field values.
 	}
 }
-

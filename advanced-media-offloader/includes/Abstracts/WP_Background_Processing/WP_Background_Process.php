@@ -728,9 +728,13 @@ abstract class WP_Background_Process extends WP_Async_Request
         $interval = $this->get_cron_interval();
 
         if (1 === $interval) {
-            $display = __('Every Minute');
+            $display = __('Every Minute', 'advanced-media-offloader');
         } else {
-            $display = sprintf(__('Every %d Minutes'), $interval);
+            $display = sprintf(
+                /* translators: %d: number of minutes between background-process checks. */
+                __('Every %d Minutes', 'advanced-media-offloader'),
+                $interval
+            );
         }
 
         // Adds an "Every NNN Minute(s)" schedule to the existing cron schedules.

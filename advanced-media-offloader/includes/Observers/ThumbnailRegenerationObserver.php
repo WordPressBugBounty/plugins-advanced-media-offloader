@@ -479,7 +479,7 @@ class ThumbnailRegenerationObserver implements ObserverInterface
         }
 
         $mime = function_exists('wp_get_image_mime') ? wp_get_image_mime($file) : false;
-        if (!is_string($mime) || !str_starts_with($mime, 'image/')) {
+        if (!is_string($mime) || 0 !== strpos($mime, 'image/')) {
             wp_delete_file($file);
             $this->cloudAttachmentUploader->forgetHydratedRegenerationFile($attachment_id, $file);
             $this->recordHydrationError(
@@ -784,8 +784,8 @@ class ThumbnailRegenerationObserver implements ObserverInterface
                 }
 
                 if (
-                    str_contains($call, 'regenerat')
-                    && (str_contains($call, 'thumbnail') || str_contains($call, 'media'))
+                    false !== strpos($call, 'regenerat')
+                    && (false !== strpos($call, 'thumbnail') || false !== strpos($call, 'media'))
                 ) {
                     $detected = true;
                     break;
@@ -846,8 +846,8 @@ class ThumbnailRegenerationObserver implements ObserverInterface
             }
 
             if (
-                str_contains($call, 'regenerat')
-                && (str_contains($call, 'thumbnail') || str_contains($call, 'media'))
+                false !== strpos($call, 'regenerat')
+                && (false !== strpos($call, 'thumbnail') || false !== strpos($call, 'media'))
             ) {
                 return true;
             }
@@ -915,7 +915,7 @@ class ThumbnailRegenerationObserver implements ObserverInterface
         }
 
         $base = trailingslashit(wp_normalize_path($uploads['basedir']));
-        return str_starts_with(wp_normalize_path($path), $base);
+        return 0 === strpos(wp_normalize_path($path), $base);
     }
 
     /**
@@ -985,7 +985,7 @@ class ThumbnailRegenerationObserver implements ObserverInterface
             $argument = (string) $argument;
             foreach ($names as $name) {
                 $prefix = '--' . $name;
-                if (str_starts_with($argument, $prefix . '=')) {
+                if (0 === strpos($argument, $prefix . '=')) {
                     return trim(substr($argument, strlen($prefix) + 1));
                 }
                 if ($argument === $prefix && isset($_SERVER['argv'][$index + 1])) {
@@ -1010,7 +1010,7 @@ class ThumbnailRegenerationObserver implements ObserverInterface
             if ($argument === $prefix) {
                 return true;
             }
-            if (str_starts_with($argument, $prefix . '=')) {
+            if (0 === strpos($argument, $prefix . '=')) {
                 $value = substr($argument, strlen($prefix) + 1);
                 return !in_array($value, ['0', 'false', 'no', 'off'], true);
             }

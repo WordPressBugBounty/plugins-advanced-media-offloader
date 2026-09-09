@@ -90,12 +90,14 @@ class Cloudflare_R2 extends S3_Provider
 			],
 		];
 
-		echo $this->getCredentialsFieldHTML($credentialFields, 'cloudflare_r2', sprintf(
+		$provider_description = wp_kses_post(sprintf(
 			/* translators: %1$s / %2$s: opening and closing link tags */
 			__('New to Cloudflare R2? See %1$show to create an R2 API token%2$s, then paste the credentials below.', 'advanced-media-offloader'),
+			// phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- Provider documentation link, not an offloaded asset.
 			'<a href="https://developers.cloudflare.com/r2/api/tokens/" target="_blank" rel="noopener noreferrer">',
 			'</a>'
 		));
+		echo $this->getCredentialsFieldHTML($credentialFields, 'cloudflare_r2', $provider_description); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The shared form builder escapes all dynamic field values.
 	}
 
 	/**

@@ -122,7 +122,7 @@ abstract class S3_Provider
 			|| wp_normalize_path(dirname($temporary)) !== wp_normalize_path($directory)
 		) {
 			if (is_string($temporary) && is_file($temporary)) {
-				@unlink($temporary);
+				wp_delete_file($temporary);
 			}
 			error_log("Advanced Media Offloader: Unable to create a temporary download file in: {$directory}");
 			return false;
@@ -168,25 +168,26 @@ abstract class S3_Provider
 			// Another worker may have restored the same source while this request
 			// was downloading. Accept it only when it is complete and readable.
 			if (file_exists($destination)) {
-				@unlink($temporary);
+				wp_delete_file($temporary);
 				self::forgetTemporaryDownload($temporary);
 				return $this->verifyDownloadedFile($destination, $directory, $downloadedSize);
 			}
 
-			if (!@rename($temporary, $destination)) {
+			// An atomic same-filesystem rename prevents readers from seeing a partial download.
+			if (!@rename($temporary, $destination)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- WP_Filesystem::move() does not guarantee this atomic handoff.
 				throw new \RuntimeException('Unable to move the downloaded file into the uploads directory atomically.');
 			}
 			self::forgetTemporaryDownload($temporary);
 
 			if (!$this->verifyDownloadedFile($destination, $directory, $downloadedSize)) {
-				@unlink($destination);
+				wp_delete_file($destination);
 				throw new \RuntimeException('The restored uploads file could not be verified.');
 			}
 
 			return true;
 		} catch (\Throwable $e) {
 			if (file_exists($temporary)) {
-				@unlink($temporary);
+				wp_delete_file($temporary);
 			}
 			self::forgetTemporaryDownload($temporary);
 			error_log("Advanced Media Offloader: Error downloading cloud object '{$key}': {$e->getMessage()}");
@@ -205,7 +206,7 @@ abstract class S3_Provider
 		register_shutdown_function(static function (): void {
 			foreach (array_keys(self::$temporaryDownloads) as $temporary) {
 				if (is_file($temporary)) {
-					@unlink($temporary);
+					wp_delete_file($temporary);
 				}
 			}
 			self::$temporaryDownloads = [];
@@ -226,7 +227,7 @@ abstract class S3_Provider
 		if ($permissions === 0) {
 			$permissions = 0644;
 		}
-		@chmod($file, $permissions);
+		@chmod($file, $permissions); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- Applies the uploads directory mode to a local restored file.
 
 		$size = is_file($file) ? (int) filesize($file) : 0;
 		return $size > 0
@@ -256,9 +257,9 @@ abstract class S3_Provider
 			}
 
 			throw new \RuntimeException(
-				"Cloud storage could not verify object '{$key}': {$e->getMessage()}",
+				"Cloud storage could not verify object '{$key}': {$e->getMessage()}", // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception text is escaped by the eventual output handler.
 				0,
-				$e
+				$e // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Previous exception object is not output.
 			);
 		}
 	}
@@ -816,6 +817,7 @@ abstract class S3_Provider
 			
 			if ($is_constant_defined) {
 				$html .= '<p class="description">' . sprintf(
+					/* translators: %s: wp-config.php file name. */
 					esc_html__('This value is set in %s and cannot be changed here.', 'advanced-media-offloader'),
 					'<code>wp-config.php</code>'
 				) . '</p>';
@@ -841,6 +843,7 @@ abstract class S3_Provider
 		
 		if ($is_constant_defined) {
 			$html .= '<p class="description">' . sprintf(
+				/* translators: %s: wp-config.php file name. */
 				esc_html__('This value is set in %s and cannot be changed here.', 'advanced-media-offloader'),
 				'<code>wp-config.php</code>'
 			) . '</p>';
@@ -1167,7 +1170,7 @@ abstract class S3_Provider
 		$advmo_path = get_post_meta($attachment_id, 'advmo_path', true);
 
 		if (empty($attached_file)) {
-			throw new \Exception("Unable to find attached file for attachment ID {$attachment_id}");
+			throw new \Exception("Unable to find attached file for attachment ID {$attachment_id}"); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; the numeric ID is safe and output handlers escape the message.
 		}
 
 		// Extract and sanitize the filename from the attached file path
@@ -1176,7 +1179,7 @@ abstract class S3_Provider
 
 		// Validate filename is not empty after sanitization
 		if (empty($file_name)) {
-			throw new \Exception("Invalid file name for attachment ID {$attachment_id}");
+			throw new \Exception("Invalid file name for attachment ID {$attachment_id}"); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; the numeric ID is safe and output handlers escape the message.
 		}
 
 		// Sanitize and validate the path (if provided)

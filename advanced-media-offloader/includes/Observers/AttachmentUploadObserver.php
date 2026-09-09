@@ -135,7 +135,7 @@ class AttachmentUploadObserver implements ObserverInterface
             self::PENDING_CLEANUP_BATCH_SIZE
         );
 
-        return array_map('intval', $wpdb->get_col($query));
+        return array_map('intval', $wpdb->get_col($query)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
     }
 
     public function run($metadata, $attachment_id)

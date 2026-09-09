@@ -140,7 +140,7 @@ class OffloadStatusObserver implements ObserverInterface
             printf(
                 '<span class="advmo-icon advmo-icon--success" title="%s">%s</span>',
                 esc_attr__('Offloaded', 'advanced-media-offloader'),
-                self::ICON_CLOUD
+                self::ICON_CLOUD // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG defined by the plugin.
             );
             return;
         }
@@ -149,7 +149,7 @@ class OffloadStatusObserver implements ObserverInterface
             printf(
                 '<span class="advmo-icon advmo-icon--error" title="%s">%s</span>',
                 esc_attr__('Offload failed', 'advanced-media-offloader'),
-                self::ICON_WARNING
+                self::ICON_WARNING // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG defined by the plugin.
             );
         }
     }

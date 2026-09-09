@@ -108,8 +108,8 @@ class GeneralSettings
 			'cloud_provider',
 			__('Cloud storage', 'advanced-media-offloader'),
 			function () {
-				echo $this->step_one_summary();
-				echo $this->step_one_status_badge();
+				echo wp_kses_post($this->step_one_summary());
+				echo wp_kses_post($this->step_one_status_badge());
 				echo '</summary>';
 				echo '<div class="advmo-section-body">';
 				echo '<p class="advmo-section-intro">' . esc_html__('Choose a cloud storage provider and enter its connection credentials.', 'advanced-media-offloader') . '</p>';
@@ -125,7 +125,7 @@ class GeneralSettings
 			'general_settings',
 			__('File handling', 'advanced-media-offloader'),
 			function () {
-				echo $this->step_two_summary();
+				echo wp_kses_post($this->step_two_summary());
 				echo '</summary>';
 				echo '<div class="advmo-section-body">';
 				echo '<p class="advmo-section-intro">' . esc_html__('Choose what happens to new uploads and local files after they are copied to cloud storage.', 'advanced-media-offloader') . '</p>';
@@ -277,6 +277,7 @@ class GeneralSettings
 		$html .= '<div class="advmo-next-action-message">';
 		$html .= '<span class="dashicons dashicons-cloud" aria-hidden="true"></span>';
 		$html .= '<p><strong>' . sprintf(
+			/* translators: %s: number of media files ready to offload. */
 			esc_html(_n('%s media file is ready to offload.', '%s media files are ready to offload.', $count, 'advanced-media-offloader')),
 			esc_html($count_label)
 		) . '</strong> ';
@@ -284,6 +285,7 @@ class GeneralSettings
 		$html .= '</p></div>';
 		$html .= '<a class="button button-primary advmo-next-action-button" href="' . esc_url($overview_url) . '">';
 		$html .= sprintf(
+			/* translators: %s: number of media files ready to offload. */
 			esc_html(_n('Offload %s file', 'Offload %s files', $count, 'advanced-media-offloader')),
 			esc_html($count_label)
 		);
@@ -295,7 +297,7 @@ class GeneralSettings
 	public function render_next_action_slot(): void
 	{
 		echo '<div class="advmo-next-action-slot" aria-live="polite">';
-		echo $this->next_action_html();
+		echo wp_kses_post($this->next_action_html());
 		echo '</div>';
 	}
 
@@ -520,7 +522,7 @@ class GeneralSettings
 				esc_attr($desc_id),
 				checked($choice['value'], $retention_policy, false),
 				esc_html($choice['title']),
-				$badge,
+				wp_kses_post($badge),
 				esc_html($choice['description'])
 			);
 		}
@@ -673,11 +675,11 @@ class GeneralSettings
 		$provider = sanitize_text_field(isset($options['cloud_provider']) ? $options['cloud_provider'] : '');
 
 		if ($provider === '') {
-			throw new \Exception(__('Please select a cloud provider first.', 'advanced-media-offloader'));
+			throw new \Exception(esc_html__('Please select a cloud provider first.', 'advanced-media-offloader'));
 		}
 
 		if (!array_key_exists($provider, $this->cloud_providers)) {
-			throw new \Exception(__('Invalid Cloud Provider!', 'advanced-media-offloader'));
+			throw new \Exception(esc_html__('Invalid Cloud Provider!', 'advanced-media-offloader'));
 		}
 
 		return $provider;
@@ -843,7 +845,8 @@ class GeneralSettings
 		if (
 			advmo_is_settings_page('media-overview')
 			&& is_string($hook_suffix)
-			&& str_ends_with($hook_suffix, '_page_advmo_media_overview')
+			&& strlen($hook_suffix) >= strlen('_page_advmo_media_overview')
+			&& 0 === substr_compare($hook_suffix, '_page_advmo_media_overview', -strlen('_page_advmo_media_overview'))
 		) {
 			wp_enqueue_script('advmo_bulkoffload', ADVMO_URL . 'assets/js/advmo_bulkoffload.js', [], ADVMO_VERSION, true);
 			wp_localize_script('advmo_bulkoffload', 'advmo_ajax_object', [
@@ -1030,7 +1033,7 @@ class GeneralSettings
 	private function sanitize_for_ajax($options)
 	{
 		if (!current_user_can('manage_options')) {
-			throw new \Exception(__('You do not have permission to perform this action.', 'advanced-media-offloader'));
+			throw new \Exception(esc_html__('You do not have permission to perform this action.', 'advanced-media-offloader'));
 		}
 
 		// Initialize sanitized options with defaults
