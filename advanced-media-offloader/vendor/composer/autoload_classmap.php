@@ -6,6 +6,19 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'AdvancedMediaOffloader\\Foundation\\Application' => $baseDir . '/src/Foundation/Application.php',
+    'AdvancedMediaOffloader\\Foundation\\Container' => $baseDir . '/src/Foundation/Container.php',
+    'AdvancedMediaOffloader\\Foundation\\ContainerException' => $baseDir . '/src/Foundation/ContainerException.php',
+    'AdvancedMediaOffloader\\Foundation\\ServiceProvider' => $baseDir . '/src/Foundation/ServiceProvider.php',
+    'AdvancedMediaOffloader\\Media\\AttachedFileCache' => $baseDir . '/src/Media/AttachedFileCache.php',
+    'AdvancedMediaOffloader\\Media\\AttachedFileObserver' => $baseDir . '/src/Media/AttachedFileObserver.php',
+    'AdvancedMediaOffloader\\Media\\FailedDownloads' => $baseDir . '/src/Media/FailedDownloads.php',
+    'AdvancedMediaOffloader\\Providers\\AdminServiceProvider' => $baseDir . '/src/Providers/AdminServiceProvider.php',
+    'AdvancedMediaOffloader\\Providers\\OffloadServiceProvider' => $baseDir . '/src/Providers/OffloadServiceProvider.php',
+    'AdvancedMediaOffloader\\Providers\\StorageServiceProvider' => $baseDir . '/src/Providers/StorageServiceProvider.php',
+    'AdvancedMediaOffloader\\Storage\\ObjectKey' => $baseDir . '/src/Storage/ObjectKey.php',
+    'AdvancedMediaOffloader\\Storage\\ProviderRegistry' => $baseDir . '/src/Storage/ProviderRegistry.php',
+    'AdvancedMediaOffloader\\Support\\Deprecation' => $baseDir . '/src/Support/Deprecation.php',
     'Advanced_Media_Offloader\\Abstracts\\S3_Provider' => $baseDir . '/includes/Abstracts/S3_Provider.php',
     'Advanced_Media_Offloader\\Abstracts\\WP_Background_Processing\\WP_Async_Request' => $baseDir . '/includes/Abstracts/WP_Background_Processing/WP_Async_Request.php',
     'Advanced_Media_Offloader\\Abstracts\\WP_Background_Processing\\WP_Background_Process' => $baseDir . '/includes/Abstracts/WP_Background_Processing/WP_Background_Process.php',

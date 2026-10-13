@@ -2,40 +2,47 @@
 
 namespace Advanced_Media_Offloader\Core;
 
+use AdvancedMediaOffloader\Foundation\Application;
+
+/**
+ * The 4.x container API on top of the application. It keeps the 4.x signatures and nothing else public,
+ * so code that calls it by name or extends it keeps working. New code uses advmo()->app().
+ */
 class Container
 {
-    private array $services = [];
-    private array $instances = [];
+    private ?Application $app = null;
+
+    public function __construct(?Application $app = null)
+    {
+        $this->app = $app;
+    }
 
     public function register(string $id, $concrete): self
     {
-        $this->services[$id] = $concrete;
+        // 4.x factories receive the container they were registered on.
+        if ($concrete instanceof \Closure) {
+            $factory = $concrete;
+            $concrete = fn () => $factory($this);
+        }
+
+        $this->app()->register($id, $concrete);
+
         return $this;
     }
 
     public function get(string $id)
     {
-        if (!isset($this->services[$id])) {
-            throw new \Exception("Service '$id' not found in container"); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; output handlers escape the message.
-        }
-
-        // Return cached instance if available
-        if (isset($this->instances[$id])) {
-            return $this->instances[$id];
-        }
-
-        // Create new instance if service is a factory function
-        if ($this->services[$id] instanceof \Closure) {
-            $this->instances[$id] = $this->services[$id]($this);
-        } else {
-            $this->instances[$id] = $this->services[$id];
-        }
-
-        return $this->instances[$id];
+        return $this->app()->get($id);
     }
 
     public function has(string $id): bool
     {
-        return isset($this->services[$id]);
+        return $this->app()->has($id);
+    }
+
+    // A subclass may have its own constructor that never calls this one.
+    private function app(): Application
+    {
+        return $this->app ??= new Application();
     }
 }

@@ -459,6 +459,12 @@ class GeneralSettings
 			. esc_html__('This applies to each file right after it has been copied to cloud storage successfully — nothing is deleted before the cloud copy exists. Changing this does not go back and delete files that were already offloaded.', 'advanced-media-offloader')
 			. '</p>';
 
+		if ($retention_policy > 0 && $this->provider_has_no_domain()) {
+			echo '<div class="notice notice-warning inline"><p>'
+				. esc_html__('No Custom Domain is set for your cloud provider, so media is still served from this server and local files are kept, whatever you choose here. Set the Custom Domain (the public URL of your bucket or CDN) to serve media from cloud storage. Files already removed from this server load again once it is set.', 'advanced-media-offloader')
+				. '</p></div>';
+		}
+
 		$choices = [
 			[
 				'id'          => 'retention_policy',
@@ -781,6 +787,20 @@ class GeneralSettings
 		return advmo_get_cloud_provider_key();
 	}
 
+	private function provider_has_no_domain(): bool
+	{
+		$cloud_provider_key = $this->get_cloud_provider_key();
+		if ($cloud_provider_key === '') {
+			return false;
+		}
+
+		try {
+			return empty(CloudProviderFactory::create($cloud_provider_key)->getDomain());
+		} catch (\Exception $e) {
+			return false;
+		}
+	}
+
 	public function cloud_provider_credentials_field()
 	{
 		$cloud_provider_key = $this->get_cloud_provider_key();
@@ -794,8 +814,13 @@ class GeneralSettings
 				// Render the credentials fields specific to the selected cloud provider
 				$cloud_provider_instance->credentialsField();
 			} catch (\Exception $e) {
-				// Display an error message if the cloud provider is unsupported or instantiation fails
-				echo '<p class="description">' . esc_html__('Selected cloud provider is not supported or failed to initialize.', 'advanced-media-offloader') . '</p>';
+				// The saved provider is gone (its add-on was removed) or the option is damaged; the select above
+				// cannot show it, so say which one it was and how to fix it.
+				echo '<div class="notice notice-error inline"><p>' . esc_html(sprintf(
+					/* translators: %s: the cloud provider key saved in the settings */
+					__('The saved cloud provider "%s" is not available, so media is not offloaded or served from cloud storage. Choose a cloud provider above, enter its credentials and save.', 'advanced-media-offloader'),
+					$cloud_provider_key
+				)) . '</p></div>';
 			}
 		} else {
 			echo '<p class="description">' . esc_html__('Please select a valid cloud provider to configure credentials.', 'advanced-media-offloader') . '</p>';

@@ -3,7 +3,7 @@
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
  * Description:       Save server space & speed up your site by automatically offloading media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2 and more.
- * Version:           4.5.2
+ * Version:           4.6.0
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter
@@ -27,6 +27,9 @@ if (!class_exists('ADVMO')) {
 
 		/** @var \Advanced_Media_Offloader\Core\Container */
 		public $container;
+
+		/** @var \AdvancedMediaOffloader\Foundation\Application */
+		private $app;
 
 		/**
 		 * The plugin version number.
@@ -86,70 +89,50 @@ if (!class_exists('ADVMO')) {
 			// Register deactivation hook.
 			register_deactivation_hook(__FILE__, array($this, 'plugin_deactivated'));
 
-			// Set up container
 			$this->setup_container();
-
-			// Include files and setup WordPress hooks
 			$this->include_files();
-			$this->setup_hooks();
+
+			// Services are resolved on plugins_loaded, once add-ons have registered their providers.
+			// Priority 0 keeps them ready as early as possible after every plugin file is loaded.
+			if (did_action('plugins_loaded')) {
+				$this->boot();
+			} else {
+				add_action('plugins_loaded', array($this, 'boot'), 0);
+			}
 		}
 
 		private function setup_container()
 		{
-			// Include autoloader
 			if (file_exists(ADVMO_PATH . 'vendor/scoper-autoload.php')) {
 				require_once ADVMO_PATH . 'vendor/scoper-autoload.php';
 			} elseif (file_exists(ADVMO_PATH . 'vendor/autoload.php')) {
 				require_once ADVMO_PATH . 'vendor/autoload.php';
 			}
 
-			$this->container = new \Advanced_Media_Offloader\Core\Container();
+			$this->app = new \AdvancedMediaOffloader\Foundation\Application(__FILE__);
+			$this->container = new \Advanced_Media_Offloader\Core\Container($this->app);
+			$this->app->instance(self::class, $this);
+			$this->app->instance(\Advanced_Media_Offloader\Core\Container::class, $this->container);
 
-			$this->container->register('cloud_provider_factory', function ($c) {
-				return new \Advanced_Media_Offloader\Factories\CloudProviderFactory();
-			});
-
-			// Register core services
-			$this->container->register('cloud_provider', function ($c) {
-				$cloud_provider_key = advmo_get_cloud_provider_key();
-				if (empty($cloud_provider_key)) {
-					return null;
-				}
-
-				if ($c->has('cloud_provider_factory')) {
-					$cloud_provider_factory = $c->get('cloud_provider_factory');
-					return $cloud_provider_factory::create($cloud_provider_key);
-				}
-
-				return null;
-			});
-
-			$this->container->register('offloader', function ($c) {
-				if ($c->has('cloud_provider') && $c->get('cloud_provider') !== null) {
-					return \Advanced_Media_Offloader\Offloader::get_instance($c->get('cloud_provider'));
-				}
-				return null;
-			});
-
-			$this->container->register('settings_page', function ($c) {
-				return \Advanced_Media_Offloader\Admin\GeneralSettings::create($c->get('cloud_provider_factory'));
-			});
-
-			$this->container->register('media_overview_page', function ($c) {
-				return \Advanced_Media_Offloader\Admin\MediaOverview::getInstance();
-			});
-
-			$this->container->register('support_page', function ($c) {
-				return \Advanced_Media_Offloader\Admin\SupportPage::getInstance();
-			});
-
-			$this->container->register('bulk_offload_handler', function ($c) {
-				return \Advanced_Media_Offloader\BulkOffloadHandler::get_instance();
-			});
+			$this->app->register(\AdvancedMediaOffloader\Providers\StorageServiceProvider::class);
+			$this->app->register(\AdvancedMediaOffloader\Providers\AdminServiceProvider::class);
+			$this->app->register(\AdvancedMediaOffloader\Providers\OffloadServiceProvider::class);
 		}
 
-		private function setup_hooks()
+		public function app(): \AdvancedMediaOffloader\Foundation\Application
 		{
+			return $this->app;
+		}
+
+		/**
+		 * Runs on plugins_loaded. Hooked by initialize(); not meant to be called directly.
+		 */
+		public function boot()
+		{
+			if ($this->app->isBooted()) {
+				return;
+			}
+
 			// This guard covers metadata left by earlier offloads, so it must run
 			// even when no cloud provider is currently selected.
 			if (class_exists(\Advanced_Media_Offloader\Observers\MissingImageSubsizesObserver::class)) {
@@ -165,28 +148,9 @@ if (!class_exists('ADVMO')) {
 				return;
 			}
 
-			# Include admin if needed
-			if (is_admin()) {
-				$this->container->get('settings_page'); // Initialize settings
-				$this->container->get('media_overview_page'); // Initialize media overview
-				$this->container->get('support_page'); // Initialize the support page
-				new \Advanced_Media_Offloader\Admin\Observers\CurrentScreen();
-				\Advanced_Media_Offloader\Admin\Observers\WelcomeNotice::getInstance();
+			$this->app->boot();
 
-				# Add link to the settings page in the plugins list
-				add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'plugin_action_links']);
-			}
-
-			# Initialize offloader if cloud provider is configured
-			if ($this->container->has('offloader') && $this->container->get('offloader') !== null) {
-				$this->container->get('offloader')->initializeHooks();
-			}
-
-			# Initialize bulk offload handler
-			$this->container->get('bulk_offload_handler');
-
-			# Register WP CLI commands
-			$this->register_cli_commands();
+			do_action('advmo_loaded', $this);
 		}
 
 		private function include_files()
@@ -196,33 +160,13 @@ if (!class_exists('ADVMO')) {
 		}
 
 		/**
-		 * Register WP CLI commands if WP CLI is available.
-		 *
-		 * @return void
+		 * @deprecated 4.6.0 Use \AdvancedMediaOffloader\Providers\AdminServiceProvider::pluginActionLinks().
 		 */
-		private function register_cli_commands()
-		{
-			if (defined('WP_CLI') && WP_CLI) {
-				WP_CLI::add_command('advmo offload', 'Advanced_Media_Offloader\\CLI\\OffloadCommand');
-			}
-		}
-
 		public function plugin_action_links($links)
 		{
-			$settings_page_link = '<a href="' . esc_url(admin_url('admin.php?page=advmo')) . '">' . __('Settings', 'advanced-media-offloader') . '</a>';
-			array_unshift($links, $settings_page_link);
-			// Append Donate link (non-intrusive), gated by filter
-			if (apply_filters('advmo_show_donate_links', true)) {
-				$donate_url = add_query_arg(array(
-					'utm_source'   => 'wp-plugin',
-					'utm_medium'   => 'plugins-list',
-					'utm_campaign' => 'advanced-media-offloader',
-					'utm_content'  => 'plugin-row-donate',
-				), 'https://buymeacoffee.com/wpfitter');
-				$donate_link = '<a href="' . esc_url($donate_url) . '" target="_blank" rel="noopener noreferrer" title="' . esc_attr__('Donate to support Advanced Media Offloader', 'advanced-media-offloader') . '">' . esc_html__('Donate', 'advanced-media-offloader') . '</a>';
-				$links[] = $donate_link;
-			}
-			return $links;
+			\AdvancedMediaOffloader\Support\Deprecation::function(__METHOD__, '4.6.0', '\AdvancedMediaOffloader\Providers\AdminServiceProvider::pluginActionLinks()');
+
+			return \AdvancedMediaOffloader\Providers\AdminServiceProvider::pluginActionLinks($links);
 		}
 
 		/**

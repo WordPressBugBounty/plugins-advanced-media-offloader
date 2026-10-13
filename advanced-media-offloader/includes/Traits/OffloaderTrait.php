@@ -70,7 +70,9 @@ trait OffloaderTrait
         if (isset($metadata['file'])) {
             $dirname = '';
             if (advmo_is_media_organized_by_year_month()) {
-                $file_dirname = dirname($metadata['file']);
+                // SVG Support saves the file as "/2025/01/logo.svg". An object
+                // key never starts with a slash: the URLs and deletes drop it.
+                $file_dirname = ltrim(dirname($metadata['file']), '/');
                 // dirname() returns '.' when the file has no directory
                 // component — e.g. an attachment stored at the uploads root
                 // while year/month organization is enabled. Left untouched,
@@ -197,6 +199,12 @@ trait OffloaderTrait
     {
         $settings = get_option('advmo_settings');
         $retention_policy = isset($settings['retention_policy']) ? $settings['retention_policy'] : '0';
+
+        // Without a public domain the URLs are not rewritten, so the site keeps serving media from this
+        // server and deleting a local copy would break it. advmo_local_deletion_rule can still override.
+        if (isset($this->cloudProvider) && empty($this->cloudProvider->getDomain())) {
+            return 0;
+        }
 
         // Ensure the value is a string and convert it to an integer
         return intval((string)$retention_policy);

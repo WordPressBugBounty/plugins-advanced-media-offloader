@@ -5,7 +5,7 @@ Tags: offload, amazon s3, cloudflare r2, cloud storage, cdn
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 4.5.2
+Stable tag: 4.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -246,6 +246,13 @@ Check the Media Overview page — it shows offload errors and lets you download 
 
 == Changelog ==
 
+= 4.6.0 =
+* Fixed: Images could break when no Custom Domain was set and Smart Local Cleanup or Full Cloud Migration was on. Local files were deleted while the site still served them. Now they are kept until you set a Custom Domain.
+* Fixed: A saved cloud provider that is no longer available (for example after removing the add-on that added it) took the whole site down. The plugin now keeps running and the settings page tells you to choose a provider again.
+* Fixed: SVG files from plugins like SVG Support could break. On Amazon S3 new ones were stored under the wrong key, and on Cloudflare R2 and MinIO a cloud-only SVG could not be read and was requested again on every page load, which slowed pages down.
+* Fixed: Lazy-load placeholders in images (for example Avada's) were turned into broken cloud URLs.
+* Added: Developers can extend the plugin with the new `advmo_register_providers` and `advmo_loaded` actions, and storage providers added with the `advmo_cloud_providers` filter can now be selected. The plugin now starts on `plugins_loaded`. Code that uses `advmo()->container` keeps working.
+
 = 4.5.2 =
 * Security: Restricted individual media offloading to users who can edit the selected attachment.
 * Improved: The production package now passes Plugin Check without errors.
@@ -339,6 +346,9 @@ Check the Media Overview page — it shows offload errors and lets you download 
 Earlier releases are documented in `changelog.txt` included with the plugin.
 
 == Upgrade Notice ==
+
+= 4.6.0 =
+Keeps local files until a Custom Domain is set, keeps the site running when the saved provider is gone, and fixes cloud-only SVGs and lazy-load placeholders.
 
 = 4.5.2 =
 Security fix: Restricts individual media offloading to users who can edit the selected attachment.

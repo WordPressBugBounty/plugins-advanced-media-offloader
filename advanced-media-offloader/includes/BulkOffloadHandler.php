@@ -12,16 +12,12 @@ class BulkOffloadHandler
      */
     protected $process_all;
 
-    # singleton
-    private static $instance = null;
-
+    /**
+     * The shared handler from the container, which an add-on may have replaced with its own subclass.
+     */
     public static function get_instance()
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
+        return advmo()->app()->get(self::class);
     }
 
     public function __construct()
@@ -46,7 +42,7 @@ class BulkOffloadHandler
             }
 
             $cloud_provider = CloudProviderFactory::create($cloud_provider_key);
-            $this->process_all    = new BulkMediaOffloader($cloud_provider);
+            $this->process_all    = advmo()->app()->make(BulkMediaOffloader::class, ['cloudProvider' => $cloud_provider]);
             add_action($this->process_all->get_identifier() . '_cancelled', array($this, 'process_is_cancelled'));
 
             // Stall check runs only while a bulk offload job is active.

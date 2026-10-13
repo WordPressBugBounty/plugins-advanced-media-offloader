@@ -333,7 +333,8 @@ if (!function_exists('advmo_get_cloud_provider_key')) {
 	function advmo_get_cloud_provider_key(): string
 	{
 		$options = get_option('advmo_settings', []);
-		return $options['cloud_provider'] ?? '';
+		$key = is_array($options) ? ($options['cloud_provider'] ?? '') : '';
+		return is_scalar($key) ? (string) $key : '';
 	}
 }
 

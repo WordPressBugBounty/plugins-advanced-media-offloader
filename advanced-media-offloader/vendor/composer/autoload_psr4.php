@@ -15,4 +15,5 @@ return array(
     'WPFitter\\GuzzleHttp\\' => array($vendorDir . '/guzzlehttp/guzzle/src'),
     'WPFitter\\Aws\\' => array($vendorDir . '/aws/aws-sdk-php/src'),
     'Advanced_Media_Offloader\\' => array($baseDir . '/includes'),
+    'AdvancedMediaOffloader\\' => array($baseDir . '/src'),
 );

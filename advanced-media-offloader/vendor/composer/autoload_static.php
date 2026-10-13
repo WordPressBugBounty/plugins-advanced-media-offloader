@@ -30,6 +30,7 @@ class ComposerStaticInitf615a92c50d90a95a009ec188ff0f31a
         'A' =>
         array (
             'Advanced_Media_Offloader\\' => 25,
+            'AdvancedMediaOffloader\\' => 23,
         ),
     );
 
@@ -71,9 +72,26 @@ class ComposerStaticInitf615a92c50d90a95a009ec188ff0f31a
         array (
             0 => __DIR__ . '/../..' . '/includes',
         ),
+        'AdvancedMediaOffloader\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/src',
+        ),
     );
 
     public static $classMap = array (
+        'AdvancedMediaOffloader\\Foundation\\Application' => __DIR__ . '/../..' . '/src/Foundation/Application.php',
+        'AdvancedMediaOffloader\\Foundation\\Container' => __DIR__ . '/../..' . '/src/Foundation/Container.php',
+        'AdvancedMediaOffloader\\Foundation\\ContainerException' => __DIR__ . '/../..' . '/src/Foundation/ContainerException.php',
+        'AdvancedMediaOffloader\\Foundation\\ServiceProvider' => __DIR__ . '/../..' . '/src/Foundation/ServiceProvider.php',
+        'AdvancedMediaOffloader\\Media\\AttachedFileCache' => __DIR__ . '/../..' . '/src/Media/AttachedFileCache.php',
+        'AdvancedMediaOffloader\\Media\\AttachedFileObserver' => __DIR__ . '/../..' . '/src/Media/AttachedFileObserver.php',
+        'AdvancedMediaOffloader\\Media\\FailedDownloads' => __DIR__ . '/../..' . '/src/Media/FailedDownloads.php',
+        'AdvancedMediaOffloader\\Providers\\AdminServiceProvider' => __DIR__ . '/../..' . '/src/Providers/AdminServiceProvider.php',
+        'AdvancedMediaOffloader\\Providers\\OffloadServiceProvider' => __DIR__ . '/../..' . '/src/Providers/OffloadServiceProvider.php',
+        'AdvancedMediaOffloader\\Providers\\StorageServiceProvider' => __DIR__ . '/../..' . '/src/Providers/StorageServiceProvider.php',
+        'AdvancedMediaOffloader\\Storage\\ObjectKey' => __DIR__ . '/../..' . '/src/Storage/ObjectKey.php',
+        'AdvancedMediaOffloader\\Storage\\ProviderRegistry' => __DIR__ . '/../..' . '/src/Storage/ProviderRegistry.php',
+        'AdvancedMediaOffloader\\Support\\Deprecation' => __DIR__ . '/../..' . '/src/Support/Deprecation.php',
         'Advanced_Media_Offloader\\Abstracts\\S3_Provider' => __DIR__ . '/../..' . '/includes/Abstracts/S3_Provider.php',
         'Advanced_Media_Offloader\\Abstracts\\WP_Background_Processing\\WP_Async_Request' => __DIR__ . '/../..' . '/includes/Abstracts/WP_Background_Processing/WP_Async_Request.php',
         'Advanced_Media_Offloader\\Abstracts\\WP_Background_Processing\\WP_Background_Process' => __DIR__ . '/../..' . '/includes/Abstracts/WP_Background_Processing/WP_Background_Process.php',

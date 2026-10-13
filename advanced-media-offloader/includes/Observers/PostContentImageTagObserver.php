@@ -56,7 +56,7 @@ class PostContentImageTagObserver implements ObserverInterface
             return $filtered_image;
         }
         $src_attr = $this->get_image_src($filtered_image);
-        if (empty($src_attr)) {
+        if (empty($src_attr) || !$this->is_file_url($src_attr)) {
             return $filtered_image;
         }
         $domain = $this->cloudProvider->getDomain();
@@ -84,5 +84,14 @@ class PostContentImageTagObserver implements ObserverInterface
         }
 
         return $src;
+    }
+
+    /**
+     * Lazy loaders keep an inline placeholder such as "data:image/svg+xml,..." in src.
+     * Only http(s), protocol-relative and relative URLs point at a file we can move.
+     */
+    private function is_file_url(string $url): bool
+    {
+        return !preg_match('#^[a-z][a-z0-9+.-]*:#i', $url) || preg_match('#^https?:#i', $url) === 1;
     }
 }
