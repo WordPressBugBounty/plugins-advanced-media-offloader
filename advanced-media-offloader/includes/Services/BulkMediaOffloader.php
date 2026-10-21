@@ -5,9 +5,9 @@ namespace Advanced_Media_Offloader\Services;
 use Advanced_Media_Offloader\BulkOffloadHandler;
 use Advanced_Media_Offloader\Services\CloudAttachmentUploader;
 use Advanced_Media_Offloader\Abstracts\S3_Provider;
-use Advanced_Media_Offloader\Abstracts\WP_Background_Processing\WP_Background_Process;
+use AdvancedMediaOffloader\Bulk\BulkProcess;
 
-class BulkMediaOffloader extends WP_Background_Process
+class BulkMediaOffloader extends BulkProcess
 {
     protected $prefix = 'advmo';
     protected $action = 'bulk_offload_media_process';
@@ -17,67 +17,32 @@ class BulkMediaOffloader extends WP_Background_Process
     public function __construct(S3_Provider $cloudProvider)
     {
         parent::__construct();
-        $this->cloudAttachmentUploader = new CloudAttachmentUploader($cloudProvider);
+        $this->cloudAttachmentUploader = advmo()->app()->make(CloudAttachmentUploader::class, ['cloudProvider' => $cloudProvider]);
     }
 
     protected function task($item)
     {
-        try {
-            // Log the start of processing
-            error_log("ADVMO: Processing attachment ID {$item}");
-
-            // $item is the attachment ID
-            $result = $this->cloudAttachmentUploader->uploadAttachment($item);
-
-            // Log the result
-            error_log("ADVMO: Processed attachment ID {$item}, result: " . ($result ? 'success' : 'failed'));
-
-            // Update the processed count
-            $this->update_processed_count($result);
-
-            return false;
-        } catch (\Exception $e) {
-            // Log the error
-            error_log("ADVMO Bulk Offload Error (ID: {$item}): " . $e->getMessage());
-
-            // Mark as processed with error
-            $this->update_processed_count(false);
-
-            // Add error to attachment meta
-            update_post_meta($item, 'advmo_error_log', $e->getMessage());
-
-            return false; // Move on to the next item rather than retrying
-        }
+        return advmo()->app()->get(\AdvancedMediaOffloader\Bulk\BulkTaskRunner::class)->run(
+            $item,
+            $this->cloudAttachmentUploader,
+            $this
+        );
     }
 
     protected function complete()
     {
         parent::complete();
-        advmo_update_bulk_offload_data(['status' => 'completed']);
-
-        // Clear any stale cancel flag on normal completion.
-        delete_option('advmo_bulk_offload_cancelled');
-
-        BulkOffloadHandler::get_instance()->clear_stalled_check();
+        advmo()->app()->get(\AdvancedMediaOffloader\Bulk\BulkOffloadService::class)->finish($this->currentRunId());
     }
 
     public function update_processed_count($result_status)
     {
-        $bulk_offload_data = advmo_get_bulk_offload_data();
-        $processed_count = $bulk_offload_data['processed'];
-        $processed_count++;
-        $errors = $bulk_offload_data['errors'] ?? 0;
-
-        if ($result_status !== true) {
-            $errors++;
+        $service = advmo()->app()->get(\AdvancedMediaOffloader\Bulk\BulkOffloadService::class);
+        if ($this->currentAttachmentId() !== null && $this->currentRunId() !== null) {
+            $service->record($this->currentRunId(), $this->currentAttachmentId(), $result_status === true);
+            return;
         }
-
-        advmo_update_bulk_offload_data([
-            'processed' => $processed_count,
-            'total' => $bulk_offload_data['total'],
-            'status' => $bulk_offload_data['status'],
-            'errors' => $errors,
-        ]);
+        $service->increment($this->currentRunId(), $result_status === true);
     }
 
     public function get_identifier()

@@ -346,39 +346,14 @@ if (!function_exists('advmo_get_cloud_provider_key')) {
 if (!function_exists('advmo_get_unoffloaded_media_items_count')) {
 	function advmo_get_unoffloaded_media_items_count(): int
 	{
-		global $wpdb;
-
-		$query = "SELECT COUNT(*) FROM {$wpdb->posts} p 
-			LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = 'advmo_offloaded'
-			WHERE p.post_type = 'attachment' 
-			AND (pm.meta_value IS NULL OR pm.meta_value = '')";
-
-		return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query contains only trusted WordPress table names and fixed literals.
+		return advmo()->app()->get(\AdvancedMediaOffloader\Media\Contracts\AttachmentRepository::class)->countUnoffloaded();
 	}
 }
 
 if (!function_exists('advmo_get_offloaded_media_items_count')) {
 	function advmo_get_offloaded_media_items_count(): int
 	{
-		global $wpdb;
-
-		$query = $wpdb->prepare(
-			"SELECT COUNT(DISTINCT p.ID) 
-			FROM {$wpdb->posts} p 
-			INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
-			WHERE p.post_type = %s 
-			AND p.post_status != %s 
-			AND pm.meta_key = %s 
-			AND pm.meta_value != %s",
-			array(
-				'attachment',
-				'trash',
-				'advmo_offloaded',
-				''
-			)
-		);
-
-		return (int) $wpdb->get_var($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
+		return advmo()->app()->get(\AdvancedMediaOffloader\Media\Contracts\AttachmentRepository::class)->countOffloaded();
 	}
 }
 

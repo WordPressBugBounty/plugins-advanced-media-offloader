@@ -21,6 +21,7 @@ use Advanced_Media_Offloader\Observers\AttachmentDeleteLoadingObserver;
 use Advanced_Media_Offloader\Observers\ImagifyCompatObserver;
 use Advanced_Media_Offloader\Observers\EWWWCompatObserver;
 use AdvancedMediaOffloader\Media\AttachedFileObserver;
+use AdvancedMediaOffloader\Media\AttachmentUrlLookup;
 
 class Offloader
 {
@@ -48,6 +49,7 @@ class Offloader
 		$this->attach(new ImageSrcsetObserver($this->cloudProvider));
 		$this->attach(new ImageSrcsetMetaObserver($this->cloudProvider));
 		$this->attach(new AttachmentUrlObserver($this->cloudProvider));
+		$this->attach(new AttachmentUrlLookup($this->cloudProvider));
 		$this->attach(advmo()->app()->get(AttachedFileObserver::class));
 		$this->attach(new OffloadStatusObserver($this->cloudProvider));
 		$this->attach(new AttachmentOffloadButtonObserver($this->cloudProvider));

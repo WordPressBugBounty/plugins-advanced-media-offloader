@@ -153,7 +153,7 @@ class GeneralSettings
 			return 'todo';
 		}
 
-		$status = get_option('advmo_last_connection_status', []);
+		$status = advmo()->app()->get(\AdvancedMediaOffloader\Storage\ConnectionStatusStore::class)->read();
 		$has_result = is_array($status)
 			&& isset($status['success'])
 			&& (empty($status['provider']) || $status['provider'] === $provider_key);
@@ -876,7 +876,20 @@ class GeneralSettings
 			wp_enqueue_script('advmo_bulkoffload', ADVMO_URL . 'assets/js/advmo_bulkoffload.js', [], ADVMO_VERSION, true);
 			wp_localize_script('advmo_bulkoffload', 'advmo_ajax_object', [
 				'ajax_url' => admin_url('admin-ajax.php'),
-				'bulk_offload_nonce' => wp_create_nonce('advmo_bulk_offload')
+				'bulk_offload_nonce' => wp_create_nonce('advmo_bulk_offload'),
+				'bulk_messages' => [
+					'offload' => __('Offload Now', 'advanced-media-offloader'),
+					'resume' => __('Resume offload', 'advanced-media-offloader'),
+					'preparing' => __('Preparing…', 'advanced-media-offloader'),
+					'cancelling' => __('Cancelling after the active upload finishes…', 'advanced-media-offloader'),
+					'cancelled' => __('Bulk offload cancelled.', 'advanced-media-offloader'),
+					'paused' => __('Bulk offload paused. Resolve the problem before resuming.', 'advanced-media-offloader'),
+					'changed_run' => __('Another bulk run has started. Refresh this page to manage it.', 'advanced-media-offloader'),
+					'complete' => __('Offload complete.', 'advanced-media-offloader'),
+					'no_files' => __('No files to offload.', 'advanced-media-offloader'),
+					'failed_files' => __('Files that failed to offload:', 'advanced-media-offloader'),
+					'request_failed' => __('The request failed. Refresh the run status and try again.', 'advanced-media-offloader'),
+				]
 			]);
 		}
 
@@ -919,21 +932,8 @@ class GeneralSettings
 				throw new \Exception(__('Could not initialize cloud provider', 'advanced-media-offloader'));
 			}
 
-			$connection_result = $cloud_provider->checkConnection();
-			$is_connected = ($connection_result === true);
-
-			$error_message = '';
-			$error_hint = '';
-			$error_code = '';
-			if (!$is_connected) {
-				$error_message = $connection_result->get_error_message();
-				$error_data = (array) $connection_result->get_error_data();
-				$error_hint = isset($error_data['hint']) ? (string) $error_data['hint'] : '';
-				$error_code = isset($error_data['code']) ? (string) $error_data['code'] : '';
-			}
-
-			// The stored status records the check time regardless of result
-			$stored_status = $this->store_connection_status($cloud_provider_key, $is_connected, $error_message, $error_hint, $error_code);
+			$stored_status = advmo()->app()->get(\AdvancedMediaOffloader\Storage\ConnectionTester::class)->testProvider($cloud_provider, $cloud_provider_key);
+			$is_connected = $stored_status['success'];
 
 			// The card in the response is produced by the same renderer the
 			// settings page uses, so the two presentations can never drift.
@@ -944,7 +944,7 @@ class GeneralSettings
 				$response_data['message'] = __('Connection successful!', 'advanced-media-offloader');
 				wp_send_json_success($response_data);
 			} else {
-				$response_data['message'] = $error_message;
+				$response_data['message'] = $stored_status['message'];
 				wp_send_json_error($response_data, 401);
 			}
 		} catch (\Exception $e) {
@@ -990,18 +990,7 @@ class GeneralSettings
 	 */
 	private function store_connection_status(string $provider_key, bool $success, string $message = '', string $hint = '', string $code = ''): array
 	{
-		$status = [
-			'provider' => $provider_key,
-			'success'  => $success,
-			'message'  => $message,
-			'hint'     => $hint,
-			'code'     => $code,
-			'time'     => time(),
-		];
-
-		update_option('advmo_last_connection_status', $status, false);
-
-		return $status;
+		return advmo()->app()->get(\AdvancedMediaOffloader\Storage\ConnectionStatusStore::class)->save($provider_key, $success, $message, $hint, $code);
 	}
 
 	/**

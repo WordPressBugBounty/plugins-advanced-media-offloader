@@ -1023,7 +1023,9 @@ class EWWWCompatObserver implements ObserverInterface
             return;
         }
 
-        $this->uploadWebPFiles($attachment_id, $advmo_path);
+        if (!$this->uploadWebPFiles($attachment_id, $advmo_path)) {
+            $this->appendAttachmentError($attachment_id, 'Failed to re-upload EWWW sidecar files.');
+        }
     }
 
     /**

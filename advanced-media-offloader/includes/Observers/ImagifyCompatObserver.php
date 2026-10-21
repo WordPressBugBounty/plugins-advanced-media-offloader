@@ -1167,7 +1167,9 @@ class ImagifyCompatObserver implements ObserverInterface
             return;
         }
 
-        $this->uploadNextGenFiles($attachment_id, $advmo_path);
+        if (!$this->uploadNextGenFiles($attachment_id, $advmo_path)) {
+            $this->appendAttachmentError($attachment_id, 'Failed to re-upload Imagify sidecar files.');
+        }
     }
 
     /**

@@ -3,7 +3,7 @@
  * Plugin Name:       Advanced Media Offloader
  * Plugin URI:        https://wpfitter.com/plugins/advanced-media-offloader/
  * Description:       Save server space & speed up your site by automatically offloading media to Amazon S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2 and more.
- * Version:           4.6.0
+ * Version:           4.7.0
  * Requires at least: 5.6
  * Requires PHP:      8.1
  * Author:            WP Fitter
@@ -117,6 +117,8 @@ if (!class_exists('ADVMO')) {
 			$this->app->register(\AdvancedMediaOffloader\Providers\StorageServiceProvider::class);
 			$this->app->register(\AdvancedMediaOffloader\Providers\AdminServiceProvider::class);
 			$this->app->register(\AdvancedMediaOffloader\Providers\OffloadServiceProvider::class);
+			$this->app->register(\AdvancedMediaOffloader\Providers\MediaServiceProvider::class);
+			$this->app->register(\AdvancedMediaOffloader\Providers\AbilitiesServiceProvider::class);
 		}
 
 		public function app(): \AdvancedMediaOffloader\Foundation\Application

@@ -5,7 +5,7 @@ Tags: offload, amazon s3, cloudflare r2, cloud storage, cdn
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 4.6.0
+Stable tag: 4.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,7 @@ That's it. Most sites are fully set up in about five minutes.
 
 * **Automatic offloading** — every new upload goes straight to your cloud storage.
 * **Bulk offload existing media** — migrate your current Media Library from the Media Overview page, or use WP-CLI (`wp advmo offload`) for unlimited, scriptable migrations. ([Learn more](https://wpfitter.com/blog/advmo-bulk-offload-with-wp-cli/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=bulk-offload-cli))
+* **AI assistant and automation ready** — check your setup, find failed files, and run offloads from an AI assistant, a script, or the REST API, through the WordPress Abilities API.
 * **Flexible retention policies** — keep local copies (Retain Local Files), free up space while keeping originals as backup (Smart Local Cleanup), or remove all local files (Full Cloud Migration). ([Learn more](https://wpfitter.com/blog/implementing-smart-retention-policies-with-advanced-media-offloader/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=smart-policies))
 * **Smart URL rewriting** — all media URLs, including every thumbnail size and srcset, are served from the cloud automatically.
 * **Offload status at a glance** — cloud badges in the Media Library, an offload-status filter, and per-file "Offload Now" and "Retry Offload" buttons.
@@ -62,6 +63,30 @@ That's it. Most sites are fully set up in about five minutes.
 * **Page builders** — Elementor, Beaver Builder, Visual Composer, and any builder that uses standard WordPress media functions.
 * **Image optimizers** — [Modern Image Formats](https://wordpress.org/plugins/webp-uploads/) (recommended), Imagify, and EWWW Image Optimizer. Optimized WebP and AVIF files are offloaded alongside the originals. ([Learn more](https://wpfitter.com/blog/ewww-imagify-support-added-to-advanced-media-offloader/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=image-optimizer-compatibility))
 * **WP-CLI** — automate offloading in deployment scripts and cron jobs.
+
+= Manage your media with AI assistants =
+
+Advanced Media Offloader supports the WordPress Abilities API (WordPress 6.9 and later). AI assistants and automation tools can now work with your offloaded media, using an administrator account.
+
+Install the free [MCP Adapter](https://wordpress.org/plugins/mcp-adapter/) plugin and connect an AI assistant that supports MCP (Model Context Protocol, the standard way AI assistants connect to apps), such as Claude or Cursor. Then just ask:
+
+* "Is my cloud storage connected?"
+* "How many files are not offloaded yet?"
+* "Which files failed to offload, and why?"
+* "Start a bulk offload and show me the progress."
+
+What your assistant can do:
+
+* Check your setup, media counts, and the last connection test
+* Check the offload status of specific files
+* List files that failed to offload
+* Test the connection to your cloud storage
+* Offload or re-offload files (up to 20 at a time)
+* Start, watch, and cancel bulk offloads
+
+It always uses your saved provider and settings. It cannot change your settings, and it never receives your access keys.
+
+**[Read the AI Assistant Setup Guide →](https://wpfitter.com/documents/advanced-media-offloader/abilities-api/connect-ai-assistant/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=ai-assistant-setup)**
 
 = For developers =
 
@@ -80,6 +105,15 @@ add_filter('advmo_should_offload_attachment', function($should_offload, $attachm
 `
 
 **[View Developer Hooks Documentation →](https://wpfitter.com/documents/advanced-media-offloader/development-hooks/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=developer-hooks)**
+
+**WordPress Abilities API.** The plugin registers 9 abilities in the `advmo-media` category: `advmo/get-status`, `advmo/get-attachment-status`, `advmo/list-offload-errors`, `advmo/get-bulk-offload-status`, `advmo/test-connection`, `advmo/offload-attachments`, `advmo/reoffload-attachments`, `advmo/start-bulk-offload`, and `advmo/cancel-bulk-offload`. Run them from PHP, the REST API (`/wp-json/wp-abilities/v1/abilities/{name}/run`), or any MCP client.
+
+`
+$result = wp_get_ability('advmo/get-attachment-status')
+    ->execute(['attachment_ids' => [123, 456]]);
+`
+
+**[View Abilities API Documentation →](https://wpfitter.com/documents/advanced-media-offloader/abilities-api/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=abilities-api)**
 
 Under the hood, the plugin uses the official [AWS SDK for PHP](https://aws.amazon.com/sdk-for-php/), namespace-isolated with PHP-Scoper so it never conflicts with other plugins that bundle the same SDK.
 
@@ -167,7 +201,7 @@ define('ADVMO_MINIO_REGION', 'your-bucket-region'); // Optional. Set your MinIO 
 
 = Is Advanced Media Offloader free? =
 
-Yes. Everything described here — automatic offloading, bulk migration, WP-CLI, all six providers — is completely free. A Pro version with extras such as private media files is in the works.
+Yes. Everything described here — automatic offloading, bulk migration, WP-CLI, AI assistant support, all six providers — is completely free. A Pro version with extras such as private media files is in the works.
 
 = Which cloud storage providers are supported? =
 
@@ -184,6 +218,25 @@ Serving media from cloud storage takes load off your web server, and pairing you
 = Does it work with WooCommerce, Elementor, and other page builders? =
 
 Yes. URL rewriting hooks into WordPress core media functions (`wp_get_attachment_url` and related filters), so WooCommerce, Elementor, Beaver Builder, and most themes and plugins work without any changes.
+
+= Can I manage my offloaded media with an AI assistant? =
+
+Yes. On WordPress 6.9 or later, the plugin supports the WordPress Abilities API. Install the free MCP Adapter plugin and connect an AI assistant that supports MCP, such as Claude or Cursor. You can then ask it to check your setup, find failed files, test the connection, offload files, or run a bulk offload. There is nothing to turn on in the plugin settings. [Read the setup guide](https://wpfitter.com/documents/advanced-media-offloader/abilities-api/connect-ai-assistant/?utm_source=wp-plugin&utm_medium=readme&utm_campaign=advanced-media-offloader&utm_content=faq-ai-assistant).
+
+= Is it safe to let an AI assistant use the plugin? =
+
+These actions work only for administrators. The assistant uses your saved provider and settings. It cannot change settings or delete media, and it never receives your access keys. Offloading follows your retention policy, just like the Offload Now button. With Smart Local Cleanup or Full Cloud Migration, local copies are removed after upload. Choose Retain Local Files if you want to keep them.
+
+= Do I need an AI assistant to use these features? =
+
+No. Most of what an AI assistant can do is already one click away in the plugin:
+
+* **Test your connection** — click Save & Test Connection on the settings page.
+* **See your progress and run a bulk offload** — open the Media Overview page to start or cancel it.
+* **Find failed files** — use the cloud badges and the offload-status filter in the Media Library, or click Download Errors CSV on the Media Overview page.
+* **Offload or retry a single file** — use the Offload Now and Retry Offload buttons in the Media Library.
+
+Developers can also run these actions from PHP or the REST API, offload in bulk with WP-CLI (`wp advmo offload`), and use 20+ action and filter hooks to change how offloading works. See the "For developers" section.
 
 = Can I keep local copies of my files? =
 
@@ -245,6 +298,15 @@ Check the Media Overview page — it shows offload errors and lets you download 
 5. Support page — check the most common setup issues before asking for help.
 
 == Changelog ==
+
+= 4.7.0 =
+* Added: Support for the WordPress Abilities API (WordPress 6.9 and later). AI assistants, scripts, and other tools can now check media status, test the cloud connection, offload or re-offload files, and start or cancel bulk offloads. Only administrators can use these actions. Offloading follows your retention policy.
+* Improved: Bulk offloads are more reliable. Starting a bulk offload again joins the run already in progress, interrupted work picks up where it stopped, and the progress bar and Cancel button stay correct after you reload the page.
+* Improved: An upload and the cleanup of local copies can no longer run on the same file at the same time. This keeps a file from being removed from your server while it is still uploading.
+* Fixed: On multisite, all sites shared one bulk offload queue. Each site now has its own queue.
+* Fixed: Themes and plugins could not get the attachment ID of an offloaded file from its Custom Domain URL (`attachment_url_to_postid()` returned 0). They now get the correct ID.
+* Fixed: When you re-offloaded a file, failed uploads of its Imagify or EWWW WebP/AVIF versions were not reported. They now show as errors, so you can find and retry them.
+* Fixed: Files stored at the top level of a bucket (not in a folder) could not be re-offloaded. They can now be re-offloaded without moving them into a folder.
 
 = 4.6.0 =
 * Fixed: Images could break when no Custom Domain was set and Smart Local Cleanup or Full Cloud Migration was on. Local files were deleted while the site still served them. Now they are kept until you set a Custom Domain.
@@ -346,6 +408,9 @@ Check the Media Overview page — it shows offload errors and lets you download 
 Earlier releases are documented in `changelog.txt` included with the plugin.
 
 == Upgrade Notice ==
+
+= 4.7.0 =
+Adds WordPress Abilities API support, so AI assistants and scripts can check and offload your media. Also makes bulk offloads more reliable, gives each multisite site its own queue, and fixes attachment ID lookups for Custom Domain URLs.
 
 = 4.6.0 =
 Keeps local files until a Custom Domain is set, keeps the site running when the saved provider is gone, and fixes cloud-only SVGs and lazy-load placeholders.

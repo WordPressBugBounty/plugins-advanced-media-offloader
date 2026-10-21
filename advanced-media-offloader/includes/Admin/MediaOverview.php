@@ -204,15 +204,7 @@ class MediaOverview
 
     private function get_attachments_with_errors()
     {
-        global $wpdb;
-        $meta_key = 'advmo_error_log';
-
-        $query = $wpdb->prepare(
-            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s",
-            $meta_key
-        );
-
-        return $wpdb->get_col($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared immediately above.
+        return advmo()->app()->get(\AdvancedMediaOffloader\Media\Contracts\AttachmentRepository::class)->allErrorIds();
     }
 
     public function handle_download_errors_csv()
@@ -281,12 +273,13 @@ class MediaOverview
         echo '<p class="description"><strong>' . esc_html__('Note:', 'advanced-media-offloader') . '</strong> ';
         echo esc_html__('This web-based bulk offload supports up to 50 media attachments. For larger operations with hundreds or thousands of files, we recommend using WP CLI commands which provide better performance and reliability for large-scale operations.', 'advanced-media-offloader') . '</p><br />';
 
-        $bulk_offload_data = advmo_get_bulk_offload_data();
+        $bulk_offload_data = advmo()->app()->get(\AdvancedMediaOffloader\Bulk\BulkStatusReader::class)->read();
         $count = advmo_get_unoffloaded_media_items_count();
-        $is_offloading = $bulk_offload_data['status'] === 'processing';
-        $progress = ($is_offloading && $bulk_offload_data['total'] > 0) ? ($bulk_offload_data['processed'] / $bulk_offload_data['total']) * 100 : 0;
+        $has_run = in_array($bulk_offload_data['status'], ['starting', 'processing', 'paused', 'cancelling'], true);
+        $is_offloading = $has_run && $bulk_offload_data['status'] !== 'paused';
+        $progress = ($has_run && $bulk_offload_data['total'] > 0) ? ($bulk_offload_data['processed'] / $bulk_offload_data['total']) * 100 : 0;
 
-        if ($count > 0 || $is_offloading) {
+        if ($count > 0 || $has_run) {
             if (!$is_offloading) {
                 echo '<p>' . esc_html(sprintf(
                     /* translators: %d: number of media files stored locally. */
@@ -299,23 +292,24 @@ class MediaOverview
                     $count
                 )) . '</p>';
                 echo '<p class="description">' . esc_html__('Offload them to cloud storage now to free up space and enhance your website\'s performance.', 'advanced-media-offloader') . '</p>';
-                echo '<button type="button" id="bulk-offload-button" class="button">' . esc_html__('Offload Now', 'advanced-media-offloader') . '</button>';
             }
 
-            $display_style = $is_offloading ? 'block' : 'none';
-            $progress_width = $is_offloading ? $progress : 0;
-            $progress_text = $is_offloading ? round($progress) . '%' : '0%';
+            echo '<button type="button" id="bulk-offload-button" class="button"' . ($is_offloading ? ' disabled' : '') . '>' . ($bulk_offload_data['status'] === 'paused' ? esc_html__('Resume offload', 'advanced-media-offloader') : esc_html__('Offload Now', 'advanced-media-offloader')) . '</button>';
+
+            $display_style = $has_run ? 'block' : 'none';
+            $progress_width = $has_run ? $progress : 0;
+            $progress_text = $has_run ? round($progress) . '%' : '0%';
             if ($is_offloading && $bulk_offload_data['total'] == 0) {
                 $progress_text = __('Preparing...', 'advanced-media-offloader');
             }
 
-            $progress_status = $is_offloading ? 'processing' : 'idle';
+            $progress_status = $has_run ? $bulk_offload_data['status'] : 'idle';
             // When not actively offloading, use the current unoffloaded count as an estimate
             // so the UI can show "0 of N" immediately on start (before the first AJAX response).
-            $processed = $is_offloading ? ($bulk_offload_data['processed'] ?? 0) : 0;
-            $total = $is_offloading ? ($bulk_offload_data['total'] ?? 0) : $count;
+            $processed = $has_run ? ($bulk_offload_data['processed'] ?? 0) : 0;
+            $total = $has_run ? ($bulk_offload_data['total'] ?? 0) : $count;
 
-            echo '<div id="progress-container" style="display: ' . esc_attr($display_style) . '; margin-top: 20px;" data-status="' . esc_attr($progress_status) . '" data-total-estimate="' . esc_attr($count) . '">';
+            echo '<div id="progress-container" style="display: ' . esc_attr($display_style) . '; margin-top: 20px;" data-status="' . esc_attr($progress_status) . '" data-run-id="' . esc_attr($bulk_offload_data['run_id'] ?? '') . '" data-total-estimate="' . esc_attr($count) . '">';
             echo '<p id="progress-title" style="font-size: 16px; font-weight: bold;">' . wp_kses(
                 sprintf(
                     /* translators: 1: processed media count, 2: total media count. */
@@ -329,14 +323,7 @@ class MediaOverview
             printf('        <div id="offload-progress" style="width: %.1f%%; height: 20px; background-color: #0073aa; border-radius: 2px; transition: width 0.5s;"></div>', esc_html($progress_width));
             echo '    </div>';
             printf('    <p id="progress-text" style="margin-top: 10px; font-weight: bold;">%s</p>', esc_html($progress_text));
-            $cancel_flag = get_option("advmo_bulk_offload_cancelled");
-            $bg_cancelled = absint(get_site_option('advmo_bulk_offload_media_process_status', 0)) === 1;
-
-            if (!$cancel_flag || !$bg_cancelled) {
-                echo '<button type="button" id="bulk-offload-cancel-button" class="button">' . esc_html__('Cancel', 'advanced-media-offloader') . '</button>';
-            } else {
-                echo "<p>Canceling the bulk offload process…</p>";
-            }
+            echo '<button type="button" id="bulk-offload-cancel-button" class="button"' . (!$has_run || $bulk_offload_data['status'] === 'cancelling' ? ' disabled' : '') . '>' . esc_html__('Cancel', 'advanced-media-offloader') . '</button>';
             echo '</div>';
         } else {
             echo '<p>' . esc_html__('All media files are currently stored in the cloud.', 'advanced-media-offloader') . '</p>';

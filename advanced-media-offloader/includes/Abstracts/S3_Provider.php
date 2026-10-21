@@ -655,7 +655,7 @@ abstract class S3_Provider
 
 	protected function getConnectionStatusHTML($provider_key = '')
 	{
-		$status = get_option('advmo_last_connection_status', []);
+		$status = advmo()->app()->get(\AdvancedMediaOffloader\Storage\ConnectionStatusStore::class)->read();
 
 		$card = '';
 		if (is_array($status) && isset($status['success'])) {

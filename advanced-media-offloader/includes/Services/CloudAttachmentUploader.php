@@ -249,6 +249,14 @@ class CloudAttachmentUploader
 
     public function uploadAttachment(int $attachment_id): bool
     {
+        return true === advmo()->app()->get(\AdvancedMediaOffloader\Offload\AttachmentOperationLock::class)->run(
+            $attachment_id,
+            fn () => $this->uploadAttachmentWithoutLock($attachment_id)
+        );
+    }
+
+    private function uploadAttachmentWithoutLock(int $attachment_id): bool
+    {
         // Resuming cleanup belongs to an already-committed offload and must not
         // be blocked by a filter that only decides whether a new offload starts.
         if ($this->is_offloaded($attachment_id)) {
@@ -336,6 +344,18 @@ class CloudAttachmentUploader
     }
 
     public function uploadUpdatedAttachment(
+        int $attachment_id,
+        array $metadata,
+        string $operation = 'image_edit'
+    ): bool
+    {
+        return true === advmo()->app()->get(\AdvancedMediaOffloader\Offload\AttachmentOperationLock::class)->run(
+            $attachment_id,
+            fn () => $this->uploadUpdatedAttachmentWithoutLock($attachment_id, $metadata, $operation)
+        );
+    }
+
+    private function uploadUpdatedAttachmentWithoutLock(
         int $attachment_id,
         array $metadata,
         string $operation = 'image_edit'
@@ -565,6 +585,22 @@ class CloudAttachmentUploader
         array $required_local_files = [],
         ?int $retention_policy = null
     ): bool {
+        return true === advmo()->app()->get(\AdvancedMediaOffloader\Offload\AttachmentOperationLock::class)->run(
+            $attachment_id,
+            fn () => $this->uploadRegeneratedThumbnailsWithoutLock($attachment_id, $new_metadata, $old_metadata, $delete_obsolete, $replace_regeneration_pending, $required_local_files, $retention_policy)
+        );
+    }
+
+    private function uploadRegeneratedThumbnailsWithoutLock(
+        int $attachment_id,
+        array $new_metadata,
+        array $old_metadata,
+        bool $delete_obsolete = true,
+        bool $replace_regeneration_pending = false,
+        array $required_local_files = [],
+        ?int $retention_policy = null
+    ): bool
+    {
         if (!$this->is_offloaded($attachment_id)) {
             return true;
         }
@@ -1085,12 +1121,20 @@ class CloudAttachmentUploader
      */
     public function reoffloadAttachment(int $attachment_id): bool
     {
+        return true === advmo()->app()->get(\AdvancedMediaOffloader\Offload\AttachmentOperationLock::class)->run(
+            $attachment_id,
+            fn () => $this->reoffloadAttachmentWithoutLock($attachment_id)
+        );
+    }
+
+    private function reoffloadAttachmentWithoutLock(int $attachment_id): bool
+    {
         if (!$this->is_offloaded($attachment_id)) {
             return false;
         }
 
         $advmo_path = get_post_meta($attachment_id, 'advmo_path', true);
-        if (empty($advmo_path)) {
+        if (!metadata_exists('post', $attachment_id, 'advmo_path') || !is_string($advmo_path)) {
             return false;
         }
 
@@ -1168,7 +1212,7 @@ class CloudAttachmentUploader
          */
         do_action('advmo_reoffload_attachment', $attachment_id, $advmo_path);
 
-        return true;
+        return !$this->has_errors($attachment_id);
     }
 
     /**
@@ -1479,6 +1523,14 @@ class CloudAttachmentUploader
     }
 
     public function resumePendingLocalCleanup(int $attachment_id): bool
+    {
+        return true === advmo()->app()->get(\AdvancedMediaOffloader\Offload\AttachmentOperationLock::class)->run(
+            $attachment_id,
+            fn () => $this->resumePendingLocalCleanupWithoutLock($attachment_id)
+        );
+    }
+
+    private function resumePendingLocalCleanupWithoutLock(int $attachment_id): bool
     {
         // A pending marker can be written immediately before the commit marker.
         // A retry worker must never delete files if that final commit did not
@@ -2008,6 +2060,18 @@ class CloudAttachmentUploader
      * @return bool True only when deletion and retention metadata both complete.
      */
     public function deleteLocalFile(
+        int $attachment_id,
+        int $deleteLocalRule,
+        bool $completePendingCleanup = true
+    ): bool
+    {
+        return true === advmo()->app()->get(\AdvancedMediaOffloader\Offload\AttachmentOperationLock::class)->run(
+            $attachment_id,
+            fn () => $this->deleteLocalFileWithoutLock($attachment_id, $deleteLocalRule, $completePendingCleanup)
+        );
+    }
+
+    private function deleteLocalFileWithoutLock(
         int $attachment_id,
         int $deleteLocalRule,
         bool $completePendingCleanup = true

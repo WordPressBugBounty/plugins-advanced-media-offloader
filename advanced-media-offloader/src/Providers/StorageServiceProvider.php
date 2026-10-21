@@ -8,6 +8,8 @@ use Advanced_Media_Offloader\Abstracts\S3_Provider;
 use Advanced_Media_Offloader\Factories\CloudProviderFactory;
 use AdvancedMediaOffloader\Foundation\Container;
 use AdvancedMediaOffloader\Foundation\ServiceProvider;
+use AdvancedMediaOffloader\Storage\ConnectionStatusStore;
+use AdvancedMediaOffloader\Storage\ConnectionTester;
 use AdvancedMediaOffloader\Storage\ProviderRegistry;
 use Exception;
 
@@ -16,6 +18,8 @@ class StorageServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ProviderRegistry::class);
+        $this->app->singleton(ConnectionStatusStore::class);
+        $this->app->singleton(ConnectionTester::class);
 
         $this->app->singleton(CloudProviderFactory::class);
         $this->app->alias(CloudProviderFactory::class, 'cloud_provider_factory');

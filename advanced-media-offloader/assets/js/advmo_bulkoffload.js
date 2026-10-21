@@ -1,266 +1,135 @@
 (() => {
-	const state = {
-		isProcessing: false,
-		progress: 0,
-		processed: 0,
-		total: 0,
+	const state = { runId: null, generation: 0, timer: null, cancelling: false };
+	const ids = {
+		startButton: "bulk-offload-button", cancelButton: "bulk-offload-cancel-button",
+		progressContainer: "progress-container", progressBar: "offload-progress",
+		progressTitle: "progress-title", progressText: "progress-text",
+		processedCount: "processed-count", totalCount: "total-count",
 	};
-
-	const elements = {
-		startButton: document.getElementById("bulk-offload-button"),
-		cancelButton: document.getElementById("bulk-offload-cancel-button"),
-		progressContainer: document.getElementById("progress-container"),
-		progressBar: document.getElementById("offload-progress"),
-		progressBarContainer: document.querySelector(".progress-bar-container"),
-		progressTitle: document.getElementById("progress-title"),
-		progressText: document.getElementById("progress-text"),
-		processedCount: document.getElementById("processed-count"),
-		totalCount: document.getElementById("total-count"),
-		messageContainer: document.createElement("div"),
+	const elements = Object.fromEntries(Object.entries(ids).map(([key, id]) => [key, document.getElementById(id)]));
+	elements.progressBarContainer = document.querySelector(".progress-bar-container");
+	const message = (key, fallback) => advmo_ajax_object.bulk_messages?.[key] ?? fallback;
+	const clearPoll = () => { clearTimeout(state.timer); state.timer = null; };
+	const request = async (action, values = {}) => {
+		const body = new FormData();
+		body.append("action", action);
+		body.append("bulk_offload_nonce", advmo_ajax_object.bulk_offload_nonce);
+		Object.entries(values).forEach(([key, value]) => body.append(key, value));
+		const response = await fetch(advmo_ajax_object.ajax_url, { method: "POST", credentials: "same-origin", body });
+		const result = await response.json();
+		if (!result.success) throw new Error(result.data?.message || message("request_failed", "The request failed. Refresh the run status and try again."));
+		return result.data;
 	};
-
-	const init = () => {
-		const requiredElements = [
-			elements.startButton,
-			elements.cancelButton,
-			elements.progressContainer,
-			elements.progressBar,
-			elements.progressBarContainer,
-			elements.progressTitle,
-			elements.progressText,
-			elements.processedCount,
-			elements.totalCount,
-		];
-		if (
-			requiredElements.some((element) => !element) ||
-			!elements.progressContainer.parentNode ||
-			typeof advmo_ajax_object === "undefined"
-		) {
+	const finish = (text) => {
+		clearPoll();
+		elements.progressText.textContent = text;
+		elements.startButton.disabled = false;
+		elements.startButton.textContent = message("offload", "Offload Now");
+		elements.cancelButton.disabled = true;
+		state.cancelling = false;
+	};
+	const update = (data) => {
+		if (state.runId && data.run_id && state.runId !== data.run_id) {
+			finish(message("changed_run", "Another bulk run has started. Refresh this page to manage it."));
 			return;
 		}
-
-		elements.messageContainer.id = "advmo-message-container";
-		elements.progressContainer.parentNode.insertBefore(
-			elements.messageContainer,
-			elements.progressContainer,
-		);
-
-		elements.startButton.addEventListener("click", startBulkOffload);
-		elements.cancelButton.addEventListener("click", cancelBulkOffload);
-
-		if (elements.progressContainer.dataset.status === "processing") {
-			if (elements.startButton) {
-				elements.startButton.disabled = true;
+		state.runId = data.run_id || state.runId;
+		const processed = Math.max(0, parseInt(data.processed, 10) || 0);
+		const total = Math.max(0, parseInt(data.total, 10) || 0);
+		const percent = total > 0 ? Math.min(100, processed / total * 100) : 0;
+		elements.processedCount.textContent = String(processed);
+		elements.totalCount.textContent = String(total);
+		elements.progressBar.style.width = `${percent}%`;
+		elements.progressBar.setAttribute("aria-valuenow", percent);
+		elements.progressText.textContent = `${Math.round(percent)}%`;
+		const status = data.run_status || data.status;
+		if (status === "cancelled" || status === "completed" || status === "idle") {
+			const key = status === "cancelled" ? "cancelled" : (total === 0 ? "no_files" : "complete");
+			finish(message(key, status === "cancelled" ? "Bulk offload cancelled." : (total === 0 ? "No files to offload." : "Offload complete.")));
+			if (status === "completed" && Number(data.errors) > 0) {
+				elements.progressText.textContent += ` ${message("failed_files", "Files that failed to offload:")} ${data.errors}`;
 			}
-			elements.progressContainer.style.display = "block";
+			return;
+		}
+		if (status === "paused") {
+			finish(message("paused", "Bulk offload paused. Resolve the problem before resuming."));
+			elements.startButton.textContent = message("resume", "Resume offload");
+			elements.cancelButton.disabled = false;
+			return;
+		}
+		// Older replacement handlers may return counts without the new run fields.
+		if (!data.run_id && !data.run_status && (processed === total || total === 0)) {
+			finish(message(total === 0 ? "no_files" : "complete", total === 0 ? "No files to offload." : "Offload complete."));
+			return;
+		}
+		state.cancelling = state.cancelling || status === "cancelling";
+		elements.startButton.disabled = true;
+		elements.cancelButton.disabled = state.cancelling;
+		if (state.cancelling) elements.progressText.textContent = message("cancelling", "Cancelling after the active upload finishes…");
+		clearPoll();
+		state.timer = setTimeout(checkProgress, 5000);
+	};
+	const checkProgress = async () => {
+		clearPoll();
+		const generation = state.generation;
+		try {
+			const data = await request("advmo_check_bulk_offload_progress");
+			if (generation === state.generation) update(data);
+		} catch (error) {
+			if (generation !== state.generation) return;
+			elements.progressText.textContent = error.message;
+			state.timer = setTimeout(checkProgress, 5000);
+		}
+	};
+	const start = async (event) => {
+		event.preventDefault();
+		if (elements.startButton.disabled) return;
+		const generation = ++state.generation;
+		clearPoll();
+		state.runId = null;
+		state.cancelling = false;
+		elements.startButton.disabled = true;
+		elements.cancelButton.disabled = true;
+		elements.progressContainer.style.display = "block";
+		elements.progressText.textContent = message("preparing", "Preparing…");
+		try {
+			const data = await request("advmo_start_bulk_offload", { batch_size: 50 });
+			if (generation !== state.generation) return;
+			state.runId = data.run_id || null;
+			// Read the canonical state, including an already active or paused run.
+			checkProgress();
+		} catch (error) {
+			if (generation === state.generation) finish(error.message);
+		}
+	};
+	const cancel = async (event) => {
+		event.preventDefault();
+		if (elements.cancelButton.disabled) return;
+		const generation = ++state.generation;
+		clearPoll();
+		state.cancelling = true;
+		elements.startButton.disabled = true;
+		elements.cancelButton.disabled = true;
+		elements.progressText.textContent = message("cancelling", "Cancelling after the active upload finishes…");
+		try {
+			await request("advmo_cancel_bulk_offload", state.runId ? { run_id: state.runId } : {});
+			if (generation === state.generation) checkProgress();
+		} catch (error) {
+			if (generation !== state.generation) return;
+			state.cancelling = false;
+			elements.progressText.textContent = error.message;
+			// A failed response can still follow a saved cancellation. Read before offering controls.
+			state.timer = setTimeout(checkProgress, 5000);
+		}
+	};
+	document.addEventListener("DOMContentLoaded", () => {
+		if (typeof advmo_ajax_object === "undefined" || Object.values(elements).some((element) => !element)) return;
+		elements.startButton.addEventListener("click", start);
+		elements.cancelButton.addEventListener("click", cancel);
+		state.runId = elements.progressContainer.dataset.runId || null;
+		if (["starting", "processing", "paused", "cancelling"].includes(elements.progressContainer.dataset.status)) {
+			state.cancelling = elements.progressContainer.dataset.status === "cancelling";
 			checkProgress();
 		}
-	};
-
-	const showMessage = (message, isError = false) => {
-		elements.messageContainer.textContent = message;
-		elements.messageContainer.className = isError
-			? "error-message"
-			: "success-message";
-		elements.messageContainer.style.display = "block";
-		setTimeout(() => {
-			elements.messageContainer.style.display = "none";
-		}, 5000);
-	};
-
-	const startBulkOffload = async (e) => {
-		e.preventDefault();
-		elements.startButton.disabled = true;
-		elements.progressContainer.style.display = "block";
-		elements.progressBarContainer.style.display = "block";
-		elements.progressTitle.style.display = "block";
-
-		// Reset UI immediately so we don't briefly show stale counts from a previous run.
-		state.processed = 0;
-		// Use server-rendered estimate (unoffloaded count) if available so we show "0 of N" immediately.
-		const totalEstimate = parseInt(
-			elements.progressContainer?.dataset?.totalEstimate ?? "0",
-			10,
-		);
-		state.total =
-			!Number.isNaN(totalEstimate) && totalEstimate > 0 ? totalEstimate : 0;
-		state.progress = 0;
-		if (elements.processedCount) elements.processedCount.textContent = "0";
-		if (elements.totalCount) elements.totalCount.textContent = String(state.total);
-		if (elements.progressText) elements.progressText.textContent = "Preparing...";
-		if (elements.progressBar) elements.progressBar.style.width = "0%";
-		if (elements.cancelButton) {
-			elements.cancelButton.style.display = "inline-block";
-			elements.cancelButton.disabled = false;
-		}
-
-		const formData = new FormData();
-		formData.append("action", "advmo_start_bulk_offload");
-		formData.append(
-			"bulk_offload_nonce",
-			advmo_ajax_object.bulk_offload_nonce,
-		);
-		formData.append("batch_size", 50);
-
-		try {
-			const response = await fetch(advmo_ajax_object.ajax_url, {
-				method: "POST",
-				credentials: "same-origin",
-				body: formData,
-			});
-			const data = await response.json();
-
-			if (data.success) {
-				state.isProcessing = true;
-				// If backend returns a total, show "0 of X" immediately (prevents "0 of 0").
-				const totalFromStart = parseInt(data?.data?.total ?? "0", 10);
-				if (!Number.isNaN(totalFromStart) && totalFromStart > 0) {
-					state.total = totalFromStart;
-					if (elements.totalCount) elements.totalCount.textContent = String(totalFromStart);
-					if (elements.processedCount) elements.processedCount.textContent = "0";
-				}
-				checkProgress();
-			} else {
-				showMessage(
-					`Failed to start bulk offload process: ${data.data.message}`,
-					true,
-				);
-				elements.startButton.disabled = false;
-			}
-		} catch (error) {
-			console.error("Error:", error);
-			showMessage(
-				"An error occurred while starting the bulk offload process",
-				true,
-			);
-			elements.startButton.disabled = false;
-		}
-	};
-
-	const checkProgress = async () => {
-		const formData = new FormData();
-		formData.append("action", "advmo_check_bulk_offload_progress");
-		formData.append(
-			"bulk_offload_nonce",
-			advmo_ajax_object.bulk_offload_nonce,
-		);
-
-		try {
-			const response = await fetch(advmo_ajax_object.ajax_url, {
-				method: "POST",
-				credentials: "same-origin",
-				body: formData,
-			});
-			const data = await response.json();
-
-			if (data.success) {
-				updateProgressUI(data.data);
-			} else {
-				console.log(data.dada);
-				showMessage(`Failed to check progress.`, true);
-			}
-		} catch (error) {
-			console.error("Error:", error);
-			showMessage("An error occurred while checking the progress", true);
-		}
-	};
-
-	const updateProgressUI = (progressData) => {
-		state.processed = parseInt(progressData.processed);
-		state.total = parseInt(progressData.total);
-		state.progress =
-			state.processed !== 0 && state.total !== 0
-				? Math.min((state.processed / state.total) * 100, 100)
-				: 0;
-		state.errors = parseInt(progressData.errors);
-
-		requestAnimationFrame(() => {
-			elements.progressBar.style.width = `${state.progress}%`;
-			elements.progressBar.setAttribute("aria-valuenow", state.progress);
-			elements.progressText.textContent = `${Math.round(
-				state.progress,
-			)}%`;
-			elements.processedCount.textContent = state.processed;
-			elements.totalCount.textContent = state.total;
-
-			if (state.total === state.processed && state.total !== 0) {
-				completeOffload(state.errors);
-			} else if (state.total === 0) {
-				noFilesToOffload();
-			} else {
-				setTimeout(checkProgress, 5000);
-			}
-		});
-	};
-
-	const completeOffload = (errors) => {
-		elements.progressText.textContent = "Offload complete!";
-
-		if (errors > 0) {
-			elements.progressText.textContent = `Offload complete! ${errors} files failed to offload.`;
-		}
-		if (elements.startButton) {
-			elements.startButton.disabled = false;
-		}
-		elements.cancelButton.disabled = true;
-		elements.progressBarContainer.style.display = "none";
-		elements.progressTitle.style.display = "none";
-		elements.cancelButton.style.display = "none";
-		state.isProcessing = false;
-	};
-
-	const noFilesToOffload = () => {
-		elements.progressText.textContent = "No files to offload";
-		if (elements.startButton) {
-			elements.startButton.disabled = false;
-		}
-		elements.progressContainer.style.display = "none";
-		showMessage("No files to offload");
-		state.isProcessing = false;
-	};
-
-	const cancelBulkOffload = async (e) => {
-		e.preventDefault();
-		elements.cancelButton.disabled = true;
-
-		const formData = new FormData();
-		formData.append("action", "advmo_cancel_bulk_offload");
-		formData.append(
-			"bulk_offload_nonce",
-			advmo_ajax_object.bulk_offload_nonce,
-		);
-
-		try {
-			const response = await fetch(advmo_ajax_object.ajax_url, {
-				method: "POST",
-				credentials: "same-origin",
-				body: formData,
-			});
-			const data = await response.json();
-
-			if (data.success) {
-				showMessage("Bulk offload process cancelled successfully!");
-				if (elements.startButton) {
-					elements.startButton.disabled = false;
-				}
-				state.isProcessing = false;
-			} else {
-				console.log(data.data.message);
-				showMessage(
-					`Failed to cancel bulk offload process: ${data.data.message}`,
-					true,
-				);
-				elements.cancelButton.disabled = false;
-			}
-		} catch (error) {
-			console.error("Error:", error);
-			showMessage(
-				"An error occurred while cancelling the bulk offload process",
-				true,
-			);
-			elements.cancelButton.disabled = false;
-		}
-	};
-
-	document.addEventListener("DOMContentLoaded", init);
+	});
 })();
